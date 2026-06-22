@@ -1,3 +1,5 @@
+import prisma from "../../config/db.config.js";
+
 export const listar = async () => {
   return prisma.menu.findMany();
 }

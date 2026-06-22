@@ -1,3 +1,5 @@
+import prisma from "./../../config/db.config.js";
+
 export const listar = async () => {
   return prisma.usuario.findMany({
     select: { id: true, nombre: true, email: true, rol: true, activo: true, createdAt: true },
