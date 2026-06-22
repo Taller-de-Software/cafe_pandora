@@ -1,50 +1,47 @@
-import * as Service from "./usuarios.service.js";
+import * as usuariosService from "./usuarios.service.js";
+import { ok, created } from "../../utils/response.js";
 
 export const listar = async (req, res, next) => {
   try {
-    const data = await Service.listar();
-    res.json(data);
+    const usuarios = await usuariosService.listar();
+    ok(res, usuarios);
   } catch (err) {
     next(err);
   }
-}
+};
 
 export const obtener = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Service.obtener(Number(id));
-    if (!data) return res.status(404).json({ message: "Usuario no encontrado" });
-    res.json(data);
+    const usuario = await usuariosService.obtener(req.params.id);
+    ok(res, usuario);
   } catch (err) {
     next(err);
   }
-}
+};
 
 export const crear = async (req, res, next) => {
   try {
-    const data = await Service.crear(req.body);
-    res.status(201).json(data);
+    const usuario = await usuariosService.crear(req.body);
+    created(res, usuario, "Usuario creado");
   } catch (err) {
     next(err);
   }
-}
+};
 
 export const actualizar = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Service.actualizar(Number(id), req.body);
-    res.json(data);
+    const usuario = await usuariosService.actualizar(req.params.id, req.body);
+    ok(res, usuario, "Usuario actualizado");
   } catch (err) {
     next(err);
   }
-}
+};
 
 export const eliminar = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    await Service.eliminar(Number(id));
-    res.json({ message: "Usuario eliminado correctamente" });
+    await usuariosService.eliminar(req.params.id);
+    ok(res, null, "Usuario eliminado");
   } catch (err) {
     next(err);
   }
-}
+};

@@ -1,0 +1,164 @@
+import escpos from "escpos";
+import usb from "usb";
+
+let device = null;
+
+const SAT_VENDOR_IDS = [0x0416, 0x04b8, 0x067b, 0x0fe6, 0x1fc9];
+
+function findSATPrinter() {
+  try {
+    const devices = escpos.USB.findPrinters();
+    if (devices && devices.length > 0) {
+      return devices[0];
+    }
+  } catch {}
+
+  const devices = usb.getDeviceList();
+  for (const d of devices) {
+    const vid = d.deviceDescriptor.idVendor;
+    const pid = d.deviceDescriptor.idProduct;
+    if (SAT_VENDOR_IDS.includes(vid)) {
+      return { vendorId: vid, productId: pid };
+    }
+  }
+
+  return null;
+}
+
+function connectPrinter() {
+  return new Promise((resolve, reject) => {
+    try {
+      const printerInfo = findSATPrinter();
+      if (!printerInfo) {
+        return reject(new Error("Impresora no encontrada. Conecta la impresora SAT por USB."));
+      }
+
+      device = new escpos.USB(printerInfo.vendorId, printerInfo.productId);
+      device.open((err) => {
+        if (err) {
+          return reject(new Error("Error al abrir la impresora: " + err.message));
+        }
+        resolve();
+      });
+    } catch (err) {
+      reject(new Error("Error al conectar impresora: " + err.message));
+    }
+  });
+}
+
+function printCocina(data) {
+  return new Promise((resolve, reject) => {
+    if (!device) {
+      return reject(new Error("Impresora no conectada. Ejecuta connectPrinter() primero."));
+    }
+
+    const printer = new escpos.Printer(device);
+
+    try {
+      printer
+        .font("a")
+        .align("ct")
+        .style("b")
+        .size(1, 1)
+        .text("=== PANDORA CAFE BAR ===")
+        .text("--- FACTURA COCINA ---")
+        .text("")
+        .align("lt")
+        .text(`Pedido #: ${data.pedidoId}`)
+        .text(`Mesa: ${data.mesa}`)
+        .text(`Mesero: ${data.mesero}`)
+        .text(`Fecha: ${data.fecha}`)
+        .text("")
+        .style("b")
+        .text("--- ITEMS ---")
+        .style("normal");
+
+      for (const item of data.items) {
+        printer.text(`${item.cantidad}x ${item.nombre}`);
+        if (item.nota) {
+          printer.text(`   Nota: ${item.nota}`);
+        }
+      }
+
+      printer
+        .text("")
+        .text("----------------------------")
+        .text("")
+        .align("ct")
+        .text("Gracias por su preferencia")
+        .text("")
+        .cut()
+        .close();
+
+      resolve();
+    } catch (err) {
+      reject(new Error("Error al imprimir: " + err.message));
+    }
+  });
+}
+
+function printPago(data) {
+  return new Promise((resolve, reject) => {
+    if (!device) {
+      return reject(new Error("Impresora no conectada. Ejecuta connectPrinter() primero."));
+    }
+
+    const printer = new escpos.Printer(device);
+
+    try {
+      printer
+        .font("a")
+        .align("ct")
+        .style("b")
+        .size(1, 1)
+        .text("=== PANDORA CAFE BAR ===")
+        .text("--- RECIBO DE PAGO ---")
+        .text("")
+        .align("lt")
+        .text(`Factura: ${data.facturaNumero}`)
+        .text(`Mesa: ${data.mesa}`)
+        .text(`Fecha: ${data.fecha}`)
+        .text("")
+        .style("b")
+        .text("--- DETALLE ---")
+        .style("normal");
+
+      for (const item of data.items) {
+        const totalItem = (item.cantidad * item.precio).toFixed(2);
+        printer.text(`${item.cantidad}x ${item.nombre}  $${totalItem}`);
+      }
+
+      printer
+        .text("")
+        .text("----------------------------")
+        .style("b")
+        .align("rt")
+        .text(`TOTAL: $${data.total.toFixed(2)}`)
+        .style("normal")
+        .align("lt")
+        .text("")
+        .text("----------------------------")
+        .text("")
+        .align("ct")
+        .text("Gracias por su visita!")
+        .text("")
+        .cut()
+        .close();
+
+      resolve();
+    } catch (err) {
+      reject(new Error("Error al imprimir: " + err.message));
+    }
+  });
+}
+
+function disconnectPrinter() {
+  if (device) {
+    try {
+      device.close();
+    } catch {}
+    device = null;
+  }
+}
+
+export { connectPrinter, printCocina, printPago, disconnectPrinter };

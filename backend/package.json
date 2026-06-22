@@ -1,11 +1,18 @@
 {
-  "name": "backend",
+  "type": "module",
+  "name": "cafe-pandora-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend para Pandora Cafe Bar",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --watch server.js"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:generate": "npx prisma generate",
+    "prisma:seed": "node prisma/seed.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "keywords": [],
   "author": "",
@@ -17,12 +24,17 @@
       "onFail": "download"
     }
   },
-  "type": "module",
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "escpos": "^2.5.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "socket.io": "^4.8.1",
+    "usb": "^2.14.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "prisma": "^6.19.3"

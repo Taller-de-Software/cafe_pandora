@@ -1,11 +1,18 @@
-import app from './src/main.js'
+import http from "http";
+import app from "./src/main.js";
+import setupSocket from "./src/config/socket.js";
+import env from "./src/config/env.js";
+import { verificarYSeed } from "./src/config/db.config.js";
 
-const PORT = 3001
+const PORT = env.PORT || 3001;
 
-app.listen(PORT, () => {
-    console.log(`servidor ejecutando en http://localhost:${PORT}`)
-})
+await verificarYSeed();
 
-app.get('/', (req, res) => {
-    res.send("estas en el apartado principal del backend")
-})
+const server = http.createServer(app);
+const io = setupSocket(server);
+
+app.set("io", io);
+
+server.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto http://localhost:${PORT}`);
+});

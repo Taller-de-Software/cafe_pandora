@@ -1,12 +1,13 @@
 import { Router } from "express";
-import * as controller from "./impresion.controller.js";
+import * as impresionController from "./impresion.controller.js";
+import { authenticate } from "../../middleware/auth.js";
 
 const router = Router();
 
-router.get("/", controller.listar);
-router.get("/:id", controller.obtener);
-router.post("/", controller.crear);
-router.put("/:id", controller.actualizar);
-router.delete("/:id", controller.eliminar);
+router.use(authenticate);
+
+router.post("/cocina/:pedidoId", impresionController.imprimirFacturaCocina);
+router.post("/pago/:facturaId", impresionController.imprimirReciboPago);
+router.post("/probar", impresionController.probarImpresora);
 
 export default router;

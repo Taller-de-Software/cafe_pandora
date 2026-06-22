@@ -1,50 +1,84 @@
-import * as Service from "./menu.service.js";
+import * as menuService from "./menu.service.js";
+import { ok, created } from "../../utils/response.js";
 
-export const listar = async (req, res, next) => {
+export const listarCategorias = async (req, res, next) => {
   try {
-    const data = await Service.listar();
-    res.json(data);
+    const categorias = await menuService.listarCategorias();
+    ok(res, categorias);
   } catch (err) {
     next(err);
   }
-}
+};
 
-export const obtener = async (req, res, next) => {
+export const crearCategoria = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Service.obtener(Number(id));
-    if (!data) return res.status(404).json({ message: "Item no encontrado" });
-    res.json(data);
+    const categoria = await menuService.crearCategoria(req.body.nombre);
+    created(res, categoria, "Categoría creada");
   } catch (err) {
     next(err);
   }
-}
+};
 
-export const crear = async (req, res, next) => {
+export const actualizarCategoria = async (req, res, next) => {
   try {
-    const data = await Service.crear(req.body);
-    res.status(201).json(data);
+    const categoria = await menuService.actualizarCategoria(req.params.id, req.body.nombre);
+    ok(res, categoria, "Categoría actualizada");
   } catch (err) {
     next(err);
   }
-}
+};
 
-export const actualizar = async (req, res, next) => {
+export const eliminarCategoria = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Service.actualizar(Number(id), req.body);
-    res.json(data);
+    await menuService.eliminarCategoria(req.params.id);
+    ok(res, null, "Categoría eliminada");
   } catch (err) {
     next(err);
   }
-}
+};
 
-export const eliminar = async (req, res, next) => {
+export const listarProductos = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    await Service.eliminar(Number(id));
-    res.json({ message: "Item eliminado correctamente" });
+    const { categoriaId } = req.query;
+    const productos = await menuService.listarProductos(categoriaId ? parseInt(categoriaId) : undefined);
+    ok(res, productos);
   } catch (err) {
     next(err);
   }
-}
+};
+
+export const obtenerProducto = async (req, res, next) => {
+  try {
+    const producto = await menuService.obtenerProducto(req.params.id);
+    ok(res, producto);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const crearProducto = async (req, res, next) => {
+  try {
+    const producto = await menuService.crearProducto(req.body);
+    created(res, producto, "Producto creado");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const actualizarProducto = async (req, res, next) => {
+  try {
+    const producto = await menuService.actualizarProducto(req.params.id, req.body);
+    ok(res, producto, "Producto actualizado");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const eliminarProducto = async (req, res, next) => {
+  try {
+    await menuService.eliminarProducto(req.params.id);
+    ok(res, null, "Producto eliminado");
+  } catch (err) {
+    next(err);
+  }
+};

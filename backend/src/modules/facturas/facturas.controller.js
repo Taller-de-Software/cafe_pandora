@@ -1,50 +1,67 @@
-import * as Service from "./facturas.service.js";
+import * as facturasService from "./facturas.service.js";
+import { ok, created } from "../../utils/response.js";
+
+function getIO(req) {
+  return req.app.get("io");
+}
 
 export const listar = async (req, res, next) => {
   try {
-    const data = await Service.listar();
-    res.json(data);
+    const { pedidoId, tipo } = req.query;
+    const facturas = await facturasService.listar({
+      pedidoId: pedidoId ? parseInt(pedidoId) : undefined,
+      tipo,
+    });
+    ok(res, facturas);
   } catch (err) {
     next(err);
   }
-}
+};
 
 export const obtener = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Service.obtener(Number(id));
-    if (!data) return res.status(404).json({ message: "Factura no encontrada" });
-    res.json(data);
+    const factura = await facturasService.obtener(req.params.id);
+    ok(res, factura);
   } catch (err) {
     next(err);
   }
-}
+};
 
-export const crear = async (req, res, next) => {
+export const generarFacturaCocina = async (req, res, next) => {
   try {
-    const data = await Service.crear(req.body);
-    res.status(201).json(data);
-  } catch (err) {
-    next(err);
-  }
-}
+    const factura = await facturasService.generarFacturaCocina(parseInt(req.params.pedidoId));
 
-export const actualizar = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const data = await Service.actualizar(Number(id), req.body);
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
+    const io = getIO(req);
+    io.to("room:all").emit("impresion:lista", { facturaId: factura.id, tipo: "COCINA" });
 
-export const eliminar = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    await Service.eliminar(Number(id));
-    res.json({ message: "Factura eliminada correctamente" });
+    created(res, factura, "Factura de cocina generada");
   } catch (err) {
     next(err);
   }
-}
+};
+
+export const generarFacturaPago = async (req, res, next) => {
+  try {
+    const factura = await facturasService.generarFacturaPago(parseInt(req.params.pedidoId));
+
+    const io = getIO(req);
+    io.to("room:all").emit("impresion:lista", { facturaId: factura.id, tipo: "PAGO" });
+
+    created(res, factura, "Factura de pago generada");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const generarFacturaGrupoPago = async (req, res, next) => {
+  try {
+    const factura = await facturasService.generarFacturaGrupoPago(parseInt(req.params.grupoId));
+
+    const io = getIO(req);
+    io.to("room:all").emit("impresion:lista", { facturaId: factura.id, tipo: "PAGO" });
+
+    created(res, factura, "Factura de pago grupal generada");
+  } catch (err) {
+    next(err);
+  }
+};

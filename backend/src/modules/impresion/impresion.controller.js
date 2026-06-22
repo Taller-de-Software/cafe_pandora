@@ -1,50 +1,35 @@
-import * as Service from "./impresion.service.js";
+import * as impresionService from "./impresion.service.js";
+import { ok, error } from "../../utils/response.js";
 
-export const listar = async (req, res, next) => {
+export const imprimirFacturaCocina = async (req, res, next) => {
   try {
-    const data = await Service.listar();
-    res.json(data);
+    const result = await impresionService.imprimirFacturaCocina(parseInt(req.params.pedidoId));
+    ok(res, result, "Factura de cocina impresa");
   } catch (err) {
+    if (err.message.includes("Impresora no")) {
+      return error(res, err.message, 503);
+    }
     next(err);
   }
-}
+};
 
-export const obtener = async (req, res, next) => {
+export const imprimirReciboPago = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Service.obtener(Number(id));
-    if (!data) return res.status(404).json({ message: "Impresión no encontrada" });
-    res.json(data);
+    const result = await impresionService.imprimirReciboPago(parseInt(req.params.facturaId));
+    ok(res, result, "Recibo de pago impreso");
   } catch (err) {
+    if (err.message.includes("Impresora no")) {
+      return error(res, err.message, 503);
+    }
     next(err);
   }
-}
+};
 
-export const crear = async (req, res, next) => {
+export const probarImpresora = async (req, res, next) => {
   try {
-    const data = await Service.crear(req.body);
-    res.status(201).json(data);
+    const result = await impresionService.probarImpresora();
+    ok(res, result, "Impresora conectada correctamente");
   } catch (err) {
-    next(err);
+    error(res, err.message, 503);
   }
-}
-
-export const actualizar = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const data = await Service.actualizar(Number(id), req.body);
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
-
-export const eliminar = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    await Service.eliminar(Number(id));
-    res.json({ message: "Impresión eliminada correctamente" });
-  } catch (err) {
-    next(err);
-  }
-}
+};

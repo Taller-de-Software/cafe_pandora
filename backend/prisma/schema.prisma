@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,4 +15,89 @@ model Usuario {
   rol           String          @default("MESERO")
   activo        Boolean         @default(true)
   createdAt     DateTime        @default(now())
+  pedidos       Pedido[]
+  refreshTokens RefreshToken[]
+}
+
+model Categoria {
+  id        Int       @id @default(autoincrement())
+  nombre    String    @unique
+  productos Producto[]
+}
+
+model Producto {
+  id          Int           @id @default(autoincrement())
+  nombre      String
+  precio      Float
+  categoriaId Int
+  activo      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  categoria   Categoria     @relation(fields: [categoriaId], references: [id])
+  detalles    DetallePedido[]
+}
+
+model Mesa {
+  id        Int         @id @default(autoincrement())
+  numero    Int         @unique
+  estado    String      @default("DISPONIBLE")
+  createdAt DateTime    @default(now())
+  pedidos   Pedido[]
+  gruposPago GrupoPago[]
+}
+
+model Pedido {
+  id              Int            @id @default(autoincrement())
+  mesaId          Int
+  meseroId        Int
+  estado          String         @default("RECIBIDO")
+  grupoPagoId     Int?
+  createdAt       DateTime       @default(now())
+  mesa            Mesa           @relation(fields: [mesaId], references: [id])
+  mesero          Usuario        @relation(fields: [meseroId], references: [id])
+  grupoPago       GrupoPago?     @relation(fields: [grupoPagoId], references: [id])
+  detalles        DetallePedido[]
+  facturas        Factura[]
+}
+
+model DetallePedido {
+  id         Int      @id @default(autoincrement())
+  pedidoId   Int
+  productoId Int
+  cantidad   Int
+  precio     Float
+  nota       String?
+  completado Boolean  @default(false)
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  producto   Producto @relation(fields: [productoId], references: [id])
+}
+
+model Factura {
+  id          Int        @id @default(autoincrement())
+  pedidoId    Int
+  tipo        String
+  numero      String     @unique
+  total       Float?
+  grupoPagoId Int?
+  createdAt   DateTime   @default(now())
+  pedido      Pedido     @relation(fields: [pedidoId], references: [id])
+  grupoPago   GrupoPago? @relation(fields: [grupoPagoId], references: [id])
+}
+
+model GrupoPago {
+  id        Int       @id @default(autoincrement())
+  mesaId    Int
+  total     Float     @default(0)
+  createdAt DateTime  @default(now())
+  mesa      Mesa      @relation(fields: [mesaId], references: [id])
+  pedidos   Pedido[]
+  facturas  Factura[]
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

@@ -1,50 +1,126 @@
-import * as Service from "./pedidos.service.js";
+import * as pedidosService from "./pedidos.service.js";
+import { ok, created, badRequest } from "../../utils/response.js";
+
+function getIO(req) {
+  return req.app.get("io");
+}
 
 export const listar = async (req, res, next) => {
   try {
-    const data = await Service.listar();
-    res.json(data);
+    const { estado, mesaId } = req.query;
+    const filters = {};
+    if (estado) filters.estado = estado;
+    if (mesaId) filters.mesaId = parseInt(mesaId);
+    const pedidos = await pedidosService.listar(filters);
+    ok(res, pedidos);
   } catch (err) {
     next(err);
   }
-}
+};
 
 export const obtener = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Service.obtener(Number(id));
-    if (!data) return res.status(404).json({ message: "Pedido no encontrado" });
-    res.json(data);
+    const pedido = await pedidosService.obtener(req.params.id);
+    ok(res, pedido);
   } catch (err) {
     next(err);
   }
-}
+};
 
 export const crear = async (req, res, next) => {
   try {
-    const data = await Service.crear(req.body);
-    res.status(201).json(data);
-  } catch (err) {
-    next(err);
-  }
-}
+    const { mesaId, items } = req.body;
+    if (!mesaId || !items || !items.length) {
+      return badRequest(res, "Mesa e items requeridos");
+    }
+    const pedido = await pedidosService.crear({
+      mesaId,
+      meseroId: req.user.id,
+      items,
+    });
 
-export const actualizar = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const data = await Service.actualizar(Number(id), req.body);
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
+    const io = getIO(req);
+    io.to("room:ADMIN").emit("pedido:nuevo", pedido);
+    io.to("room:all").emit("mesa:actualizada", { mesaId });
 
-export const eliminar = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    await Service.eliminar(Number(id));
-    res.json({ message: "Pedido eliminado correctamente" });
+    created(res, pedido, "Pedido creado");
   } catch (err) {
     next(err);
   }
-}
+};
+
+export const cambiarEstado = async (req, res, next) => {
+  try {
+    const { estado, motivoCancelacion } = req.body;
+    const pedido = await pedidosService.cambiarEstado(
+      req.params.id,
+      estado,
+      motivoCancelacion
+    );
+
+    const io = getIO(req);
+    io.to("room:all").emit("pedido:estado", {
+      pedidoId: pedido.id,
+      estado: pedido.estado,
+    });
+
+    ok(res, pedido, "Estado actualizado");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const completarDetalle = async (req, res, next) => {
+  try {
+    const detalle = await pedidosService.completarDetalle(
+      parseInt(req.params.detalleId)
+    );
+
+    const io = getIO(req);
+    io.to("room:all").emit("detalle:completado", {
+      detalleId: detalle.id,
+      pedidoId: detalle.pedidoId,
+    });
+
+    ok(res, detalle, "Detalle completado");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const fusionarPedidos = async (req, res, next) => {
+  try {
+    const { pedidoIds } = req.body;
+    if (!pedidoIds || pedidoIds.length < 2) {
+      return badRequest(res, "Se requieren al menos 2 pedidos para fusionar");
+    }
+    const result = await pedidosService.fusionarPedidos(pedidoIds);
+
+    const io = getIO(req);
+    io.to("room:all").emit("pedido:fusionado", result);
+
+    ok(res, result, "Pedidos fusionados");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const cancelar = async (req, res, next) => {
+  try {
+    const { motivoCancelacion } = req.body;
+    const pedido = await pedidosService.cancelar(
+      req.params.id,
+      motivoCancelacion
+    );
+
+    const io = getIO(req);
+    io.to("room:all").emit("pedido:estado", {
+      pedidoId: pedido.id,
+      estado: pedido.estado,
+    });
+
+    ok(res, pedido, "Pedido cancelado");
+  } catch (err) {
+    next(err);
+  }
+};

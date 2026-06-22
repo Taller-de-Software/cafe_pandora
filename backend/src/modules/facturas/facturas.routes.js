@@ -1,12 +1,15 @@
 import { Router } from "express";
-import * as controller from "./facturas.controller.js";
+import * as facturasController from "./facturas.controller.js";
+import { authenticate } from "../../middleware/auth.js";
 
 const router = Router();
 
-router.get("/", controller.listar);
-router.get("/:id", controller.obtener);
-router.post("/", controller.crear);
-router.put("/:id", controller.actualizar);
-router.delete("/:id", controller.eliminar);
+router.use(authenticate);
+
+router.get("/", facturasController.listar);
+router.get("/:id", facturasController.obtener);
+router.post("/cocina/:pedidoId", facturasController.generarFacturaCocina);
+router.post("/pago/:pedidoId", facturasController.generarFacturaPago);
+router.post("/pago/grupo/:grupoId", facturasController.generarFacturaGrupoPago);
 
 export default router;
