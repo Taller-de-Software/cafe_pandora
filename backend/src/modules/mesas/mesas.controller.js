@@ -21,7 +21,7 @@ export const obtener = async (req, res, next) => {
 
 export const crear = async (req, res, next) => {
   try {
-    const mesa = await mesasService.crear(req.body.numero);
+    const mesa = await mesasService.crear(req.body);
     created(res, mesa, "Mesa creada");
   } catch (err) {
     next(err);

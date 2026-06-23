@@ -10,7 +10,7 @@ export const listar = async () => {
   return prisma.mesa.findMany({
     orderBy: { numero: "asc" },
     include: {
-      _count: { select: { pedidos: { where: { estado: { notIn: ["PAGADO", "CANCELADO"] } } } } },
+      _count: { select: { pedidos: { where: { estado: { notIn: ["hecho", "cancelado"] } } } } },
     },
   });
 };
@@ -21,10 +21,8 @@ export const obtener = async (id) => {
   return mesa;
 };
 
-export const crear = async (numero) => {
-  const existe = await prisma.mesa.findUnique({ where: { numero } });
-  if (existe) throw crearError(400, "El número de mesa ya existe");
-  return prisma.mesa.create({ data: { numero } });
+export const crear = async (data) => {
+  return prisma.mesa.create({ data });
 };
 
 export const actualizar = async (id, data) => {

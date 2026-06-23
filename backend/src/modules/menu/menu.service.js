@@ -12,12 +12,12 @@ export const listarCategorias = async () => {
   });
 };
 
-export const crearCategoria = async (nombre) => {
-  return prisma.categoria.create({ data: { nombre } });
+export const crearCategoria = async (data) => {
+  return prisma.categoria.create({ data });
 };
 
-export const actualizarCategoria = async (id, nombre) => {
-  return prisma.categoria.update({ where: { id }, data: { nombre } });
+export const actualizarCategoria = async (id, data) => {
+  return prisma.categoria.update({ where: { id }, data });
 };
 
 export const eliminarCategoria = async (id) => {
@@ -29,7 +29,7 @@ export const eliminarCategoria = async (id) => {
 };
 
 export const listarProductos = async (categoriaId) => {
-  const where = categoriaId ? { categoriaId, activo: true } : { activo: true };
+  const where = categoriaId ? { categoriaId } : {};
   return prisma.producto.findMany({
     where,
     include: { categoria: { select: { id: true, nombre: true } } },
@@ -47,13 +47,7 @@ export const obtenerProducto = async (id) => {
 };
 
 export const crearProducto = async (data) => {
-  return prisma.producto.create({
-    data: {
-      nombre: data.nombre,
-      precio: data.precio,
-      categoriaId: data.categoriaId,
-    },
-  });
+  return prisma.producto.create({ data });
 };
 
 export const actualizarProducto = async (id, data) => {
@@ -61,5 +55,5 @@ export const actualizarProducto = async (id, data) => {
 };
 
 export const eliminarProducto = async (id) => {
-  return prisma.producto.update({ where: { id }, data: { activo: false } });
+  return prisma.producto.delete({ where: { id } });
 };

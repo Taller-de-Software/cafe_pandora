@@ -4,28 +4,23 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const adminPassword = await bcrypt.hash("admin123", 10);
-  const meseroPassword = await bcrypt.hash("mesero123", 10);
+  const adminPin = await bcrypt.hash("1234", 10);
 
   await prisma.usuario.upsert({
-    where: { email: "admin@pandora.com" },
+    where: { rol: "administrador" },
     update: {},
     create: {
-      nombre: "Admin",
-      email: "admin@pandora.com",
-      password: adminPassword,
-      rol: "ADMIN",
+      rol: "administrador",
+      pin: adminPin,
     },
   });
 
   await prisma.usuario.upsert({
-    where: { email: "mesero@pandora.com" },
+    where: { rol: "mesero" },
     update: {},
     create: {
-      nombre: "Mesero Default",
-      email: "mesero@pandora.com",
-      password: meseroPassword,
-      rol: "MESERO",
+      rol: "mesero",
+      pin: null,
     },
   });
 
@@ -33,17 +28,17 @@ async function main() {
     prisma.categoria.upsert({
       where: { nombre: "Bebidas" },
       update: {},
-      create: { nombre: "Bebidas" },
+      create: { nombre: "Bebidas", tipo: "bebida" },
     }),
     prisma.categoria.upsert({
       where: { nombre: "Comidas" },
       update: {},
-      create: { nombre: "Comidas" },
+      create: { nombre: "Comidas", tipo: "platillo" },
     }),
     prisma.categoria.upsert({
       where: { nombre: "Postres" },
       update: {},
-      create: { nombre: "Postres" },
+      create: { nombre: "Postres", tipo: "platillo" },
     }),
   ]);
 
@@ -51,22 +46,23 @@ async function main() {
 
   const productosData = [];
   for (const p of [
-    { nombre: "Coca Cola", precio: 15, categoria: "Bebidas" },
-    { nombre: "Agua Natural", precio: 10, categoria: "Bebidas" },
-    { nombre: "Jugo de Naranja", precio: 18, categoria: "Bebidas" },
-    { nombre: "Café Americano", precio: 12, categoria: "Bebidas" },
-    { nombre: "Hamburguesa", precio: 45, categoria: "Comidas" },
-    { nombre: "Pizza Personal", precio: 55, categoria: "Comidas" },
-    { nombre: "Tacos (3)", precio: 35, categoria: "Comidas" },
-    { nombre: "Ensalada César", precio: 40, categoria: "Comidas" },
-    { nombre: "Pastel de Chocolate", precio: 25, categoria: "Postres" },
-    { nombre: "Helado", precio: 20, categoria: "Postres" },
+    { nombre: "Coca Cola", precio: 15, tipo: "bebida", categoria: "Bebidas" },
+    { nombre: "Agua Natural", precio: 10, tipo: "bebida", categoria: "Bebidas" },
+    { nombre: "Jugo de Naranja", precio: 18, tipo: "bebida", categoria: "Bebidas" },
+    { nombre: "Café Americano", precio: 12, tipo: "bebida", categoria: "Bebidas" },
+    { nombre: "Hamburguesa", precio: 45, tipo: "platillo", categoria: "Comidas" },
+    { nombre: "Pizza Personal", precio: 55, tipo: "platillo", categoria: "Comidas" },
+    { nombre: "Tacos (3)", precio: 35, tipo: "platillo", categoria: "Comidas" },
+    { nombre: "Ensalada César", precio: 40, tipo: "platillo", categoria: "Comidas" },
+    { nombre: "Pastel de Chocolate", precio: 25, tipo: "platillo", categoria: "Postres" },
+    { nombre: "Helado", precio: 20, tipo: "platillo", categoria: "Postres" },
   ]) {
     const cat = await prisma.categoria.findUnique({ where: { nombre: p.categoria } });
     if (cat) {
       productosData.push({
         nombre: p.nombre,
         precio: p.precio,
+        tipo: p.tipo,
         categoriaId: cat.id,
       });
     }
@@ -78,9 +74,12 @@ async function main() {
 
   for (let i = 1; i <= 10; i++) {
     await prisma.mesa.upsert({
-      where: { numero: i },
+      where: { numero: String(i) },
       update: {},
-      create: { numero: i, estado: "DISPONIBLE" },
+      create: {
+        numero: String(i),
+        ubicacion: i <= 5 ? "Interior" : "Terraza",
+      },
     });
   }
 
