@@ -7,7 +7,7 @@ function crearError(statusCode, message) {
   return error;
 }
 
-const usuarioSelect = { id: true, nombre: true, email: true, rol: true, activo: true, createdAt: true };
+const usuarioSelect = { id: true, rol: true };
 
 export const listar = async () => {
   return prisma.usuario.findMany({ select: usuarioSelect });
@@ -20,21 +20,20 @@ export const obtener = async (id) => {
 };
 
 export const crear = async (data) => {
-  const password = await hashPassword(data.password);
+  const createData = {};
+  if (data.pin) {
+    createData.pin = await hashPassword(data.pin);
+  }
   return prisma.usuario.create({
-    data: { ...data, password },
+    data: { rol: data.rol, ...createData },
     select: usuarioSelect,
   });
 };
 
 export const actualizar = async (id, data) => {
   const updateData = {};
-  if (data.nombre) updateData.nombre = data.nombre;
-  if (data.email) updateData.email = data.email;
-  if (data.rol) updateData.rol = data.rol;
-  if (data.activo !== undefined) updateData.activo = data.activo;
-  if (data.password) {
-    updateData.password = await hashPassword(data.password);
+  if (data.pin) {
+    updateData.pin = await hashPassword(data.pin);
   }
 
   return prisma.usuario.update({
@@ -47,8 +46,5 @@ export const actualizar = async (id, data) => {
 export const eliminar = async (id) => {
   const usuario = await prisma.usuario.findUnique({ where: { id } });
   if (!usuario) throw crearError(404, "Usuario no encontrado");
-  return prisma.usuario.update({
-    where: { id },
-    data: { activo: false },
-  });
+  return prisma.usuario.delete({ where: { id } });
 };

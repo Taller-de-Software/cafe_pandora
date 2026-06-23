@@ -19,7 +19,6 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     where: { id: pedidoId },
     include: {
       mesa: true,
-      mesero: { select: { nombre: true } },
       detalles: { include: { producto: true } },
     },
   });
@@ -31,12 +30,11 @@ export const imprimirFacturaCocina = async (pedidoId) => {
   const data = {
     pedidoId: pedido.id,
     mesa: pedido.mesa.numero,
-    mesero: pedido.mesero.nombre,
     fecha: formatFecha(),
     items: pedido.detalles.map((d) => ({
       cantidad: d.cantidad,
       nombre: d.producto.nombre,
-      nota: d.nota,
+      nota: d.notas,
     })),
   };
 
@@ -56,13 +54,6 @@ export const imprimirReciboPago = async (facturaId) => {
           detalles: { include: { producto: true } },
         },
       },
-      grupoPago: {
-        include: {
-          pedidos: {
-            include: { detalles: { include: { producto: true } }, mesa: true },
-          },
-        },
-      },
     },
   });
 
@@ -70,40 +61,19 @@ export const imprimirReciboPago = async (facturaId) => {
 
   await connectPrinter();
 
-  let items = [];
-  let mesa = "";
-  let total = factura.total || 0;
-
-  if (factura.grupoPago) {
-    for (const p of factura.grupoPago.pedidos) {
-      mesa = p.mesa.numero;
-      for (const d of p.detalles) {
-        items.push({
-          cantidad: d.cantidad,
-          nombre: d.producto.nombre,
-          precio: d.precio,
-        });
-      }
-    }
-    total = factura.grupoPago.total;
-  } else {
-    mesa = factura.pedido.mesa.numero;
-    for (const d of factura.pedido.detalles) {
-      items.push({
-        cantidad: d.cantidad,
-        nombre: d.producto.nombre,
-        precio: d.precio,
-      });
-    }
-    total = factura.pedido.detalles.reduce((sum, d) => sum + d.cantidad * d.precio, 0);
-  }
+  const mesa = factura.pedido.mesa.numero;
+  const items = factura.pedido.detalles.map((d) => ({
+    cantidad: d.cantidad,
+    nombre: d.producto.nombre,
+    precio: d.precioUnitario,
+  }));
 
   const data = {
-    facturaNumero: factura.numero,
+    facturaId: factura.id,
     mesa,
     fecha: formatFecha(),
     items,
-    total,
+    total: factura.total,
   };
 
   await printPago(data);

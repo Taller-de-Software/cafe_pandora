@@ -1,5 +1,5 @@
 import prisma from "../../config/db.config.js";
-import { ESTADOS_PEDIDO } from "../../config/constants.js";
+import { ESTADOS_PEDIDO, ESTADOS_MESA } from "../../config/constants.js";
 
 function crearError(statusCode, message) {
   const error = new Error(message);
@@ -16,11 +16,11 @@ export const listar = async (filters = {}) => {
     where,
     include: {
       mesa: true,
-      mesero: { select: { id: true, nombre: true } },
+      usuario: { select: { id: true, rol: true } },
       detalles: { include: { producto: true } },
-      facturas: true,
+      factura: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { creadoEn: "desc" },
   });
 };
 
@@ -29,17 +29,16 @@ export const obtener = async (id) => {
     where: { id },
     include: {
       mesa: true,
-      mesero: { select: { id: true, nombre: true } },
+      usuario: { select: { id: true, rol: true } },
       detalles: { include: { producto: true } },
-      facturas: true,
-      grupoPago: true,
+      factura: true,
     },
   });
   if (!pedido) throw crearError(404, "Pedido no encontrado");
   return pedido;
 };
 
-export const crear = async (data) => {
+export const crear = async (data, usuarioId) => {
   const items = await Promise.all(
     data.items.map(async (item) => {
       const producto = await prisma.producto.findUnique({ where: { id: item.productoId } });
@@ -47,58 +46,58 @@ export const crear = async (data) => {
       return {
         productoId: item.productoId,
         cantidad: item.cantidad,
-        precio: producto.precio,
-        nota: item.nota || null,
+        precioUnitario: producto.precio,
+        notas: item.notas || null,
       };
     })
   );
 
   const pedido = await prisma.pedido.create({
     data: {
+      turno: data.turno,
       mesaId: data.mesaId,
-      meseroId: data.meseroId,
+      usuarioId,
       estado: ESTADOS_PEDIDO.RECIBIDO,
       detalles: { create: items },
     },
     include: {
       mesa: true,
-      mesero: { select: { id: true, nombre: true } },
+      usuario: { select: { id: true, rol: true } },
       detalles: { include: { producto: true } },
     },
   });
 
   await prisma.mesa.update({
     where: { id: data.mesaId },
-    data: { estado: "OCUPADA" },
+    data: { estado: ESTADOS_MESA.OCUPADA },
   });
 
   return pedido;
 };
 
-export const cambiarEstado = async (id, nuevoEstado, motivoCancelacion) => {
+export const cambiarEstado = async (id, nuevoEstado) => {
   const pedido = await prisma.pedido.findUnique({ where: { id } });
   if (!pedido) throw crearError(404, "Pedido no encontrado");
 
   const transicionesValidas = {
-    [ESTADOS_PEDIDO.RECIBIDO]: [ESTADOS_PEDIDO.EN_PROCESO, ESTADOS_PEDIDO.CANCELADO],
-    [ESTADOS_PEDIDO.EN_PROCESO]: [ESTADOS_PEDIDO.ESPERA_PAGO, ESTADOS_PEDIDO.CANCELADO],
-    [ESTADOS_PEDIDO.ESPERA_PAGO]: [ESTADOS_PEDIDO.PAGADO],
-    [ESTADOS_PEDIDO.PAGADO]: [],
+    [ESTADOS_PEDIDO.RECIBIDO]: [ESTADOS_PEDIDO.PENDIENTE, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.PENDIENTE]: [ESTADOS_PEDIDO.HECHO, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.HECHO]: [],
     [ESTADOS_PEDIDO.CANCELADO]: [],
   };
 
-  if (!transicionesValidas[pedido.estado].includes(nuevoEstado)) {
+  if (!transicionesValidas[pedido.estado]?.includes(nuevoEstado)) {
     throw crearError(400, `No se puede cambiar de ${pedido.estado} a ${nuevoEstado}`);
   }
 
-  const updateData = { estado: nuevoEstado };
-  if (nuevoEstado === ESTADOS_PEDIDO.CANCELADO) {
-    updateData.motivoCancelacion = motivoCancelacion || null;
-  }
+  const timestamps = {};
+  if (nuevoEstado === ESTADOS_PEDIDO.PENDIENTE) timestamps.pendienteEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.HECHO) timestamps.hechoEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.CANCELADO) timestamps.cerradoEn = new Date();
 
   return prisma.pedido.update({
     where: { id },
-    data: updateData,
+    data: { estado: nuevoEstado, ...timestamps },
     include: {
       mesa: true,
       detalles: { include: { producto: true } },
@@ -106,66 +105,16 @@ export const cambiarEstado = async (id, nuevoEstado, motivoCancelacion) => {
   });
 };
 
-export const completarDetalle = async (detalleId) => {
-  const detalle = await prisma.detallePedido.findUnique({
-    where: { id: detalleId },
-    include: { pedido: true },
-  });
-  if (!detalle) throw crearError(404, "Detalle no encontrado");
-  if (detalle.pedido.estado !== ESTADOS_PEDIDO.EN_PROCESO) {
-    throw crearError(400, "El pedido no está en proceso");
-  }
+export const cancelar = async (id) => {
+  const pedido = await prisma.pedido.findUnique({ where: { id } });
+  if (!pedido) throw crearError(404, "Pedido no encontrado");
 
-  return prisma.detallePedido.update({
-    where: { id: detalleId },
-    data: { completado: true },
-    include: { producto: true },
-  });
-};
-
-export const fusionarPedidos = async (pedidoIds) => {
-  const pedidos = await prisma.pedido.findMany({
-    where: { id: { in: pedidoIds } },
-    include: { detalles: true },
-  });
-
-  if (pedidos.length !== pedidoIds.length) {
-    throw crearError(404, "Algunos pedidos no existen");
-  }
-
-  const mesaId = pedidos[0].mesaId;
-  for (const p of pedidos) {
-    if (p.mesaId !== mesaId) {
-      throw crearError(400, "Los pedidos deben ser de la misma mesa");
-    }
-    if (p.estado !== ESTADOS_PEDIDO.ESPERA_PAGO) {
-      throw crearError(400, `El pedido ${p.id} no está en espera de pago`);
-    }
-  }
-
-  let total = 0;
-  for (const p of pedidos) {
-    for (const d of p.detalles) {
-      total += d.cantidad * d.precio;
-    }
-  }
-
-  const grupoPago = await prisma.grupoPago.create({
-    data: {
-      mesaId,
-      total,
-      pedidos: { connect: pedidos.map((p) => ({ id: p.id })) },
-    },
-  });
-
-  return prisma.grupoPago.findUnique({
-    where: { id: grupoPago.id },
+  return prisma.pedido.update({
+    where: { id },
+    data: { estado: ESTADOS_PEDIDO.CANCELADO, cerradoEn: new Date() },
     include: {
-      pedidos: { include: { detalles: { include: { producto: true } }, mesa: true } },
+      mesa: true,
+      detalles: { include: { producto: true } },
     },
   });
-};
-
-export const cancelar = async (id, motivoCancelacion) => {
-  return cambiarEstado(id, ESTADOS_PEDIDO.CANCELADO, motivoCancelacion);
 };
