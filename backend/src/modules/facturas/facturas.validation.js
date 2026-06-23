@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-export const listarFacturasSchema = z.object({
-  pedidoId: z.coerce.number().int().positive().optional(),
-  tipo: z.enum(["COCINA", "PAGO"]).optional(),
+export const crearFacturaSchema = z.object({
+  pedidoId: z.number().int().positive(),
+  subtotal: z.number().positive(),
+  impuestoConsumo: z.boolean().default(false),
+  total: z.number().positive(),
+  metodoPago: z.enum(["efectivo", "transferencia", "tarjeta"]),
+  entidadBancaria: z.string().trim().optional(),
 }).strict();

@@ -1,36 +1,29 @@
 export const ROLES = {
-  ADMIN: "ADMIN",
-  MESERO: "MESERO",
+  ADMIN: "administrador",
+  MESERO: "mesero",
 };
 
 export const ESTADOS_PEDIDO = {
-  RECIBIDO: "RECIBIDO",
-  EN_PROCESO: "EN_PROCESO",
-  ESPERA_PAGO: "ESPERA_PAGO",
-  PAGADO: "PAGADO",
-  CANCELADO: "CANCELADO",
-};
-
-export const TIPOS_FACTURA = {
-  COCINA: "COCINA",
-  PAGO: "PAGO",
+  RECIBIDO: "recibido",
+  PENDIENTE: "pendiente",
+  HECHO: "hecho",
+  CANCELADO: "cancelado",
 };
 
 export const ESTADOS_MESA = {
-  DISPONIBLE: "DISPONIBLE",
-  OCUPADA: "OCUPADA",
+  VACIA: "vacia",
+  OCUPADA: "ocupada",
+  POR_PAGAR: "por_pagar",
+  RESERVADA: "reservada",
 };
 
 export const METODOS_PAGO = {
-  EFECTIVO: 'efectivo',
-  NEQUI: 'nequi',
-  BANCOLOMBIA: 'bancolombia',
-  TARJETA: 'tarjeta',
+  EFECTIVO: "efectivo",
+  TRANSFERENCIA: "transferencia",
+  TARJETA: "tarjeta",
 };
 
 export const TOKEN_EXPIRACION = {
   ACCESS: "15m",
   REFRESH: "7d",
 };
-
-export const REFRESH_TOKEN_DIAS_VALIDO = 7;

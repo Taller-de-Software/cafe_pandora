@@ -12,7 +12,7 @@ export const listarCategorias = async (req, res, next) => {
 
 export const crearCategoria = async (req, res, next) => {
   try {
-    const categoria = await menuService.crearCategoria(req.body.nombre);
+    const categoria = await menuService.crearCategoria(req.body);
     created(res, categoria, "Categoría creada");
   } catch (err) {
     next(err);
@@ -21,7 +21,7 @@ export const crearCategoria = async (req, res, next) => {
 
 export const actualizarCategoria = async (req, res, next) => {
   try {
-    const categoria = await menuService.actualizarCategoria(req.params.id, req.body.nombre);
+    const categoria = await menuService.actualizarCategoria(req.params.id, req.body);
     ok(res, categoria, "Categoría actualizada");
   } catch (err) {
     next(err);

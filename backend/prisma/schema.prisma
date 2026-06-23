@@ -7,97 +7,221 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+// ─────────────────────────────────────────
+// USUARIOS
+// ─────────────────────────────────────────
 model Usuario {
-  id            Int             @id @default(autoincrement())
-  nombre        String
-  email         String          @unique
-  password      String
-  rol           String          @default("MESERO")
-  activo        Boolean         @default(true)
-  createdAt     DateTime        @default(now())
-  pedidos       Pedido[]
-  refreshTokens RefreshToken[]
-}
-
-model Categoria {
-  id        Int       @id @default(autoincrement())
-  nombre    String    @unique
-  productos Producto[]
-}
-
-model Producto {
-  id          Int           @id @default(autoincrement())
-  nombre      String
-  precio      Float
-  categoriaId Int
-  activo      Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  categoria   Categoria     @relation(fields: [categoriaId], references: [id])
-  detalles    DetallePedido[]
-}
-
-model Mesa {
-  id        Int         @id @default(autoincrement())
-  numero    Int         @unique
-  estado    String      @default("DISPONIBLE")
-  createdAt DateTime    @default(now())
-  pedidos   Pedido[]
-  gruposPago GrupoPago[]
-}
-
-model Pedido {
-  id              Int            @id @default(autoincrement())
-  mesaId          Int
-  meseroId        Int
-  estado          String         @default("RECIBIDO")
-  grupoPagoId     Int?
-  createdAt       DateTime       @default(now())
-  mesa            Mesa           @relation(fields: [mesaId], references: [id])
-  mesero          Usuario        @relation(fields: [meseroId], references: [id])
-  grupoPago       GrupoPago?     @relation(fields: [grupoPagoId], references: [id])
-  detalles        DetallePedido[]
-  facturas        Factura[]
-}
-
-model DetallePedido {
-  id         Int      @id @default(autoincrement())
-  pedidoId   Int
-  productoId Int
-  cantidad   Int
-  precio     Float
-  nota       String?
-  completado Boolean  @default(false)
-  pedido     Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  producto   Producto @relation(fields: [productoId], references: [id])
-}
-
-model Factura {
-  id          Int        @id @default(autoincrement())
-  pedidoId    Int
-  tipo        String
-  numero      String     @unique
-  total       Float?
-  grupoPagoId Int?
-  createdAt   DateTime   @default(now())
-  pedido      Pedido     @relation(fields: [pedidoId], references: [id])
-  grupoPago   GrupoPago? @relation(fields: [grupoPagoId], references: [id])
-}
-
-model GrupoPago {
-  id        Int       @id @default(autoincrement())
-  mesaId    Int
-  total     Float     @default(0)
-  createdAt DateTime  @default(now())
-  mesa      Mesa      @relation(fields: [mesaId], references: [id])
-  pedidos   Pedido[]
-  facturas  Factura[]
-}
-
-model RefreshToken {
   id        Int      @id @default(autoincrement())
-  token     String   @unique
+  rol       Rol      @unique
+  pin       String?  // solo administrador, hasheado con bcrypt
+
+  pedidos       Pedido[]
+  cajaSesiones  CajaSesion[]
+  retirosCaja   RetiroCaja[]
+
+  @@map("usuarios")
+}
+
+enum Rol {
+  administrador
+  mesero
+}
+
+// ─────────────────────────────────────────
+// MESAS
+// ─────────────────────────────────────────
+model Mesa {
+  id           Int         @id @default(autoincrement())
+  numero       String      @unique
+  ubicacion    String
+  estado       EstadoMesa  @default(vacia)
+  personalizada Boolean    @default(false)
+
+  pedidos          Pedido[] @relation("MesaActual")
+  pedidosOrigen    Pedido[] @relation("MesaOrigen")
+  unionMesas       UnionMesa[]
+
+  @@map("mesas")
+}
+
+enum EstadoMesa {
+  vacia
+  ocupada
+  por_pagar
+  reservada
+}
+
+// ─────────────────────────────────────────
+// CATEGORIAS
+// ─────────────────────────────────────────
+model Categoria {
+  id     Int            @id @default(autoincrement())
+  nombre String         @unique
+  tipo   TipoProducto
+
+  productos Producto[]
+
+  @@map("categorias")
+}
+
+enum TipoProducto {
+  platillo
+  bebida
+}
+
+// ─────────────────────────────────────────
+// PRODUCTOS
+// ─────────────────────────────────────────
+model Producto {
+  id          Int          @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Float
+  imagenUrl   String?
+  tipo        TipoProducto
+
+  categoriaId Int
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+
+  detallesPedido DetallePedido[]
+
+  @@map("productos")
+}
+
+// ─────────────────────────────────────────
+// PEDIDOS
+// ─────────────────────────────────────────
+model Pedido {
+  id           Int          @id @default(autoincrement())
+  turno        Int
+  estado       EstadoPedido @default(recibido)
+
+  mesaId       Int
+  mesa         Mesa @relation("MesaActual", fields: [mesaId], references: [id])
+
+  mesaOrigenId Int?
+  mesaOrigen   Mesa? @relation("MesaOrigen", fields: [mesaOrigenId], references: [id])
+
+  usuarioId    Int
+  usuario      Usuario @relation(fields: [usuarioId], references: [id])
+
+  creadoEn     DateTime  @default(now())
+  recibidoEn   DateTime?
+  pendienteEn  DateTime?
+  hechoEn      DateTime?
+  cerradoEn    DateTime?
+
+  detalles   DetallePedido[]
+  factura    Factura?
+  unionMesas UnionMesa[]
+
+  @@map("pedidos")
+}
+
+enum EstadoPedido {
+  recibido
+  pendiente
+  hecho
+  cancelado
+}
+
+// ─────────────────────────────────────────
+// DETALLE PEDIDO
+// ─────────────────────────────────────────
+model DetallePedido {
+  id            Int     @id @default(autoincrement())
+  cantidad      Int
+  precioUnitario Float
+  notas         String?
+
+  pedidoId   Int
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id])
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  @@map("detalle_pedido")
+}
+
+// ─────────────────────────────────────────
+// FACTURAS
+// ─────────────────────────────────────────
+model Factura {
+  id               Int           @id @default(autoincrement())
+  subtotal         Float
+  impuestoConsumo  Boolean       @default(false)
+  total            Float
+  metodoPago       MetodoPago
+  entidadBancaria  String?       // solo si metodoPago = transferencia
+  pagadoEn         DateTime      @default(now())
+
+  pedidoId Int    @unique
+  pedido   Pedido @relation(fields: [pedidoId], references: [id])
+
+  unionMesas UnionMesa[]
+
+  @@map("facturas")
+}
+
+enum MetodoPago {
+  efectivo
+  transferencia
+  tarjeta
+}
+
+// ─────────────────────────────────────────
+// UNION DE MESAS
+// ─────────────────────────────────────────
+model UnionMesa {
+  id       Int      @id @default(autoincrement())
+  unidoEn  DateTime @default(now())
+
+  facturaId Int
+  factura   Factura @relation(fields: [facturaId], references: [id])
+
+  pedidoId Int
+  pedido   Pedido @relation(fields: [pedidoId], references: [id])
+
+  mesaId Int
+  mesa   Mesa @relation(fields: [mesaId], references: [id])
+
+  @@map("union_mesas")
+}
+
+// ─────────────────────────────────────────
+// CAJA SESIONES
+// ─────────────────────────────────────────
+model CajaSesion {
+  id            Int       @id @default(autoincrement())
+  baseInicial   Float
+  totalVentas   Float     @default(0)
+  totalEgresos  Float     @default(0)
+  netoCajon     Float     @default(0)
+  apertura      DateTime  @default(now())
+  cierre        DateTime?
+
   usuarioId Int
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  retiros RetiroCaja[]
+
+  @@map("caja_sesiones")
+}
+
+// ─────────────────────────────────────────
+// RETIROS DE CAJA
+// ─────────────────────────────────────────
+model RetiroCaja {
+  id          Int      @id @default(autoincrement())
+  monto       Float
+  retiradoEn  DateTime @default(now())
+
+  cajaSesionId Int
+  cajaSesion   CajaSesion @relation(fields: [cajaSesionId], references: [id])
+
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@map("retiros_caja")
 }

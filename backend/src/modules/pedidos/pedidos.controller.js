@@ -1,5 +1,5 @@
 import * as pedidosService from "./pedidos.service.js";
-import { ok, created, badRequest } from "../../utils/response.js";
+import { ok, created } from "../../utils/response.js";
 
 function getIO(req) {
   return req.app.get("io");
@@ -29,19 +29,11 @@ export const obtener = async (req, res, next) => {
 
 export const crear = async (req, res, next) => {
   try {
-    const { mesaId, items } = req.body;
-    if (!mesaId || !items || !items.length) {
-      return badRequest(res, "Mesa e items requeridos");
-    }
-    const pedido = await pedidosService.crear({
-      mesaId,
-      meseroId: req.user.id,
-      items,
-    });
+    const pedido = await pedidosService.crear(req.body, req.user.id);
 
     const io = getIO(req);
     io.to("room:ADMIN").emit("pedido:nuevo", pedido);
-    io.to("room:all").emit("mesa:actualizada", { mesaId });
+    io.to("room:all").emit("mesa:actualizada", { mesaId: req.body.mesaId });
 
     created(res, pedido, "Pedido creado");
   } catch (err) {
@@ -51,12 +43,8 @@ export const crear = async (req, res, next) => {
 
 export const cambiarEstado = async (req, res, next) => {
   try {
-    const { estado, motivoCancelacion } = req.body;
-    const pedido = await pedidosService.cambiarEstado(
-      req.params.id,
-      estado,
-      motivoCancelacion
-    );
+    const { estado } = req.body;
+    const pedido = await pedidosService.cambiarEstado(req.params.id, estado);
 
     const io = getIO(req);
     io.to("room:all").emit("pedido:estado", {
@@ -70,48 +58,9 @@ export const cambiarEstado = async (req, res, next) => {
   }
 };
 
-export const completarDetalle = async (req, res, next) => {
-  try {
-    const detalle = await pedidosService.completarDetalle(
-      parseInt(req.params.detalleId)
-    );
-
-    const io = getIO(req);
-    io.to("room:all").emit("detalle:completado", {
-      detalleId: detalle.id,
-      pedidoId: detalle.pedidoId,
-    });
-
-    ok(res, detalle, "Detalle completado");
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const fusionarPedidos = async (req, res, next) => {
-  try {
-    const { pedidoIds } = req.body;
-    if (!pedidoIds || pedidoIds.length < 2) {
-      return badRequest(res, "Se requieren al menos 2 pedidos para fusionar");
-    }
-    const result = await pedidosService.fusionarPedidos(pedidoIds);
-
-    const io = getIO(req);
-    io.to("room:all").emit("pedido:fusionado", result);
-
-    ok(res, result, "Pedidos fusionados");
-  } catch (err) {
-    next(err);
-  }
-};
-
 export const cancelar = async (req, res, next) => {
   try {
-    const { motivoCancelacion } = req.body;
-    const pedido = await pedidosService.cancelar(
-      req.params.id,
-      motivoCancelacion
-    );
+    const pedido = await pedidosService.cancelar(req.params.id);
 
     const io = getIO(req);
     io.to("room:all").emit("pedido:estado", {
