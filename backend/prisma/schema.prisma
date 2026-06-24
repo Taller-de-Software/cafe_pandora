@@ -56,30 +56,23 @@ enum EstadoMesa {
 // CATEGORIAS
 // ─────────────────────────────────────────
 model Categoria {
-  id     Int            @id @default(autoincrement())
-  nombre String         @unique
-  tipo   TipoProducto
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique
 
   productos Producto[]
 
   @@map("categorias")
 }
 
-enum TipoProducto {
-  platillo
-  bebida
-}
-
 // ─────────────────────────────────────────
 // PRODUCTOS
 // ─────────────────────────────────────────
 model Producto {
-  id          Int          @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   nombre      String
   descripcion String?
   precio      Float
   imagenUrl   String?
-  tipo        TipoProducto
 
   categoriaId Int
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
