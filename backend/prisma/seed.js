@@ -28,17 +28,17 @@ async function main() {
     prisma.categoria.upsert({
       where: { nombre: "Bebidas" },
       update: {},
-      create: { nombre: "Bebidas", tipo: "bebida" },
+      create: { nombre: "Bebidas" },
     }),
     prisma.categoria.upsert({
       where: { nombre: "Comidas" },
       update: {},
-      create: { nombre: "Comidas", tipo: "platillo" },
+      create: { nombre: "Comidas" },
     }),
     prisma.categoria.upsert({
       where: { nombre: "Postres" },
       update: {},
-      create: { nombre: "Postres", tipo: "platillo" },
+      create: { nombre: "Postres" },
     }),
   ]);
 
@@ -46,23 +46,23 @@ async function main() {
 
   const productosData = [];
   for (const p of [
-    { nombre: "Coca Cola", precio: 15, tipo: "bebida", categoria: "Bebidas" },
-    { nombre: "Agua Natural", precio: 10, tipo: "bebida", categoria: "Bebidas" },
-    { nombre: "Jugo de Naranja", precio: 18, tipo: "bebida", categoria: "Bebidas" },
-    { nombre: "Café Americano", precio: 12, tipo: "bebida", categoria: "Bebidas" },
-    { nombre: "Hamburguesa", precio: 45, tipo: "platillo", categoria: "Comidas" },
-    { nombre: "Pizza Personal", precio: 55, tipo: "platillo", categoria: "Comidas" },
-    { nombre: "Tacos (3)", precio: 35, tipo: "platillo", categoria: "Comidas" },
-    { nombre: "Ensalada César", precio: 40, tipo: "platillo", categoria: "Comidas" },
-    { nombre: "Pastel de Chocolate", precio: 25, tipo: "platillo", categoria: "Postres" },
-    { nombre: "Helado", precio: 20, tipo: "platillo", categoria: "Postres" },
+    { nombre: "Coca Cola", precio: 15, categoria: "Bebidas", descripcion: "Refresco de cola clásico 355ml" },
+    { nombre: "Agua Natural", precio: 10, categoria: "Bebidas", descripcion: "Agua purificada 500ml" },
+    { nombre: "Jugo de Naranja", precio: 18, categoria: "Bebidas", descripcion: "Jugo natural de naranja recién exprimido" },
+    { nombre: "Café Americano", precio: 12, categoria: "Bebidas", descripcion: "Café americano suave y aromático" },
+    { nombre: "Hamburguesa", precio: 45, categoria: "Comidas", descripcion: "Hamburguesa con queso, lechuga y tomate" },
+    { nombre: "Pizza Personal", precio: 55, categoria: "Comidas", descripcion: "Pizza tamaño personal con ingredientes frescos" },
+    { nombre: "Tacos (3)", precio: 35, categoria: "Comidas", descripcion: "Tres tacos de carne al pastor con piña" },
+    { nombre: "Ensalada César", precio: 40, categoria: "Comidas", descripcion: "Ensalada César con pollo, crutones y aderezo" },
+    { nombre: "Pastel de Chocolate", precio: 25, categoria: "Postres", descripcion: "Rebanada de pastel de chocolate con cobertura" },
+    { nombre: "Helado", precio: 20, categoria: "Postres", descripcion: "Helado cremoso de vainilla con toppings" },
   ]) {
     const cat = await prisma.categoria.findUnique({ where: { nombre: p.categoria } });
     if (cat) {
       productosData.push({
         nombre: p.nombre,
         precio: p.precio,
-        tipo: p.tipo,
+        descripcion: p.descripcion ?? null,
         categoriaId: cat.id,
       });
     }
