@@ -1,5 +1,10 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import authRoutes from "./modules/auth/auth.routes.js";
 import usuariosRoutes from "./modules/usuarios/usuarios.routes.js";
@@ -15,6 +20,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "API Pandora Cafe Bar funcionando" });
