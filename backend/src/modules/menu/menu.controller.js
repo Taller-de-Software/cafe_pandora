@@ -58,7 +58,9 @@ export const obtenerProducto = async (req, res, next) => {
 
 export const crearProducto = async (req, res, next) => {
   try {
-    const producto = await menuService.crearProducto(req.body);
+    const data = { ...req.body };
+    if (req.file) data.imagenUrl = req.file.path.replace(/\\/g, "/");
+    const producto = await menuService.crearProducto(data);
     created(res, producto, "Producto creado");
   } catch (err) {
     next(err);
@@ -67,7 +69,9 @@ export const crearProducto = async (req, res, next) => {
 
 export const actualizarProducto = async (req, res, next) => {
   try {
-    const producto = await menuService.actualizarProducto(req.params.id, req.body);
+    const data = { ...req.body };
+    if (req.file) data.imagenUrl = req.file.path.replace(/\\/g, "/");
+    const producto = await menuService.actualizarProducto(req.params.id, data);
     ok(res, producto, "Producto actualizado");
   } catch (err) {
     next(err);
