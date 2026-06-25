@@ -12,6 +12,7 @@ export const crearProductoSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(200),
   descripcion: z.string().trim().optional(),
   precio: z.coerce.number().positive("El precio debe ser mayor a 0"),
+  requierePreparacion: z.boolean(),
   categoriaId: z.coerce.number().int().positive("Debe seleccionar una categoría"),
 }).strict();
 
@@ -19,5 +20,6 @@ export const actualizarProductoSchema = z.object({
   nombre: z.string().trim().min(1).max(200).optional(),
   descripcion: z.string().trim().optional(),
   precio: z.coerce.number().positive().optional(),
+  requierePreparacion: z.boolean().optional(),
   categoriaId: z.coerce.number().int().positive().optional(),
 }).strict();

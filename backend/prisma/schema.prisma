@@ -71,8 +71,9 @@ model Producto {
   id          Int     @id @default(autoincrement())
   nombre      String
   descripcion String?
-  precio      Float
-  imagenUrl   String?
+  precio                Float
+  imagenUrl             String?
+  requierePreparacion   Boolean @default(false)
 
   categoriaId Int
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
