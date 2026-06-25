@@ -4,9 +4,11 @@ export const ROLES = {
 };
 
 export const ESTADOS_PEDIDO = {
-  RECIBIDO: "recibido",
-  PENDIENTE: "pendiente",
-  HECHO: "hecho",
+  ESPERA: "espera",
+  PREPARACION: "preparacion",
+  LISTO: "listo",
+  CAJA: "caja",
+  FACTURADO: "facturado",
   CANCELADO: "cancelado",
 };
 
