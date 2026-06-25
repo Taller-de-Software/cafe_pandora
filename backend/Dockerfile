@@ -14,4 +14,4 @@ COPY . .
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "pnpm install && pnpm dev"]
+CMD ["pnpm", "dev"]

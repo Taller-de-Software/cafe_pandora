@@ -57,7 +57,7 @@ export const listarRetiros = async (req, res, next) => {
 
 export const crearRetiro = async (req, res, next) => {
   try {
-    const retiro = await cajaService.crearRetiro(req.params.id, req.body.monto, req.user.id);
+    const retiro = await cajaService.crearRetiro(req.params.id, req.body, req.user.id);
     created(res, retiro, "Retiro registrado");
   } catch (err) {
     next(err);
