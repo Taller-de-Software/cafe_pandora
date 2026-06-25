@@ -10,7 +10,7 @@ export const listar = async () => {
   return prisma.mesa.findMany({
     orderBy: { numero: "asc" },
     include: {
-      _count: { select: { pedidos: { where: { estado: { notIn: ["hecho", "cancelado"] } } } } },
+      _count: { select: { pedidos: { where: { estado: { notIn: ["facturado", "cancelado"] } } } } },
     },
   });
 };

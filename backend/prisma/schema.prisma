@@ -7,18 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 // ─────────────────────────────────────────
 // USUARIOS
 // ─────────────────────────────────────────
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  rol       Rol      @unique
-  pin       String?  // solo administrador, hasheado con bcrypt
+  id     Int  @id @default(autoincrement())
+  nombre String
+  rol    Rol  @unique
+  pin    String?
 
-  pedidos       Pedido[]
-  cajaSesiones  CajaSesion[]
-  retirosCaja   RetiroCaja[]
+  pedidos      Pedido[]
+  cajaSesiones CajaSesion[]
+  retirosCaja  RetiroCaja[]
 
   @@map("usuarios")
 }
@@ -32,15 +32,21 @@ enum Rol {
 // MESAS
 // ─────────────────────────────────────────
 model Mesa {
-  id           Int         @id @default(autoincrement())
-  numero       String      @unique
-  ubicacion    String
-  estado       EstadoMesa  @default(vacia)
-  personalizada Boolean    @default(false)
+  id             Int        @id @default(autoincrement())
+  numero         String     @unique
+  ubicacion      String
+  capacidad      Int        @default(4)
+  estado         EstadoMesa @default(vacia)
+  personalizada  Boolean    @default(false)
+  meseroActualId Int?
+  nombreCliente  String?
+  fechaReserva   String?
+  horaReserva    String?
+  ocupadaDesde   DateTime?
 
-  pedidos          Pedido[] @relation("MesaActual")
-  pedidosOrigen    Pedido[] @relation("MesaOrigen")
-  unionMesas       UnionMesa[]
+  pedidos       Pedido[] @relation("MesaActual")
+  pedidosOrigen Pedido[] @relation("MesaOrigen")
+  unionMesas    UnionMesa[]
 
   @@map("mesas")
 }
@@ -56,8 +62,8 @@ enum EstadoMesa {
 // CATEGORIAS
 // ─────────────────────────────────────────
 model Categoria {
-  id     Int     @id @default(autoincrement())
-  nombre String  @unique
+  id     Int    @id @default(autoincrement())
+  nombre String @unique
 
   productos Producto[]
 
@@ -68,12 +74,13 @@ model Categoria {
 // PRODUCTOS
 // ─────────────────────────────────────────
 model Producto {
-  id          Int     @id @default(autoincrement())
-  nombre      String
-  descripcion String?
-  precio                Float
-  imagenUrl             String?
-  requierePreparacion   Boolean @default(false)
+  id                  Int     @id @default(autoincrement())
+  nombre              String
+  descripcion         String?
+  precio              Float
+  imagenUrl           String?
+  disponible          Boolean @default(true)
+  requierePreparacion Boolean @default(false)
 
   categoriaId Int
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
@@ -87,24 +94,27 @@ model Producto {
 // PEDIDOS
 // ─────────────────────────────────────────
 model Pedido {
-  id           Int          @id @default(autoincrement())
-  turno        Int
-  estado       EstadoPedido @default(recibido)
+  id     Int          @id @default(autoincrement())
+  turno  Int
+  estado EstadoPedido @default(espera)
+  tipo   String?
+  total  Float?
 
   mesaId       Int
   mesa         Mesa @relation("MesaActual", fields: [mesaId], references: [id])
-
   mesaOrigenId Int?
   mesaOrigen   Mesa? @relation("MesaOrigen", fields: [mesaOrigenId], references: [id])
 
-  usuarioId    Int
-  usuario      Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
 
-  creadoEn     DateTime  @default(now())
-  recibidoEn   DateTime?
-  pendienteEn  DateTime?
-  hechoEn      DateTime?
-  cerradoEn    DateTime?
+  creadoEn       DateTime @default(now())
+  esperaEn       DateTime?
+  preparacionEn  DateTime?
+  listoEn        DateTime?
+  cajaEn         DateTime?
+  facturadoEn    DateTime?
+  canceladoEn    DateTime?
 
   detalles   DetallePedido[]
   factura    Factura?
@@ -114,9 +124,11 @@ model Pedido {
 }
 
 enum EstadoPedido {
-  recibido
-  pendiente
-  hecho
+  espera
+  preparacion
+  listo
+  caja
+  facturado
   cancelado
 }
 
@@ -124,14 +136,13 @@ enum EstadoPedido {
 // DETALLE PEDIDO
 // ─────────────────────────────────────────
 model DetallePedido {
-  id            Int     @id @default(autoincrement())
-  cantidad      Int
+  id             Int    @id @default(autoincrement())
+  cantidad       Int
   precioUnitario Float
-  notas         String?
+  notas          String?
 
   pedidoId   Int
   pedido     Pedido   @relation(fields: [pedidoId], references: [id])
-
   productoId Int
   producto   Producto @relation(fields: [productoId], references: [id])
 
@@ -142,13 +153,14 @@ model DetallePedido {
 // FACTURAS
 // ─────────────────────────────────────────
 model Factura {
-  id               Int           @id @default(autoincrement())
-  subtotal         Float
-  impuestoConsumo  Boolean       @default(false)
-  total            Float
-  metodoPago       MetodoPago
-  entidadBancaria  String?       // solo si metodoPago = transferencia
-  pagadoEn         DateTime      @default(now())
+  id              Int        @id @default(autoincrement())
+  subtotal        Float
+  impuestoConsumo Boolean    @default(false)
+  total           Float
+  cambio          Float?
+  metodoPago      MetodoPago
+  entidadBancaria String?
+  pagadoEn        DateTime   @default(now())
 
   pedidoId Int    @unique
   pedido   Pedido @relation(fields: [pedidoId], references: [id])
@@ -173,12 +185,10 @@ model UnionMesa {
 
   facturaId Int
   factura   Factura @relation(fields: [facturaId], references: [id])
-
-  pedidoId Int
-  pedido   Pedido @relation(fields: [pedidoId], references: [id])
-
-  mesaId Int
-  mesa   Mesa @relation(fields: [mesaId], references: [id])
+  pedidoId  Int
+  pedido    Pedido  @relation(fields: [pedidoId], references: [id])
+  mesaId    Int
+  mesa      Mesa    @relation(fields: [mesaId], references: [id])
 
   @@map("union_mesas")
 }
@@ -187,13 +197,14 @@ model UnionMesa {
 // CAJA SESIONES
 // ─────────────────────────────────────────
 model CajaSesion {
-  id            Int       @id @default(autoincrement())
-  baseInicial   Float
-  totalVentas   Float     @default(0)
-  totalEgresos  Float     @default(0)
-  netoCajon     Float     @default(0)
-  apertura      DateTime  @default(now())
-  cierre        DateTime?
+  id           Int      @id @default(autoincrement())
+  baseInicial  Float
+  totalVentas  Float    @default(0)
+  totalEgresos Float    @default(0)
+  totalEnCaja  Float    @default(0)
+  netoCajon    Float    @default(0)
+  apertura     DateTime @default(now())
+  cierre       DateTime?
 
   usuarioId Int
   usuario   Usuario @relation(fields: [usuarioId], references: [id])
@@ -208,14 +219,15 @@ model CajaSesion {
 // ─────────────────────────────────────────
 model RetiroCaja {
   id          Int      @id @default(autoincrement())
+  descripcion String
+  categoria   String   @default("otro")
   monto       Float
   retiradoEn  DateTime @default(now())
 
   cajaSesionId Int
   cajaSesion   CajaSesion @relation(fields: [cajaSesionId], references: [id])
-
-  usuarioId Int
-  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId    Int
+  usuario      Usuario @relation(fields: [usuarioId], references: [id])
 
   @@map("retiros_caja")
 }
