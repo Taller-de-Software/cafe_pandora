@@ -25,6 +25,7 @@ export const login = async ({ rol, pin }) => {
     accessToken,
     usuario: {
       id: usuario.id,
+      nombre: usuario.nombre,
       rol: usuario.rol,
     },
   };
@@ -33,7 +34,7 @@ export const login = async ({ rol, pin }) => {
 export const getMe = async (id) => {
   const usuario = await prisma.usuario.findUnique({
     where: { id },
-    select: { id: true, rol: true },
+    select: { id: true, nombre: true, rol: true },
   });
   if (!usuario) throw crearError(404, "Usuario no encontrado");
   return usuario;
