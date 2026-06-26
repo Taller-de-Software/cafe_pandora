@@ -44,22 +44,58 @@ async function main() {
     }),
   ]);
 
+  const bebidas = await prisma.categoria.findUnique({ where: { nombre: "Bebidas" } });
+  const comidas = await prisma.categoria.findUnique({ where: { nombre: "Comidas" } });
+  const postres = await prisma.categoria.findUnique({ where: { nombre: "Postres" } });
+
+  const subcategoriasData = [];
+  if (bebidas) {
+    subcategoriasData.push(
+      { nombre: "Refrescos", categoriaId: bebidas.id },
+      { nombre: "Jugos", categoriaId: bebidas.id },
+      { nombre: "Cafés", categoriaId: bebidas.id },
+    );
+  }
+  if (comidas) {
+    subcategoriasData.push(
+      { nombre: "Hamburguesas", categoriaId: comidas.id },
+      { nombre: "Pizzas", categoriaId: comidas.id },
+      { nombre: "Tacos", categoriaId: comidas.id },
+      { nombre: "Ensaladas", categoriaId: comidas.id },
+    );
+  }
+  if (postres) {
+    subcategoriasData.push(
+      { nombre: "Pasteles", categoriaId: postres.id },
+      { nombre: "Helados", categoriaId: postres.id },
+    );
+  }
+
+  for (const s of subcategoriasData) {
+    await prisma.subcategoria.upsert({
+      where: { nombre: s.nombre },
+      update: {},
+      create: s,
+    });
+  }
+
   await prisma.producto.deleteMany();
 
   const productosData = [];
   for (const p of [
-    { nombre: "Coca Cola", precio: 15, categoria: "Bebidas", descripcion: "Refresco de cola clásico 355ml", requierePreparacion: false },
-    { nombre: "Agua Natural", precio: 10, categoria: "Bebidas", descripcion: "Agua purificada 500ml", requierePreparacion: false },
-    { nombre: "Jugo de Naranja", precio: 18, categoria: "Bebidas", descripcion: "Jugo natural de naranja recién exprimido", requierePreparacion: false },
-    { nombre: "Café Americano", precio: 12, categoria: "Bebidas", descripcion: "Café americano suave y aromático", requierePreparacion: false },
-    { nombre: "Hamburguesa", precio: 45, categoria: "Comidas", descripcion: "Hamburguesa con queso, lechuga y tomate", requierePreparacion: true },
-    { nombre: "Pizza Personal", precio: 55, categoria: "Comidas", descripcion: "Pizza tamaño personal con ingredientes frescos", requierePreparacion: true },
-    { nombre: "Tacos (3)", precio: 35, categoria: "Comidas", descripcion: "Tres tacos de carne al pastor con piña", requierePreparacion: true },
-    { nombre: "Ensalada César", precio: 40, categoria: "Comidas", descripcion: "Ensalada César con pollo, crutones y aderezo", requierePreparacion: true },
-    { nombre: "Pastel de Chocolate", precio: 25, categoria: "Postres", descripcion: "Rebanada de pastel de chocolate con cobertura", requierePreparacion: true },
-    { nombre: "Helado", precio: 20, categoria: "Postres", descripcion: "Helado cremoso de vainilla con toppings", requierePreparacion: false },
+    { nombre: "Coca Cola", precio: 15, categoria: "Bebidas", subcategoria: "Refrescos", descripcion: "Refresco de cola clásico 355ml", requierePreparacion: false },
+    { nombre: "Agua Natural", precio: 10, categoria: "Bebidas", subcategoria: "Refrescos", descripcion: "Agua purificada 500ml", requierePreparacion: false },
+    { nombre: "Jugo de Naranja", precio: 18, categoria: "Bebidas", subcategoria: "Jugos", descripcion: "Jugo natural de naranja recién exprimido", requierePreparacion: false },
+    { nombre: "Café Americano", precio: 12, categoria: "Bebidas", subcategoria: "Cafés", descripcion: "Café americano suave y aromático", requierePreparacion: false },
+    { nombre: "Hamburguesa", precio: 45, categoria: "Comidas", subcategoria: "Hamburguesas", descripcion: "Hamburguesa con queso, lechuga y tomate", requierePreparacion: true },
+    { nombre: "Pizza Personal", precio: 55, categoria: "Comidas", subcategoria: "Pizzas", descripcion: "Pizza tamaño personal con ingredientes frescos", requierePreparacion: true },
+    { nombre: "Tacos (3)", precio: 35, categoria: "Comidas", subcategoria: "Tacos", descripcion: "Tres tacos de carne al pastor con piña", requierePreparacion: true },
+    { nombre: "Ensalada César", precio: 40, categoria: "Comidas", subcategoria: "Ensaladas", descripcion: "Ensalada César con pollo, crutones y aderezo", requierePreparacion: true },
+    { nombre: "Pastel de Chocolate", precio: 25, categoria: "Postres", subcategoria: "Pasteles", descripcion: "Rebanada de pastel de chocolate con cobertura", requierePreparacion: true },
+    { nombre: "Helado", precio: 20, categoria: "Postres", subcategoria: "Helados", descripcion: "Helado cremoso de vainilla con toppings", requierePreparacion: false },
   ]) {
     const cat = await prisma.categoria.findUnique({ where: { nombre: p.categoria } });
+    const sub = p.subcategoria ? await prisma.subcategoria.findUnique({ where: { nombre: p.subcategoria } }) : null;
     if (cat) {
       productosData.push({
         nombre: p.nombre,
@@ -68,6 +104,7 @@ async function main() {
         disponible: true,
         requierePreparacion: p.requierePreparacion,
         categoriaId: cat.id,
+        subcategoriaId: sub?.id ?? null,
       });
     }
   }
@@ -78,10 +115,10 @@ async function main() {
 
   for (let i = 1; i <= 10; i++) {
     await prisma.mesa.upsert({
-      where: { numero: String(i) },
+      where: { nombre: String(i) },
       update: {},
       create: {
-        numero: String(i),
+        nombre: String(i),
         ubicacion: i <= 5 ? "Interior" : "Terraza",
         capacidad: 4,
       },
