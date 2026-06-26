@@ -30,3 +30,15 @@ export const actualizarProductoSchema = z.object({
   requierePreparacion: z.boolean().optional(),
   categoriaId: z.coerce.number().int().positive().optional(),
 }).strict();
+
+export const crearSubcategoriaSchema = z.object({
+  nombre: z.string().trim().min(1, "El nombre es obligatorio").max(100),
+  categoriaId: z.coerce.number().int().positive("Debe seleccionar una categoría"),
+});
+
+export const actualizarSubcategoriaSchema = z.object({
+  nombre: z.string().trim().min(1).max(100).optional(),
+  categoriaId: z.coerce.number().int().positive().optional(),
+}).strict();
+
+
