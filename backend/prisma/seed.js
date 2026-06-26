@@ -8,8 +8,9 @@ async function main() {
 
   await prisma.usuario.upsert({
     where: { rol: "administrador" },
-    update: {},
+    update: { nombre: "Administrador", pin: adminPin },
     create: {
+      nombre: "Administrador",
       rol: "administrador",
       pin: adminPin,
     },
@@ -17,8 +18,9 @@ async function main() {
 
   await prisma.usuario.upsert({
     where: { rol: "mesero" },
-    update: {},
+    update: { nombre: "Mesero" },
     create: {
+      nombre: "Mesero",
       rol: "mesero",
       pin: null,
     },
@@ -99,6 +101,7 @@ async function main() {
         nombre: p.nombre,
         precio: p.precio,
         descripcion: p.descripcion ?? null,
+        disponible: true,
         requierePreparacion: p.requierePreparacion,
         categoriaId: cat.id,
         subcategoriaId: sub?.id ?? null,
@@ -117,6 +120,7 @@ async function main() {
       create: {
         nombre: String(i),
         ubicacion: i <= 5 ? "Interior" : "Terraza",
+        capacidad: 4,
       },
     });
   }

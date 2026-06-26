@@ -16,7 +16,7 @@ export const listar = async (filters = {}) => {
     where,
     include: {
       mesa: true,
-      usuario: { select: { id: true, rol: true } },
+      usuario: { select: { id: true, nombre: true, rol: true } },
       detalles: { include: { producto: true } },
       factura: true,
     },
@@ -29,7 +29,7 @@ export const obtener = async (id) => {
     where: { id },
     include: {
       mesa: true,
-      usuario: { select: { id: true, rol: true } },
+      usuario: { select: { id: true, nombre: true, rol: true } },
       detalles: { include: { producto: true } },
       factura: true,
     },
@@ -52,24 +52,29 @@ export const crear = async (data, usuarioId) => {
     })
   );
 
+  const totalItems = items.reduce((sum, i) => sum + i.precioUnitario * i.cantidad, 0);
+
   const pedido = await prisma.pedido.create({
     data: {
       turno: data.turno,
       mesaId: data.mesaId,
       usuarioId,
-      estado: ESTADOS_PEDIDO.RECIBIDO,
+      tipo: data.tipo || null,
+      total: totalItems,
+      estado: ESTADOS_PEDIDO.ESPERA,
+      esperaEn: new Date(),
       detalles: { create: items },
     },
     include: {
       mesa: true,
-      usuario: { select: { id: true, rol: true } },
+      usuario: { select: { id: true, nombre: true, rol: true } },
       detalles: { include: { producto: true } },
     },
   });
 
   await prisma.mesa.update({
     where: { id: data.mesaId },
-    data: { estado: ESTADOS_MESA.OCUPADA },
+    data: { estado: ESTADOS_MESA.OCUPADA, ocupadaDesde: new Date(), meseroActualId: usuarioId },
   });
 
   return pedido;
@@ -80,9 +85,11 @@ export const cambiarEstado = async (id, nuevoEstado) => {
   if (!pedido) throw crearError(404, "Pedido no encontrado");
 
   const transicionesValidas = {
-    [ESTADOS_PEDIDO.RECIBIDO]: [ESTADOS_PEDIDO.PENDIENTE, ESTADOS_PEDIDO.CANCELADO],
-    [ESTADOS_PEDIDO.PENDIENTE]: [ESTADOS_PEDIDO.HECHO, ESTADOS_PEDIDO.CANCELADO],
-    [ESTADOS_PEDIDO.HECHO]: [],
+    [ESTADOS_PEDIDO.ESPERA]: [ESTADOS_PEDIDO.PREPARACION, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.PREPARACION]: [ESTADOS_PEDIDO.LISTO, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.LISTO]: [ESTADOS_PEDIDO.CAJA, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.CAJA]: [ESTADOS_PEDIDO.FACTURADO, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.FACTURADO]: [],
     [ESTADOS_PEDIDO.CANCELADO]: [],
   };
 
@@ -91,9 +98,11 @@ export const cambiarEstado = async (id, nuevoEstado) => {
   }
 
   const timestamps = {};
-  if (nuevoEstado === ESTADOS_PEDIDO.PENDIENTE) timestamps.pendienteEn = new Date();
-  if (nuevoEstado === ESTADOS_PEDIDO.HECHO) timestamps.hechoEn = new Date();
-  if (nuevoEstado === ESTADOS_PEDIDO.CANCELADO) timestamps.cerradoEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.PREPARACION) timestamps.preparacionEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.LISTO) timestamps.listoEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.CAJA) timestamps.cajaEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.FACTURADO) timestamps.facturadoEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.CANCELADO) timestamps.canceladoEn = new Date();
 
   return prisma.pedido.update({
     where: { id },
@@ -111,7 +120,7 @@ export const cancelar = async (id) => {
 
   return prisma.pedido.update({
     where: { id },
-    data: { estado: ESTADOS_PEDIDO.CANCELADO, cerradoEn: new Date() },
+    data: { estado: ESTADOS_PEDIDO.CANCELADO, canceladoEn: new Date() },
     include: {
       mesa: true,
       detalles: { include: { producto: true } },
