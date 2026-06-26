@@ -28,6 +28,43 @@ export const actualizarCategoria = async (req, res, next) => {
   }
 };
 
+export const listarSubcategorias = async (req, res, next) => {
+  try {
+    const { categoriaId } = req.query;
+    const subcategorias = await menuService.listarSubcategorias(categoriaId ? parseInt(categoriaId) : undefined);
+    ok(res, subcategorias);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const crearSubcategoria = async (req, res, next) => {
+  try {
+    const subcategoria = await menuService.crearSubcategoria(req.body);
+    created(res, subcategoria, "Subcategoría creada");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const actualizarSubcategoria = async (req, res, next) => {
+  try {
+    const subcategoria = await menuService.actualizarSubcategoria(req.params.id, req.body);
+    ok(res, subcategoria, "Subcategoría actualizada");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const eliminarSubcategoria = async (req, res, next) => {
+  try {
+    await menuService.eliminarSubcategoria(req.params.id);
+    ok(res, null, "Subcategoría eliminada");
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const eliminarCategoria = async (req, res, next) => {
   try {
     await menuService.eliminarCategoria(req.params.id);
