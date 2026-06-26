@@ -5,3 +5,5 @@ node_modules/
 .env
 
 prisma/dev.db
+uploads/productos/*
+!uploads/productos/.gitkeep
