@@ -30,7 +30,7 @@ export const obtenerSesionActiva = async (req, res, next) => {
 
 export const apertura = async (req, res, next) => {
   try {
-    const sesion = await cajaService.apertura(req.body.baseInicial, req.user.id);
+    const sesion = await cajaService.apertura(req.body.baseInicial);
     created(res, sesion, "Sesión de caja abierta");
   } catch (err) {
     next(err);
@@ -39,7 +39,7 @@ export const apertura = async (req, res, next) => {
 
 export const cierre = async (req, res, next) => {
   try {
-    const sesion = await cajaService.cierre(req.params.id, req.user.id);
+    const sesion = await cajaService.cierre(req.params.id);
     ok(res, sesion, "Sesión de caja cerrada");
   } catch (err) {
     next(err);
@@ -57,7 +57,7 @@ export const listarRetiros = async (req, res, next) => {
 
 export const crearRetiro = async (req, res, next) => {
   try {
-    const retiro = await cajaService.crearRetiro(req.params.id, req.body, req.user.id);
+    const retiro = await cajaService.crearRetiro(req.params.id, req.body);
     created(res, retiro, "Retiro registrado");
   } catch (err) {
     next(err);
