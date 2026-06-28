@@ -9,7 +9,6 @@ function crearError(statusCode, message) {
 export const listarSesiones = async () => {
   return prisma.cajaSesion.findMany({
     include: {
-      usuario: { select: { id: true, nombre: true, rol: true } },
       _count: { select: { retiros: true } },
     },
     orderBy: { apertura: "desc" },
@@ -19,10 +18,7 @@ export const listarSesiones = async () => {
 export const obtenerSesion = async (id) => {
   const sesion = await prisma.cajaSesion.findUnique({
     where: { id },
-    include: {
-      usuario: { select: { id: true, nombre: true, rol: true } },
-      retiros: { include: { usuario: { select: { id: true, nombre: true, rol: true } } } },
-    },
+    include: { retiros: true },
   });
   if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
   return sesion;
@@ -31,16 +27,13 @@ export const obtenerSesion = async (id) => {
 export const obtenerSesionActiva = async () => {
   const sesion = await prisma.cajaSesion.findFirst({
     where: { cierre: null },
-    include: {
-      usuario: { select: { id: true, nombre: true, rol: true } },
-      retiros: { include: { usuario: { select: { id: true, nombre: true, rol: true } } } },
-    },
+    include: { retiros: true },
     orderBy: { apertura: "desc" },
   });
   return sesion;
 };
 
-export const apertura = async (baseInicial, usuarioId) => {
+export const apertura = async (baseInicial) => {
   const activa = await prisma.cajaSesion.findFirst({ where: { cierre: null } });
   if (activa) throw crearError(400, "Ya hay una sesión de caja activa");
 
@@ -48,15 +41,11 @@ export const apertura = async (baseInicial, usuarioId) => {
     data: {
       baseInicial,
       totalEnCaja: baseInicial,
-      usuarioId,
-    },
-    include: {
-      usuario: { select: { id: true, nombre: true, rol: true } },
     },
   });
 };
 
-export const cierre = async (id, usuarioId) => {
+export const cierre = async (id) => {
   const sesion = await prisma.cajaSesion.findUnique({
     where: { id },
     include: { retiros: true },
@@ -74,35 +63,28 @@ export const cierre = async (id, usuarioId) => {
       totalEgresos,
       netoCajon,
     },
-    include: {
-      usuario: { select: { id: true, nombre: true, rol: true } },
-      retiros: { include: { usuario: { select: { id: true, nombre: true, rol: true } } } },
-    },
+    include: { retiros: true },
   });
 };
 
 export const listarRetiros = async (cajaSesionId) => {
   return prisma.retiroCaja.findMany({
     where: { cajaSesionId },
-    include: { usuario: { select: { id: true, nombre: true, rol: true } } },
     orderBy: { retiradoEn: "desc" },
   });
 };
 
-export const crearRetiro = async (cajaSesionId, data, usuarioId) => {
+export const crearRetiro = async (cajaSesionId, data) => {
   const sesion = await prisma.cajaSesion.findUnique({ where: { id: cajaSesionId } });
   if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
   if (sesion.cierre) throw crearError(400, "La sesión ya está cerrada");
 
   const retiro = await prisma.retiroCaja.create({
     data: {
-      descripcion: data.descripcion,
-      categoria: data.categoria || "otro",
+      tipo: data.tipo,
       monto: data.monto,
       cajaSesionId,
-      usuarioId,
     },
-    include: { usuario: { select: { id: true, nombre: true, rol: true } } },
   });
 
   await prisma.cajaSesion.update({
