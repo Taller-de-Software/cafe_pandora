@@ -4,7 +4,8 @@ import { ok, error } from "../../utils/response.js";
 export const imprimirFacturaCocina = async (req, res, next) => {
   try {
     const result = await impresionService.imprimirFacturaCocina(parseInt(req.params.pedidoId));
-    ok(res, result, "Factura de cocina impresa");
+    const message = result.pdfUrl ? "Factura de cocina impresa (simulada)" : "Factura de cocina impresa";
+    ok(res, result, message);
   } catch (err) {
     if (err.message.includes("Impresora no")) {
       return error(res, err.message, 503);
@@ -16,7 +17,8 @@ export const imprimirFacturaCocina = async (req, res, next) => {
 export const imprimirReciboPago = async (req, res, next) => {
   try {
     const result = await impresionService.imprimirReciboPago(parseInt(req.params.facturaId));
-    ok(res, result, "Recibo de pago impreso");
+    const message = result.pdfUrl ? "Recibo de pago impreso (simulado)" : "Recibo de pago impreso";
+    ok(res, result, message);
   } catch (err) {
     if (err.message.includes("Impresora no")) {
       return error(res, err.message, 503);
@@ -28,7 +30,8 @@ export const imprimirReciboPago = async (req, res, next) => {
 export const probarImpresora = async (req, res, next) => {
   try {
     const result = await impresionService.probarImpresora();
-    ok(res, result, "Impresora conectada correctamente");
+    const message = result.message?.includes("simulación") ? "Modo simulación activo" : "Impresora conectada correctamente";
+    ok(res, result, message);
   } catch (err) {
     error(res, err.message, 503);
   }
