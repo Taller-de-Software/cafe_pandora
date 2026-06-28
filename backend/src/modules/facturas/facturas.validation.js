@@ -3,9 +3,8 @@ import { z } from "zod";
 export const crearFacturaSchema = z.object({
   pedidoId: z.number().int().positive(),
   subtotal: z.number().positive(),
-  impuestoConsumo: z.boolean().default(false),
+  impuestoConsumo: z.number().min(0).default(0),
   total: z.number().positive(),
-  cambio: z.number().min(0).optional(),
-  metodoPago: z.enum(["efectivo", "transferencia", "tarjeta"]),
-  entidadBancaria: z.string().trim().optional(),
+  metodoPagoId: z.number().int().positive("Debe seleccionar un metodo de pago"),
+  cajaSesionId: z.number().int().positive(),
 }).strict();
