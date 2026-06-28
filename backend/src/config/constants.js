@@ -26,6 +26,6 @@ export const METODOS_PAGO = {
 };
 
 export const TOKEN_EXPIRACION = {
-  ACCESS: "15m",
-  REFRESH: "7d",
+  ACCESS: "1h",
+  REFRESH: "10h",
 };
