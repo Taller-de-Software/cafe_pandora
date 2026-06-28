@@ -58,11 +58,10 @@ export const crear = async (data, usuarioId) => {
     data: {
       turno: data.turno,
       mesaId: data.mesaId,
+      mesaOrigenId: data.mesaOrigenId || null,
       usuarioId,
-      tipo: data.tipo || null,
       total: totalItems,
-      estado: ESTADOS_PEDIDO.ESPERA,
-      esperaEn: new Date(),
+      estado: ESTADOS_PEDIDO.RECIBIDO,
       detalles: { create: items },
     },
     include: {
@@ -74,7 +73,7 @@ export const crear = async (data, usuarioId) => {
 
   await prisma.mesa.update({
     where: { id: data.mesaId },
-    data: { estado: ESTADOS_MESA.OCUPADA, ocupadaDesde: new Date(), meseroActualId: usuarioId },
+    data: { estado: ESTADOS_MESA.OCUPADA },
   });
 
   return pedido;
@@ -85,11 +84,10 @@ export const cambiarEstado = async (id, nuevoEstado) => {
   if (!pedido) throw crearError(404, "Pedido no encontrado");
 
   const transicionesValidas = {
-    [ESTADOS_PEDIDO.ESPERA]: [ESTADOS_PEDIDO.PREPARACION, ESTADOS_PEDIDO.CANCELADO],
-    [ESTADOS_PEDIDO.PREPARACION]: [ESTADOS_PEDIDO.LISTO, ESTADOS_PEDIDO.CANCELADO],
-    [ESTADOS_PEDIDO.LISTO]: [ESTADOS_PEDIDO.CAJA, ESTADOS_PEDIDO.CANCELADO],
-    [ESTADOS_PEDIDO.CAJA]: [ESTADOS_PEDIDO.FACTURADO, ESTADOS_PEDIDO.CANCELADO],
-    [ESTADOS_PEDIDO.FACTURADO]: [],
+    [ESTADOS_PEDIDO.RECIBIDO]: [ESTADOS_PEDIDO.PENDIENTE, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.PENDIENTE]: [ESTADOS_PEDIDO.HECHO, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.HECHO]: [ESTADOS_PEDIDO.FINALIZADO, ESTADOS_PEDIDO.CANCELADO],
+    [ESTADOS_PEDIDO.FINALIZADO]: [],
     [ESTADOS_PEDIDO.CANCELADO]: [],
   };
 
@@ -98,10 +96,9 @@ export const cambiarEstado = async (id, nuevoEstado) => {
   }
 
   const timestamps = {};
-  if (nuevoEstado === ESTADOS_PEDIDO.PREPARACION) timestamps.preparacionEn = new Date();
-  if (nuevoEstado === ESTADOS_PEDIDO.LISTO) timestamps.listoEn = new Date();
-  if (nuevoEstado === ESTADOS_PEDIDO.CAJA) timestamps.cajaEn = new Date();
-  if (nuevoEstado === ESTADOS_PEDIDO.FACTURADO) timestamps.facturadoEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.PENDIENTE) timestamps.pendienteEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.HECHO) timestamps.hechoEn = new Date();
+  if (nuevoEstado === ESTADOS_PEDIDO.FINALIZADO) timestamps.finalizadoEn = new Date();
   if (nuevoEstado === ESTADOS_PEDIDO.CANCELADO) timestamps.canceladoEn = new Date();
 
   return prisma.pedido.update({

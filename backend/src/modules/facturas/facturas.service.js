@@ -21,7 +21,7 @@ export const listar = async (filters = {}) => {
         },
       },
     },
-    orderBy: { pagadoEn: "desc" },
+    orderBy: { creadoEn: "desc" },
   });
 };
 
@@ -56,11 +56,11 @@ export const crear = async (data) => {
       subtotal: data.subtotal,
       impuestoConsumo: data.impuestoConsumo,
       total: data.total,
-      cambio: data.cambio || null,
-      metodoPago: data.metodoPago,
-      entidadBancaria: data.entidadBancaria,
+      metodoPagoId: data.metodoPagoId,
+      cajaSesionId: data.cajaSesionId,
     },
     include: {
+      metodoPago: true,
       pedido: {
         include: { detalles: { include: { producto: true } }, mesa: true },
       },
@@ -69,27 +69,24 @@ export const crear = async (data) => {
 
   await prisma.pedido.update({
     where: { id: data.pedidoId },
-    data: { estado: ESTADOS_PEDIDO.FACTURADO, facturadoEn: new Date(), total: data.total },
+    data: { estado: ESTADOS_PEDIDO.FINALIZADO, finalizadoEn: new Date(), total: data.total },
   });
 
-  const sesionActiva = await prisma.cajaSesion.findFirst({ where: { cierre: null } });
-  if (sesionActiva) {
-    await prisma.cajaSesion.update({
-      where: { id: sesionActiva.id },
-      data: {
-        totalVentas: { increment: data.total },
-        totalEnCaja: { increment: data.total },
-      },
-    });
-  }
+  await prisma.cajaSesion.update({
+    where: { id: data.cajaSesionId },
+    data: {
+      totalVentas: { increment: data.total },
+      totalEnCaja: { increment: data.total },
+    },
+  });
 
   const pedidosActivos = await prisma.pedido.count({
-    where: { mesaId: pedido.mesaId, estado: { notIn: ["facturado", "cancelado"] } },
+    where: { mesaId: pedido.mesaId, estado: { notIn: ["finalizado", "cancelado"] } },
   });
   if (pedidosActivos === 0) {
     await prisma.mesa.update({
       where: { id: pedido.mesaId },
-      data: { estado: ESTADOS_MESA.VACIA, ocupadaDesde: null, meseroActualId: null },
+      data: { estado: ESTADOS_MESA.VACIA },
     });
   }
 

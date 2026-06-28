@@ -9,12 +9,12 @@ const itemSchema = z.object({
 export const crearPedidoSchema = z.object({
   mesaId: z.number().int().positive("Debe seleccionar una mesa"),
   turno: z.number().int().positive(),
-  tipo: z.enum(["comida", "bebida", "mixto"]).optional(),
+  mesaOrigenId: z.number().int().positive().optional(),
   items: z.array(itemSchema).min(1, "Debe incluir al menos un item"),
 }).strict();
 
 export const cambiarEstadoSchema = z.object({
-  estado: z.enum(["espera", "preparacion", "listo", "caja", "facturado", "cancelado"]),
+  estado: z.enum(["recibido", "pendiente", "hecho", "finalizado", "cancelado"]),
 }).strict();
 
 export const fusionarSchema = z.object({
