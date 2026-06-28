@@ -8,9 +8,9 @@ function crearError(statusCode, message) {
 
 export const listar = async () => {
   return prisma.mesa.findMany({
-    orderBy: { numero: "asc" },
+    orderBy: { nombre: "asc" },
     include: {
-      _count: { select: { pedidos: { where: { estado: { notIn: ["facturado", "cancelado"] } } } } },
+      _count: { select: { pedidos: { where: { estado: { notIn: ["finalizado", "cancelado"] } } } } },
     },
   });
 };
