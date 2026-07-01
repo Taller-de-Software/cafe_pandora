@@ -11,3 +11,17 @@ services:
     environment:
       - NODE_ENV=development
       - CI=true
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=/api
+    depends_on:
+      - backend
