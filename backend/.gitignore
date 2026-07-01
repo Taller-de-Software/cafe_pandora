@@ -7,3 +7,6 @@ node_modules/
 prisma/dev.db
 uploads/productos/*
 !uploads/productos/.gitkeep
+
+uploads/facturas/*
+!uploads/facturas/.gitkeep

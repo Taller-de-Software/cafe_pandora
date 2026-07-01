@@ -2,6 +2,24 @@ import escpos from "escpos";
 import usb from "usb";
 import { formatearNumero } from "./formatear.js";
 
+// ─────────────────────────────────────────
+// IMPRESORA FÍSICA (descomentar cuando llegue la impresora)
+// 1. Instalar: pnpm add node-thermal-printer
+// 2. Descomentar este bloque
+// 3. Cambiar interface al puerto USB real (ver en Dispositivos e impresoras)
+// 4. Cambiar type según el modelo (EPSON o STAR)
+// 5. En .env cambiar PRINT_MODE=simulate → PRINT_MODE=real
+// ─────────────────────────────────────────
+// import { ThermalPrinter, PrinterTypes } from "node-thermal-printer";
+//
+// const thermalPrinter = new ThermalPrinter({
+//   type: PrinterTypes.EPSON,  // cambiar según modelo
+//   interface: "USB001",       // cambiar al puerto real
+//   characterSet: "PC850",
+//   removeSpecialCharacters: false,
+// });
+// ─────────────────────────────────────────
+
 let device = null;
 
 const SAT_VENDOR_IDS = [0x0416, 0x04b8, 0x067b, 0x0fe6, 0x1fc9];
