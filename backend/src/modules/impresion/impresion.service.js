@@ -1,5 +1,6 @@
 import prisma from "../../config/db.config.js";
 import { connectPrinter, printCocina, printPago, disconnectPrinter } from "../../utils/printer.js";
+import { generarPDFComanda, generarPDFRecibo } from "../../utils/pdfGenerator.js";
 
 function crearError(statusCode, message) {
   const error = new Error(message);
@@ -25,8 +26,6 @@ export const imprimirFacturaCocina = async (pedidoId) => {
 
   if (!pedido) throw crearError(404, "Pedido no encontrado");
 
-  connectPrinter();
-
   const data = {
     pedidoId: pedido.id,
     mesa: pedido.mesa.numero,
@@ -38,6 +37,14 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     })),
   };
 
+  if (process.env.PRINT_MODE === "simulate") {
+    console.log("🖨️  [IMPRESIÓN SIMULADA]");
+    console.log(JSON.stringify(data, null, 2));
+    const pdfUrl = await generarPDFComanda(data);
+    return { pdfUrl };
+  }
+
+  await connectPrinter();
   await printCocina(data);
   disconnectPrinter();
 
@@ -59,8 +66,6 @@ export const imprimirReciboPago = async (facturaId) => {
 
   if (!factura) throw crearError(404, "Factura no encontrada");
 
-  await connectPrinter();
-
   const mesa = factura.pedido.mesa.numero;
   const items = factura.pedido.detalles.map((d) => ({
     cantidad: d.cantidad,
@@ -76,6 +81,14 @@ export const imprimirReciboPago = async (facturaId) => {
     total: factura.total,
   };
 
+  if (process.env.PRINT_MODE === "simulate") {
+    console.log("🖨️  [IMPRESIÓN SIMULADA]");
+    console.log(JSON.stringify(data, null, 2));
+    const pdfUrl = await generarPDFRecibo(data);
+    return { pdfUrl };
+  }
+
+  await connectPrinter();
   await printPago(data);
   disconnectPrinter();
 
@@ -83,6 +96,10 @@ export const imprimirReciboPago = async (facturaId) => {
 };
 
 export const probarImpresora = async () => {
+  if (process.env.PRINT_MODE === "simulate") {
+    console.log("🖨️  [IMPRESIÓN SIMULADA]");
+    return { message: "Modo simulación activo" };
+  }
   await connectPrinter();
   disconnectPrinter();
   return { message: "Impresora conectada exitosamente" };
