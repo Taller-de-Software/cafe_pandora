@@ -47,7 +47,6 @@ enum TipoMovimientoCaja {
 
 model Usuario {
   id     Int     @id @default(autoincrement())
-  nombre String  @default("Sin nombre")
   rol    Rol     @unique
   pin    String?
 

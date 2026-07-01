@@ -7,7 +7,7 @@ function crearError(statusCode, message) {
   return error;
 }
 
-const usuarioSelect = { id: true, nombre: true, rol: true };
+const usuarioSelect = { id: true, rol: true };
 
 export const listar = async () => {
   return prisma.usuario.findMany({ select: usuarioSelect });
@@ -20,7 +20,7 @@ export const obtener = async (id) => {
 };
 
 export const crear = async (data) => {
-  const createData = { nombre: data.nombre };
+  const createData = {};
   if (data.pin) {
     createData.pin = await hashPassword(data.pin);
   }
@@ -32,7 +32,6 @@ export const crear = async (data) => {
 
 export const actualizar = async (id, data) => {
   const updateData = {};
-  if (data.nombre) updateData.nombre = data.nombre;
   if (data.pin) {
     updateData.pin = await hashPassword(data.pin);
   }

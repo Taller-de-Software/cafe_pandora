@@ -87,12 +87,13 @@ export const crearRetiro = async (cajaSesionId, data) => {
     },
   });
 
+  const updateData = data.tipo === "entrada"
+    ? { totalEnCaja: { increment: data.monto } }
+    : { totalEgresos: { increment: data.monto }, totalEnCaja: { decrement: data.monto } };
+
   await prisma.cajaSesion.update({
     where: { id: cajaSesionId },
-    data: {
-      totalEgresos: { increment: data.monto },
-      totalEnCaja: { decrement: data.monto },
-    },
+    data: updateData,
   });
 
   return retiro;
