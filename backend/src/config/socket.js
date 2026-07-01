@@ -24,7 +24,9 @@ function setupSocket(httpServer) {
 
   io.on("connection", (socket) => {
     const rol = socket.user.rol;
-    socket.join(`room:${rol}`);
+    if (rol === "administrador") {
+      socket.join("room:ADMIN");
+    }
     socket.join("room:all");
     socket.on("disconnect", () => {});
   });

@@ -1,5 +1,6 @@
 import escpos from "escpos";
 import usb from "usb";
+import { formatearNumero } from "./formatear.js";
 
 let device = null;
 
@@ -124,7 +125,7 @@ function printPago(data) {
         .style("normal");
 
       for (const item of data.items) {
-        const totalItem = (item.cantidad * item.precio).toFixed(2);
+        const totalItem = formatearNumero(item.cantidad * item.precio);
         printer.text(`${item.cantidad}x ${item.nombre}  $${totalItem}`);
       }
 
@@ -133,7 +134,7 @@ function printPago(data) {
         .text("----------------------------")
         .style("b")
         .align("rt")
-        .text(`TOTAL: $${data.total.toFixed(2)}`)
+        .text(`TOTAL: $${formatearNumero(data.total)}`)
         .style("normal")
         .align("lt")
         .text("")

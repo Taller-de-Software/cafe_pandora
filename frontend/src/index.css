@@ -1,1 +1,115 @@
 @import "tailwindcss";
+
+/* ===== LAYOUT ===== */
+.dashboard {
+  @apply flex h-screen bg-gray-100;
+}
+.dashboard__sidebar {
+  @apply flex flex-col transition-all duration-300 overflow-hidden;
+}
+.dashboard__body {
+  @apply flex flex-col flex-1 min-w-0;
+}
+.dashboard__content {
+  @apply flex-1 overflow-auto p-6;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  @apply bg-amber-900 text-white;
+}
+.sidebar--expanded {
+  @apply w-56;
+}
+.sidebar--collapsed {
+  @apply w-16;
+}
+.sidebar__nav {
+  @apply flex-1 pt-4;
+}
+.sidebar__list {
+  @apply space-y-1 px-2;
+}
+.sidebar__link {
+  @apply flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-amber-100 hover:bg-amber-800 hover:text-white;
+}
+.sidebar__link--active {
+  @apply bg-amber-700 text-white font-semibold;
+}
+.sidebar--collapsed .sidebar__link {
+  @apply justify-center px-0;
+}
+.sidebar__icon {
+  @apply w-5 h-5 shrink-0;
+}
+.sidebar__label {
+  @apply truncate;
+}
+.sidebar--collapsed .sidebar__label {
+  @apply hidden;
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+  @apply flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3;
+}
+.topbar__toggle {
+  @apply text-gray-600 hover:text-amber-700 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer;
+}
+.topbar__title {
+  @apply text-lg font-bold text-amber-900;
+}
+.topbar__actions {
+  @apply flex items-center gap-2;
+}
+.topbar__btn {
+  @apply text-gray-600 hover:text-amber-700 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer;
+}
+.topbar__btn--logout {
+  @apply hover:text-red-600;
+}
+.topbar__icon {
+  @apply w-6 h-6;
+}
+
+/* ===== PAGE ===== */
+.page__title {
+  @apply text-2xl font-bold text-gray-800;
+}
+.page__desc {
+  @apply text-gray-500 mt-2;
+}
+
+/* ===== LOGIN ===== */
+.login {
+  @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-800 to-amber-950;
+}
+.login__card {
+  @apply bg-white rounded-xl shadow-2xl p-8 w-full max-w-md;
+}
+.login__title {
+  @apply text-3xl font-bold text-center text-amber-900 mb-6;
+}
+.login__subtitle {
+  @apply text-gray-500 text-center mb-6;
+}
+.login__form {
+  @apply space-y-4;
+}
+.login__field {
+}
+.login__label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+.login__input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none;
+}
+.login__btn {
+  @apply w-full bg-amber-700 hover:bg-amber-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer;
+}
+.login__demo {
+  @apply text-center text-sm text-gray-400 mt-6;
+}
+.login__demo-link {
+  @apply text-amber-600 hover:underline;
+}

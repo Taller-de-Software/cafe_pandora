@@ -25,7 +25,7 @@ export const imprimirFacturaCocina = async (pedidoId) => {
 
   if (!pedido) throw crearError(404, "Pedido no encontrado");
 
-  await connectPrinter();
+  connectPrinter();
 
   const data = {
     pedidoId: pedido.id,

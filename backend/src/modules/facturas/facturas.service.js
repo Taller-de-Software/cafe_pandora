@@ -32,7 +32,7 @@ export const obtener = async (id) => {
       pedido: {
         include: {
           mesa: true,
-          usuario: { select: { id: true, nombre: true, rol: true } },
+          usuario: { select: { id: true, rol: true } },
           detalles: { include: { producto: true } },
         },
       },
@@ -45,10 +45,15 @@ export const obtener = async (id) => {
 export const crear = async (data) => {
   const pedido = await prisma.pedido.findUnique({
     where: { id: data.pedidoId },
-    include: { mesa: true },
+    include: { mesa: true, factura: true },
   });
 
   if (!pedido) throw crearError(404, "Pedido no encontrado");
+  if (pedido.factura) throw crearError(400, "El pedido ya tiene una factura");
+
+  const sesion = await prisma.cajaSesion.findUnique({ where: { id: data.cajaSesionId } });
+  if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
+  if (sesion.cierre) throw crearError(400, "La sesión de caja ya está cerrada");
 
   const factura = await prisma.factura.create({
     data: {
@@ -81,7 +86,7 @@ export const crear = async (data) => {
   });
 
   const pedidosActivos = await prisma.pedido.count({
-    where: { mesaId: pedido.mesaId, estado: { notIn: ["finalizado", "cancelado"] } },
+    where: { mesaId: pedido.mesaId, estado: { notIn: [ESTADOS_PEDIDO.FINALIZADO, ESTADOS_PEDIDO.CANCELADO] } },
   });
   if (pedidosActivos === 0) {
     await prisma.mesa.update({
