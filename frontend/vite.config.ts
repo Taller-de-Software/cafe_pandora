@@ -12,4 +12,17 @@ export default defineConfig({
       '@utils': path.resolve(__dirname, './src/utils'),
     },
   },
+  server: {
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://backend:3001',
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://backend:3001',
+        ws: true,
+      },
+    },
+  },
 })

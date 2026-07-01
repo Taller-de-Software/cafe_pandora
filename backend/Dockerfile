@@ -14,4 +14,4 @@ COPY . .
 
 EXPOSE 3001
 
-CMD ["pnpm", "dev"]
+CMD ["sh", "-c", "pnpm prisma migrate deploy && node server.js"]
