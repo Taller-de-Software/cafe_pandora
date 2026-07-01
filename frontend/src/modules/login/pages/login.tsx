@@ -1,25 +1,25 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@modules/auth/context/useAuth'
+import { useError } from '@/context/ErrorContext'
 import styles from './login.module.css'
 
 function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const { showError } = useError()
   const [rol, setRol] = useState<'administrador' | 'mesero'>('administrador')
   const [pin, setPin] = useState('')
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setError('')
     setLoading(true)
     try {
       await login({ rol, pin: rol === 'administrador' ? pin : undefined })
       navigate('/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
+      showError(err)
     } finally {
       setLoading(false)
     }
@@ -55,8 +55,6 @@ function Login() {
               />
             </div>
           )}
-
-          {error && <p className={styles.error}>{error}</p>}
 
           <button type="submit" className={styles.btn} disabled={loading}>
             {loading ? 'Ingresando...' : 'Ingresar'}

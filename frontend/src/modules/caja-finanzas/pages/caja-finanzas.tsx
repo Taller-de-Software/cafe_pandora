@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useError } from '@/context/ErrorContext'
 import EstadoCaja from '../componentes/EstadoCaja'
 import FormularioApertura from '../componentes/FormularioApertura'
 import ListaRetiros from '../componentes/ListaRetiros'
@@ -8,6 +9,7 @@ import { obtenerSesionActiva, apertura, cierre, listarRetiros, crearRetiro } fro
 import styles from './caja-finanzas.module.css'
 
 function CajaFinanzas() {
+  const { showError } = useError()
   const [showApertura, setShowApertura] = useState(false)
   const [showRetiro, setShowRetiro] = useState(false)
   const queryClient = useQueryClient()
@@ -29,11 +31,13 @@ function CajaFinanzas() {
       setShowApertura(false)
       queryClient.invalidateQueries({ queryKey: ['caja', 'activa'] })
     },
+    onError: showError,
   })
 
   const cierreMut = useMutation({
     mutationFn: () => cierre(sesion!.id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['caja', 'activa'] }),
+    onError: showError,
   })
 
   const retiroMut = useMutation({
@@ -44,6 +48,7 @@ function CajaFinanzas() {
       queryClient.invalidateQueries({ queryKey: ['caja', sesion?.id, 'retiros'] })
       queryClient.invalidateQueries({ queryKey: ['caja', 'activa'] })
     },
+    onError: showError,
   })
 
   return (

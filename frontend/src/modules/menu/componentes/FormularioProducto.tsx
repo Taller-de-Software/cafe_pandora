@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useError } from '@/context/ErrorContext'
 import styles from './FormularioProducto.module.css'
 
 interface FormularioProductoProps {
@@ -12,6 +13,7 @@ interface FormularioProductoProps {
 }
 
 function FormularioProducto({ onSave, onCancel }: FormularioProductoProps) {
+  const { showError } = useError()
   const [nombre, setNombre] = useState('')
   const [precio, setPrecio] = useState('')
   const [descripcion, setDescripcion] = useState('')
@@ -29,6 +31,8 @@ function FormularioProducto({ onSave, onCancel }: FormularioProductoProps) {
         descripcion: descripcion.trim() || undefined,
         requierePreparacion,
       })
+    } catch (err) {
+      showError(err)
     } finally {
       setSaving(false)
     }
