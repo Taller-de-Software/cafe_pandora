@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useError } from '@/context/ErrorContext'
 import styles from './FormularioApertura.module.css'
 
 interface FormularioAperturaProps {
@@ -7,6 +8,7 @@ interface FormularioAperturaProps {
 }
 
 function FormularioApertura({ onSave, onCancel }: FormularioAperturaProps) {
+  const { showError } = useError()
   const [monto, setMonto] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -17,6 +19,8 @@ function FormularioApertura({ onSave, onCancel }: FormularioAperturaProps) {
     setSaving(true)
     try {
       await onSave(val)
+    } catch (err) {
+      showError(err)
     } finally {
       setSaving(false)
     }

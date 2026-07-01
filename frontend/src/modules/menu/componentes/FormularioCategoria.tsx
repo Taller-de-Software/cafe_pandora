@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useError } from '@/context/ErrorContext'
 import styles from './FormularioCategoria.module.css'
 
 interface FormularioCategoriaProps {
@@ -7,6 +8,7 @@ interface FormularioCategoriaProps {
 }
 
 function FormularioCategoria({ onSave, onCancel }: FormularioCategoriaProps) {
+  const { showError } = useError()
   const [nombre, setNombre] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -16,6 +18,8 @@ function FormularioCategoria({ onSave, onCancel }: FormularioCategoriaProps) {
     setSaving(true)
     try {
       await onSave(nombre.trim())
+    } catch (err) {
+      showError(err)
     } finally {
       setSaving(false)
     }

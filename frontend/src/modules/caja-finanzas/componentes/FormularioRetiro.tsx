@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useError } from '@/context/ErrorContext'
 import styles from './FormularioRetiro.module.css'
 
 interface FormularioRetiroProps {
@@ -7,6 +8,7 @@ interface FormularioRetiroProps {
 }
 
 function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
+  const { showError } = useError()
   const [tipo, setTipo] = useState<'entrada' | 'salida'>('entrada')
   const [monto, setMonto] = useState('')
   const [saving, setSaving] = useState(false)
@@ -18,6 +20,8 @@ function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
     setSaving(true)
     try {
       await onSave({ tipo, monto: val })
+    } catch (err) {
+      showError(err)
     } finally {
       setSaving(false)
     }

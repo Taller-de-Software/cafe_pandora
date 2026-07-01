@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
+import { useError } from '@/context/ErrorContext'
 import type { Mesa } from '../data/pedidos'
 import { listarMesas, listarProductos, crearPedido } from '../data/pedidos'
 import { formatearNumero } from '@/utils/formatear'
@@ -16,6 +17,7 @@ interface ItemForm {
 }
 
 function FormularioPedido({ onSave, onCancel }: FormularioPedidoProps) {
+  const { showError } = useError()
   const [mesas, setMesas] = useState<Mesa[]>([])
   const [productos, setProductos] = useState<{ id: number; nombre: string; precio: number }[]>([])
   const [mesaId, setMesaId] = useState<number | ''>('')
@@ -51,8 +53,9 @@ function FormularioPedido({ onSave, onCancel }: FormularioPedidoProps) {
         items: items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad, notas: i.notas || undefined })),
       })
       onSave()
-    } catch { /* ignora */ }
-    finally { setSaving(false) }
+    } catch (err) {
+      showError(err)
+    } finally { setSaving(false) }
   }
 
   return (

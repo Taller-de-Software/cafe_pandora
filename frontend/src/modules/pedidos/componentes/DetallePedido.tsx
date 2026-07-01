@@ -1,3 +1,4 @@
+import { useError } from '@/context/ErrorContext'
 import type { Pedido, EstadoPedido } from '../data/pedidos'
 import { cambiarEstado } from '../data/pedidos'
 import { formatearNumero } from '@/utils/formatear'
@@ -24,16 +25,18 @@ const badgeColor: Record<EstadoPedido, string> = {
   cancelado: styles.cancel,
 }
 
-async function handleCambiarEstado(id: number, estado: EstadoPedido, onUpdate: () => void) {
-  try {
-    await cambiarEstado(id, estado)
-    onUpdate()
-  } catch {
-    alert('Error al cambiar el estado del pedido')
-  }
-}
-
 function DetallePedido({ pedido, onUpdate }: DetallePedidoProps) {
+  const { showError } = useError()
+
+  async function handleCambiarEstado(id: number, estado: EstadoPedido) {
+    try {
+      await cambiarEstado(id, estado)
+      onUpdate()
+    } catch (err) {
+      showError(err)
+    }
+  }
+
   const disponibles = transiciones[pedido.estado] ?? []
 
   return (
@@ -77,7 +80,7 @@ function DetallePedido({ pedido, onUpdate }: DetallePedidoProps) {
             <button
               key={est}
               className={`${styles.actionBtn} ${badgeColor[est]}`}
-              onClick={() => handleCambiarEstado(pedido.id, est, onUpdate)}
+              onClick={() => handleCambiarEstado(pedido.id, est)}
             >
               {est === 'cancelado' ? 'Cancelar' : `→ ${est}`}
             </button>
