@@ -7,11 +7,11 @@ function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="dashboard">
       <SliderLateral isOpen={sidebarOpen} />
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="dashboard__body">
         <BarraSuperior onToggle={() => setSidebarOpen((prev) => !prev)} />
-        <main className="flex-1 overflow-auto p-6">
+        <main className="dashboard__content">
           <Outlet />
         </main>
       </div>

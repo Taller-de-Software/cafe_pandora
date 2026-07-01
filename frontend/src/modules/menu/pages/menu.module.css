@@ -1,0 +1,20 @@
+.layout {
+  display: grid;
+  grid-template-columns: 20rem 1fr;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.sidebar {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.main {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
