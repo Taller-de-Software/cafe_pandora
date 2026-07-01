@@ -16,7 +16,7 @@ export const listar = async (filters = {}) => {
     where,
     include: {
       mesa: true,
-      usuario: { select: { id: true, nombre: true, rol: true } },
+      usuario: { select: { id: true, rol: true } },
       detalles: { include: { producto: true } },
       factura: true,
     },
@@ -29,7 +29,7 @@ export const obtener = async (id) => {
     where: { id },
     include: {
       mesa: true,
-      usuario: { select: { id: true, nombre: true, rol: true } },
+      usuario: { select: { id: true, rol: true } },
       detalles: { include: { producto: true } },
       factura: true,
     },
@@ -66,7 +66,7 @@ export const crear = async (data, usuarioId) => {
     },
     include: {
       mesa: true,
-      usuario: { select: { id: true, nombre: true, rol: true } },
+      usuario: { select: { id: true, rol: true } },
       detalles: { include: { producto: true } },
     },
   });
@@ -114,6 +114,10 @@ export const cambiarEstado = async (id, nuevoEstado) => {
 export const cancelar = async (id) => {
   const pedido = await prisma.pedido.findUnique({ where: { id } });
   if (!pedido) throw crearError(404, "Pedido no encontrado");
+
+  if (pedido.estado === ESTADOS_PEDIDO.FINALIZADO || pedido.estado === ESTADOS_PEDIDO.CANCELADO) {
+    throw crearError(400, `No se puede cancelar un pedido en estado ${pedido.estado}`);
+  }
 
   return prisma.pedido.update({
     where: { id },
