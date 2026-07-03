@@ -55,45 +55,49 @@ export const crear = async (data) => {
   if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
   if (sesion.cierre) throw crearError(400, "La sesión de caja ya está cerrada");
 
-  const factura = await prisma.factura.create({
-    data: {
-      pedidoId: data.pedidoId,
-      subtotal: data.subtotal,
-      impuestoConsumo: data.impuestoConsumo,
-      total: data.total,
-      metodoPagoId: data.metodoPagoId,
-      cajaSesionId: data.cajaSesionId,
-    },
-    include: {
-      metodoPago: true,
-      pedido: {
-        include: { detalles: { include: { producto: true } }, mesa: true },
+  const factura = await prisma.$transaction(async (tx) => {
+    const f = await tx.factura.create({
+      data: {
+        pedidoId: data.pedidoId,
+        subtotal: data.subtotal,
+        impuestoConsumo: data.impuestoConsumo,
+        total: data.total,
+        metodoPagoId: data.metodoPagoId,
+        cajaSesionId: data.cajaSesionId,
       },
-    },
-  });
-
-  await prisma.pedido.update({
-    where: { id: data.pedidoId },
-    data: { estado: ESTADOS_PEDIDO.FINALIZADO, finalizadoEn: new Date(), total: data.total },
-  });
-
-  await prisma.cajaSesion.update({
-    where: { id: data.cajaSesionId },
-    data: {
-      totalVentas: { increment: data.total },
-      totalEnCaja: { increment: data.total },
-    },
-  });
-
-  const pedidosActivos = await prisma.pedido.count({
-    where: { mesaId: pedido.mesaId, estado: { notIn: [ESTADOS_PEDIDO.FINALIZADO, ESTADOS_PEDIDO.CANCELADO] } },
-  });
-  if (pedidosActivos === 0) {
-    await prisma.mesa.update({
-      where: { id: pedido.mesaId },
-      data: { estado: ESTADOS_MESA.VACIA },
+      include: {
+        metodoPago: true,
+        pedido: {
+          include: { detalles: { include: { producto: true } }, mesa: true },
+        },
+      },
     });
-  }
+
+    await tx.pedido.update({
+      where: { id: data.pedidoId },
+      data: { estado: ESTADOS_PEDIDO.FINALIZADO, finalizadoEn: new Date(), total: data.total },
+    });
+
+    await tx.cajaSesion.update({
+      where: { id: data.cajaSesionId },
+      data: {
+        totalVentas: { increment: data.total },
+        totalEnCaja: { increment: data.total },
+      },
+    });
+
+    const pedidosActivos = await tx.pedido.count({
+      where: { mesaId: pedido.mesaId, estado: { notIn: [ESTADOS_PEDIDO.FINALIZADO, ESTADOS_PEDIDO.CANCELADO] } },
+    });
+    if (pedidosActivos === 0) {
+      await tx.mesa.update({
+        where: { id: pedido.mesaId },
+        data: { estado: ESTADOS_MESA.VACIA },
+      });
+    }
+
+    return f;
+  });
 
   return factura;
 };

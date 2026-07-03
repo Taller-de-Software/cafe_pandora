@@ -48,7 +48,12 @@ export const apertura = async (baseInicial) => {
 export const cierre = async (id) => {
   const sesion = await prisma.cajaSesion.findUnique({
     where: { id },
-    include: { retiros: true },
+    include: {
+      retiros: true,
+      facturas: {
+        include: { metodoPago: true },
+      },
+    },
   });
   if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
   if (sesion.cierre) throw crearError(400, "La sesión ya está cerrada");
@@ -56,7 +61,7 @@ export const cierre = async (id) => {
   const totalEgresos = sesion.retiros.reduce((sum, r) => sum + r.monto, 0);
   const netoCajon = sesion.baseInicial + sesion.totalVentas - totalEgresos;
 
-  return prisma.cajaSesion.update({
+  const sesionActualizada = await prisma.cajaSesion.update({
     where: { id },
     data: {
       cierre: new Date(),
@@ -65,6 +70,108 @@ export const cierre = async (id) => {
     },
     include: { retiros: true },
   });
+
+  const desglosePorMetodoPago = {};
+  for (const f of sesion.facturas) {
+    const nombre = f.metodoPago.nombre;
+    if (!desglosePorMetodoPago[nombre]) {
+      desglosePorMetodoPago[nombre] = { count: 0, total: 0 };
+    }
+    desglosePorMetodoPago[nombre].count += 1;
+    desglosePorMetodoPago[nombre].total += f.total;
+  }
+
+  return {
+    sesion: sesionActualizada,
+    resumen: {
+      cantidadFacturas: sesion.facturas.length,
+      sumaTotal: sesion.facturas.reduce((s, f) => s + f.total, 0),
+      desglosePorMetodoPago,
+    },
+  };
+};
+
+export const resumenSesion = async (id) => {
+  const sesion = await prisma.cajaSesion.findUnique({
+    where: { id },
+    include: {
+      retiros: { orderBy: { retiradoEn: "asc" } },
+      facturas: {
+        include: {
+          metodoPago: true,
+          pedido: {
+            include: {
+              mesa: true,
+              detalles: { include: { producto: true } },
+            },
+          },
+        },
+        orderBy: { creadoEn: "desc" },
+      },
+    },
+  });
+  if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
+
+  const totalFacturas = sesion.facturas.length;
+  const sumaTotal = sesion.facturas.reduce((s, f) => s + f.total, 0);
+
+  const desglosePorMetodoPago = {};
+  for (const f of sesion.facturas) {
+    const nombre = f.metodoPago.nombre;
+    if (!desglosePorMetodoPago[nombre]) {
+      desglosePorMetodoPago[nombre] = { count: 0, total: 0 };
+    }
+    desglosePorMetodoPago[nombre].count += 1;
+    desglosePorMetodoPago[nombre].total += f.total;
+  }
+
+  const totalEntradasRetiros = sesion.retiros
+    .filter((r) => r.tipo === "entrada")
+    .reduce((s, r) => s + r.monto, 0);
+  const totalSalidasRetiros = sesion.retiros
+    .filter((r) => r.tipo === "salida")
+    .reduce((s, r) => s + r.monto, 0);
+
+  return {
+    sesion: {
+      id: sesion.id,
+      apertura: sesion.apertura,
+      cierre: sesion.cierre,
+      baseInicial: sesion.baseInicial,
+      totalVentas: sesion.totalVentas,
+      totalEgresos: sesion.totalEgresos,
+      totalEnCaja: sesion.totalEnCaja,
+      netoCajon: sesion.netoCajon,
+      estaAbierta: sesion.cierre === null,
+    },
+    resumen: {
+      cantidadFacturas: totalFacturas,
+      sumaTotal,
+      desglosePorMetodoPago,
+      totalEntradasRetiros,
+      totalSalidasRetiros,
+      balanceEsperado: sesion.baseInicial + sumaTotal + totalEntradasRetiros - totalSalidasRetiros,
+    },
+    facturas: sesion.facturas.map((f) => ({
+      id: f.id,
+      total: f.total,
+      subtotal: f.subtotal,
+      impuestoConsumo: f.impuestoConsumo,
+      creadoEn: f.creadoEn,
+      metodoPago: f.metodoPago.nombre,
+      pedido: {
+        id: f.pedido.id,
+        mesa: f.pedido.mesa?.nombre ?? "Sin mesa",
+        estado: f.pedido.estado,
+        detalles: f.pedido.detalles.map((d) => ({
+          producto: d.producto.nombre,
+          cantidad: d.cantidad,
+          precio: d.precioUnitario,
+        })),
+      },
+    })),
+    retiros: sesion.retiros,
+  };
 };
 
 export const listarRetiros = async (cajaSesionId) => {
@@ -79,21 +186,25 @@ export const crearRetiro = async (cajaSesionId, data) => {
   if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
   if (sesion.cierre) throw crearError(400, "La sesión ya está cerrada");
 
-  const retiro = await prisma.retiroCaja.create({
-    data: {
-      tipo: data.tipo,
-      monto: data.monto,
-      cajaSesionId,
-    },
-  });
+  const retiro = await prisma.$transaction(async (tx) => {
+    const r = await tx.retiroCaja.create({
+      data: {
+        tipo: data.tipo,
+        monto: data.monto,
+        cajaSesionId,
+      },
+    });
 
-  const updateData = data.tipo === "entrada"
-    ? { totalEnCaja: { increment: data.monto } }
-    : { totalEgresos: { increment: data.monto }, totalEnCaja: { decrement: data.monto } };
+    const updateData = data.tipo === "entrada"
+      ? { totalEnCaja: { increment: data.monto } }
+      : { totalEgresos: { increment: data.monto }, totalEnCaja: { decrement: data.monto } };
 
-  await prisma.cajaSesion.update({
-    where: { id: cajaSesionId },
-    data: updateData,
+    await tx.cajaSesion.update({
+      where: { id: cajaSesionId },
+      data: updateData,
+    });
+
+    return r;
   });
 
   return retiro;

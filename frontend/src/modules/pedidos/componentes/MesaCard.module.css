@@ -1,0 +1,75 @@
+.card {
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.estadoVacia { border-color: #d1d5db; }
+.estadoOcupada { border-color: #ef4444; }
+.estadoPorPagar { border-color: #eab308; }
+.estadoReservada { border-color: #22c55e; }
+.estadoFDS { border-color: #6b7280; opacity: 0.6; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nombre {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #1f2937;
+}
+
+.zona {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+}
+
+.cuerpo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.estadoVaciaBadge { background: #f3f4f6; color: #6b7280; }
+.estadoOcupadaBadge { background: #fef2f2; color: #dc2626; }
+.estadoPorPagarBadge { background: #fefce8; color: #a16207; }
+.estadoReservadaBadge { background: #f0fdf4; color: #16a34a; }
+.estadoFDSBadge { background: #f3f4f6; color: #4b5563; }
+
+.capacidad {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.pedidoInfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #4b5563;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 0.5rem;
+}

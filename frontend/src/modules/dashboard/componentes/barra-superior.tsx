@@ -28,6 +28,11 @@ function BarraSuperior({ onToggle }: BarraSuperiorProps) {
         <div className={styles.userInfo}>
           <div className={styles.userRole}>{user?.rol ?? ''}</div>
         </div>
+        {user?.rol === 'administrador' && (
+          <button className={styles.profileBtn} onClick={() => navigate('/dashboard/configuracion')} title="Configuración">
+            <Icono name="usuario" className={styles.icon} />
+          </button>
+        )}
         <button className={styles.logoutBtn} onClick={handleLogout} title="Cerrar sesión">
           <Icono name="salir" className={styles.icon} />
         </button>

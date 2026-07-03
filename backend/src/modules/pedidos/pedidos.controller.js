@@ -1,5 +1,9 @@
+import { z } from "zod";
 import * as pedidosService from "./pedidos.service.js";
 import { ok, created } from "../../utils/response.js";
+
+const idQuery = z.coerce.number().int().positive().optional();
+const estadoQuery = z.string().optional();
 
 function getIO(req) {
   return req.app.get("io");
@@ -7,10 +11,11 @@ function getIO(req) {
 
 export const listar = async (req, res, next) => {
   try {
-    const { estado, mesaId } = req.query;
     const filters = {};
+    const estado = estadoQuery.parse(req.query.estado);
+    const mesaId = idQuery.parse(req.query.mesaId);
     if (estado) filters.estado = estado;
-    if (mesaId) filters.mesaId = parseInt(mesaId);
+    if (mesaId) filters.mesaId = mesaId;
     const pedidos = await pedidosService.listar(filters);
     ok(res, pedidos);
   } catch (err) {

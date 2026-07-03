@@ -82,6 +82,31 @@
   cursor: not-allowed;
 }
 
+.tabs {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  border: none;
+  background: none;
+  transition: color 0.2s, border-color 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tabActive {
+  color: #b45309;
+  border-bottom-color: #b45309;
+}
+
 .error {
   color: #dc2626;
   font-size: 0.875rem;
