@@ -26,6 +26,7 @@ enum EstadoMesa {
   ocupada
   por_pagar
   reservada
+  fuera_de_servicio
 }
 
 enum EstadoPedido {
@@ -47,7 +48,7 @@ enum TipoMovimientoCaja {
 
 model Usuario {
   id     Int     @id @default(autoincrement())
-  rol    Rol     @unique
+  rol    Rol
   pin    String?
 
   pedidos Pedido[]
@@ -128,10 +129,12 @@ model Mesa {
   ubicacion     String
   estado        EstadoMesa @default(vacia)
   personalizada Boolean    @default(false)
+  capacidad     Int        @default(4)
 
-  pedidos       Pedido[]    @relation("MesaActual")
-  pedidosOrigen Pedido[]    @relation("MesaOrigen")
-  unionMesas    UnionMesa[]
+  pedidos         Pedido[]    @relation("MesaActual")
+  pedidosOrigen   Pedido[]    @relation("MesaOrigen")
+  unionMesas      UnionMesa[]
+  reservas        Reserva[]
 
   @@map("mesas")
 }
@@ -234,6 +237,33 @@ model CajaSesion {
   facturas Factura[]
 
   @@map("caja_sesiones")
+}
+
+// ============================================================
+// RESERVA
+// ============================================================
+
+enum EstadoReserva {
+  pendiente
+  confirmada
+  cancelada
+  completada
+}
+
+model Reserva {
+  id        Int           @id @default(autoincrement())
+  cliente   String
+  telefono  String?
+  fecha     DateTime
+  hora      String
+  personas  Int           @default(1)
+  estado    EstadoReserva @default(pendiente)
+  mesaId    Int
+  mesa      Mesa          @relation(fields: [mesaId], references: [id])
+
+  creadoEn DateTime @default(now())
+
+  @@map("reservas")
 }
 
 // ============================================================

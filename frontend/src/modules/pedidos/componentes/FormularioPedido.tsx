@@ -26,9 +26,9 @@ function FormularioPedido({ onSave, onCancel }: FormularioPedidoProps) {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    listarMesas().then(setMesas).catch(() => {})
-    listarProductos().then(setProductos).catch(() => {})
-  }, [])
+    listarMesas().then(setMesas).catch(showError)
+    listarProductos().then(setProductos).catch(showError)
+  }, [showError])
 
   function addItem() {
     setItems([...items, { productoId: 0, cantidad: 1, notas: '' }])

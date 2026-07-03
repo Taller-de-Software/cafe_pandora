@@ -19,6 +19,15 @@ export const refresh = async (req, res, next) => {
   }
 };
 
+export const register = async (req, res, next) => {
+  try {
+    const result = await authService.register(req.body);
+    return ok(res, result, result.esPrimero ? "Administrador creado exitosamente" : "Mesero creado exitosamente");
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const me = async (req, res, next) => {
   try {
     const usuario = await authService.getMe(req.user.id);

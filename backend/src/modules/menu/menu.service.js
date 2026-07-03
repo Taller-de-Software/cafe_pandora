@@ -52,9 +52,15 @@ export const eliminarSubcategoria = async (id) => {
 };
 
 export const eliminarCategoria = async (id) => {
-  const productos = await prisma.producto.count({ where: { categoriaId: id } });
+  const [productos, subcategorias] = await Promise.all([
+    prisma.producto.count({ where: { categoriaId: id } }),
+    prisma.subcategoria.count({ where: { categoriaId: id } }),
+  ]);
   if (productos > 0) {
     throw crearError(400, "No se puede eliminar: categoría con productos asociados");
+  }
+  if (subcategorias > 0) {
+    throw crearError(400, "No se puede eliminar: categoría con subcategorías asociadas");
   }
   return prisma.categoria.delete({ where: { id } });
 };

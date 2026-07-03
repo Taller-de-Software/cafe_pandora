@@ -17,7 +17,39 @@ export function classificarError(error: unknown): ErrorInfo {
 
   const msg = error instanceof Error ? error.message : String(error)
 
-  if (/sesión expirada|token inválido|no autorizado|credenciales incorrectas/i.test(msg)) {
+  if (/^(?:401|403)\s/.test(msg)) {
+    return {
+      type: 'auth',
+      title: 'Error de autenticación',
+      message: msg.replace(/^\d{3}\s*/, ''),
+    }
+  }
+
+  if (/^404\s/.test(msg)) {
+    return {
+      type: 'validation',
+      title: 'No encontrado',
+      message: msg.replace(/^\d{3}\s*/, ''),
+    }
+  }
+
+  if (/^4\d{2}\s/.test(msg)) {
+    return {
+      type: 'validation',
+      title: 'Error de validación',
+      message: msg.replace(/^\d{3}\s*/, ''),
+    }
+  }
+
+  if (/^5\d{2}\s/.test(msg)) {
+    return {
+      type: 'server',
+      title: 'Error del servidor',
+      message: msg.replace(/^\d{3}\s*/, '') || 'Ocurrió un error en el servidor. Intenta de nuevo más tarde.',
+    }
+  }
+
+  if (/sesión expirada|token inválido|no autorizado|credenciales incorrectas|pin inválido/i.test(msg)) {
     return {
       type: 'auth',
       title: 'Error de autenticación',
@@ -25,29 +57,11 @@ export function classificarError(error: unknown): ErrorInfo {
     }
   }
 
-  if (/^\d{3}/.test(msg)) {
-    const code = parseInt(msg, 10)
-    if (code >= 400 && code < 500) {
-      return {
-        type: 'validation',
-        title: 'Error de validación',
-        message: msg.replace(/^\d{3}\s*/, ''),
-      }
-    }
-    if (code >= 500) {
-      return {
-        type: 'server',
-        title: 'Error del servidor',
-        message: 'Ocurrió un error en el servidor. Intenta de nuevo más tarde.',
-      }
-    }
-  }
-
-  if (/error al iniciar sesión|contraseña|pin inválido/i.test(msg)) {
+  if (/La solicitud tardó demasiado/.test(msg)) {
     return {
-      type: 'auth',
-      title: 'Credenciales incorrectas',
-      message: msg,
+      type: 'connection',
+      title: 'Tiempo de espera agotado',
+      message: 'El servidor no respondió a tiempo. Verifica tu conexión e intenta de nuevo.',
     }
   }
 

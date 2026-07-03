@@ -13,47 +13,83 @@
   margin-top: 0.25rem;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: 1rem;
+.section {
+  margin-bottom: 2rem;
 }
 
-.card {
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  text-decoration: none;
-  color: inherit;
-  transition: box-shadow 0.2s, transform 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.cardIcon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.cardContent h3 {
+.sectionTitle {
+  font-size: 1.125rem;
   font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.loading {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.empty {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.cobroGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 0.75rem;
+}
+
+.cobroCard {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cobroHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.cobroHeader strong {
+  font-size: 1rem;
+}
+
+.estadoBadge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+  text-transform: capitalize;
+  margin-left: auto;
+}
+
+.cobroTotal {
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #1f2937;
 }
 
-.cardContent p {
+.cobrarBtn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #22c55e;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
   font-size: 0.875rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
+  transition: background 0.15s;
+}
+
+.cobrarBtn:hover {
+  background: #16a34a;
 }

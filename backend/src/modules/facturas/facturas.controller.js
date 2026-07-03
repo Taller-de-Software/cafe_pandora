@@ -1,12 +1,13 @@
+import { z } from "zod";
 import * as facturasService from "./facturas.service.js";
 import { ok, created } from "../../utils/response.js";
 
+const idQuery = z.coerce.number().int().positive().optional();
+
 export const listar = async (req, res, next) => {
   try {
-    const { pedidoId } = req.query;
-    const facturas = await facturasService.listar({
-      pedidoId: pedidoId ? parseInt(pedidoId) : undefined,
-    });
+    const pedidoId = idQuery.parse(req.query.pedidoId);
+    const facturas = await facturasService.listar({ pedidoId });
     ok(res, facturas);
   } catch (err) {
     next(err);

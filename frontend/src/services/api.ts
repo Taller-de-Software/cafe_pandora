@@ -35,6 +35,8 @@ async function doRefreshTokens(): Promise<boolean> {
   return true
 }
 
+const REQUEST_TIMEOUT = 15000
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = storage.getAccessToken()
   const headers: Record<string, string> = {
@@ -43,22 +45,38 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json'
   }
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: { ...headers, ...(options.headers as Record<string, string>) },
-  })
 
-  if (res.status === 401 && storage.getRefreshToken()) {
-    const ok = await refreshTokens()
-    if (ok) return request<T>(path, options)
-    storage.clear()
-    window.location.href = '/'
-    throw new Error('Sesión expirada')
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT)
+
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers: { ...headers, ...(options.headers as Record<string, string>) },
+      signal: controller.signal,
+    })
+
+    if (res.status === 401 && storage.getRefreshToken()) {
+      const ok = await refreshTokens()
+      if (ok) return request<T>(path, options)
+      storage.clear()
+      window.location.href = '/'
+      throw new Error('401 Sesión expirada')
+    }
+
+    const json: ApiResponse<T> = await res.json()
+    if (!res.ok) {
+      throw new Error(`${res.status} ${json.message || 'Error de servidor'}`)
+    }
+    return json.data
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('La solicitud tardó demasiado en responder', { cause: err })
+    }
+    throw err
+  } finally {
+    clearTimeout(timeoutId)
   }
-
-  const json: ApiResponse<T> = await res.json()
-  if (!res.ok) throw new Error(json.message || 'Error de servidor')
-  return json.data
 }
 
 export const api = {

@@ -10,11 +10,15 @@ const router = Router();
 
 router.use(authenticate);
 
+// Rutas fijas (sin parámetros)
 router.get("/", cajaController.listarSesiones);
 router.get("/activa", cajaController.obtenerSesionActiva);
-router.get("/:id", validateId, cajaController.obtenerSesion);
 router.post("/apertura", authorize(ROLES.ADMIN), validate(aperturaSchema), cajaController.apertura);
+
+// Rutas parametrizadas
+router.get("/:id", validateId, cajaController.obtenerSesion);
 router.post("/:id/cierre", authorize(ROLES.ADMIN), validateId, cajaController.cierre);
+router.get("/:id/resumen", validateId, cajaController.resumenSesion);
 router.get("/:id/retiros", validateId, cajaController.listarRetiros);
 router.post("/:id/retiros", authorize(ROLES.ADMIN), validateId, validate(retiroSchema), cajaController.crearRetiro);
 

@@ -1,5 +1,5 @@
 import prisma from "../../config/db.config.js";
-import { comparePassword } from "../../utils/hash.js";
+import { comparePassword, hashPassword } from "../../utils/hash.js";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
 
 function crearError(statusCode, message) {
@@ -9,7 +9,7 @@ function crearError(statusCode, message) {
 }
 
 export const login = async ({ rol, pin }) => {
-  const usuario = await prisma.usuario.findUnique({ where: { rol } });
+  const usuario = await prisma.usuario.findFirst({ where: { rol } });
   if (!usuario) throw crearError(401, "Credenciales inválidas");
 
   if (usuario.rol === "administrador") {
@@ -46,6 +46,37 @@ export const refresh = async ({ refreshToken }) => {
   } catch {
     throw crearError(401, "Refresh token inválido o expirado");
   }
+};
+
+export const register = async ({ pin }) => {
+  const usuariosExistentes = await prisma.usuario.count();
+  const esPrimero = usuariosExistentes === 0;
+  const rol = esPrimero ? "administrador" : "mesero";
+
+  if (esPrimero && !pin) {
+    throw crearError(400, "El PIN es requerido para crear el primer usuario (administrador)");
+  }
+
+  const createData = {};
+  if (pin) {
+    createData.pin = await hashPassword(pin);
+  }
+
+  const usuario = await prisma.usuario.create({
+    data: { rol, ...createData },
+    select: { id: true, rol: true },
+  });
+
+  const payload = { id: usuario.id, rol: usuario.rol };
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateRefreshToken(payload);
+
+  return {
+    accessToken,
+    refreshToken,
+    usuario,
+    esPrimero,
+  };
 };
 
 export const getMe = async (id) => {

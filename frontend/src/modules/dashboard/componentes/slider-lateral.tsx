@@ -1,13 +1,11 @@
-import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '@modules/auth/context/useAuth'
 import Icono from './iconos'
 import { itemsFijos, type ItemNavegacion } from '../data/navegacion'
-import { fetchCategorias, mapCategoriasToItems } from '../data/categorias'
 
 function filtrarPorRol(items: ItemNavegacion[], rol?: string): ItemNavegacion[] {
   if (rol === 'mesero') {
-    return items.filter(i => i.path === '/dashboard/inicio' || i.path === '/dashboard/pedidos')
+    return items.filter(i => i.path === '/dashboard/inicio' || i.path === '/dashboard/pedidos' || i.path === '/dashboard/caja-finanzas')
   }
   return items
 }
@@ -18,16 +16,7 @@ interface SliderLateralProps {
 
 function SliderLateral({ isOpen }: SliderLateralProps) {
   const { user } = useAuth()
-  const [items, setItems] = useState<ItemNavegacion[]>(() => filtrarPorRol(itemsFijos, user?.rol))
-
-  useEffect(() => {
-    fetchCategorias()
-      .then((data) => {
-        const nuevos = data.length > 0 ? mapCategoriasToItems(data) : itemsFijos
-        setItems(filtrarPorRol(nuevos, user?.rol))
-      })
-      .catch(() => setItems(filtrarPorRol(itemsFijos, user?.rol)))
-  }, [user?.rol])
+  const items = filtrarPorRol(itemsFijos, user?.rol)
 
   const sidebarClass = isOpen
     ? 'sidebar sidebar--expanded'

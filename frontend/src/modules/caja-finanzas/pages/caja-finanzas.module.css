@@ -31,6 +31,11 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.content {
+  flex: 1;
+  min-height: 0;
+}
+
 .subtabs {
   display: flex;
   gap: 0.5rem;
