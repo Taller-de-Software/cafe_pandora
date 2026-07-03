@@ -28,7 +28,7 @@ export const imprimirFacturaCocina = async (pedidoId) => {
 
   const data = {
     pedidoId: pedido.id,
-    mesa: pedido.mesa.numero,
+    mesa: pedido.mesa.nombre,
     fecha: formatFecha(),
     items: pedido.detalles.map((d) => ({
       cantidad: d.cantidad,
@@ -66,7 +66,7 @@ export const imprimirReciboPago = async (facturaId) => {
 
   if (!factura) throw crearError(404, "Factura no encontrada");
 
-  const mesa = factura.pedido.mesa.numero;
+  const mesa = factura.pedido.mesa.nombre;
   const items = factura.pedido.detalles.map((d) => ({
     cantidad: d.cantidad,
     nombre: d.producto.nombre,

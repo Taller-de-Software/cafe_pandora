@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useError } from '@/context/ErrorContext'
 import ListaCategorias from '../components/categorias/ListaCategorias'
 import ListaSubcategorias from '../components/subcategorias/ListaSubcategorias'
 import ListaProductos from '../components/productos/ListaProductos'
@@ -13,6 +14,7 @@ import type { Producto } from '../api/productos'
 import styles from './menu.module.css'
 
 function Menu() {
+  const { showError } = useError()
   const queryClient = useQueryClient()
 
   const [categoriaActivaId, setCategoriaActivaId] = useState<number | null>(null)
@@ -22,17 +24,17 @@ function Menu() {
   const [showProdForm, setShowProdForm] = useState(false)
   const [productoEditando, setProductoEditando] = useState<Producto | null>(null)
 
-  const { data: categorias = [] } = useQuery({
+  const { data: categorias = [], isLoading: catCargando, isError: catError } = useQuery({
     queryKey: ['categorias'],
     queryFn: listarCategorias,
   })
 
-  const { data: subcategorias = [], isFetching: subcategoriasCargando } = useQuery({
+  const { data: subcategorias = [], isLoading: subCargando, isFetching: subcategoriasCargando, isError: subError } = useQuery({
     queryKey: ['subcategorias', categoriaActivaId],
     queryFn: () => listarSubcategorias(categoriaActivaId ?? undefined),
   })
 
-  const { data: productos = [] } = useQuery({
+  const { data: productos = [], isLoading: prodCargando, isError: prodError } = useQuery({
     queryKey: ['productos', categoriaActivaId],
     queryFn: () => listarProductos({ categoriaId: categoriaActivaId ?? undefined }),
   })
@@ -55,6 +57,7 @@ function Menu() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorias'] })
     },
+    onError: showError,
   })
 
   const actualizarCat = useMutation({
@@ -63,6 +66,7 @@ function Menu() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorias'] })
     },
+    onError: showError,
   })
 
   const eliminarCat = useMutation({
@@ -70,6 +74,7 @@ function Menu() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorias'] })
     },
+    onError: showError,
   })
 
   const crearSub = useMutation({
@@ -78,6 +83,7 @@ function Menu() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcategorias', categoriaActivaId] })
     },
+    onError: showError,
   })
 
   const actualizarSub = useMutation({
@@ -86,6 +92,7 @@ function Menu() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcategorias', categoriaActivaId] })
     },
+    onError: showError,
   })
 
   const cambiarCatSub = useMutation({
@@ -94,6 +101,7 @@ function Menu() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcategorias', categoriaActivaId] })
     },
+    onError: showError,
   })
 
   const eliminarSub = useMutation({
@@ -101,6 +109,7 @@ function Menu() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcategorias', categoriaActivaId] })
     },
+    onError: showError,
   })
 
   const crearProd = useMutation({
@@ -109,6 +118,7 @@ function Menu() {
       setShowProdForm(false)
       queryClient.invalidateQueries({ queryKey: ['productos', categoriaActivaId] })
     },
+    onError: showError,
   })
 
   const actualizarProd = useMutation({
@@ -119,6 +129,7 @@ function Menu() {
       setProductoEditando(null)
       queryClient.invalidateQueries({ queryKey: ['productos', categoriaActivaId] })
     },
+    onError: showError,
   })
 
   const eliminarProd = useMutation({
@@ -126,11 +137,23 @@ function Menu() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['productos', categoriaActivaId] })
     },
+    onError: showError,
   })
 
   function abrirFormProducto(producto?: Producto) {
     setProductoEditando(producto ?? null)
     setShowProdForm(true)
+  }
+
+  if (catCargando) return <div className={styles.layout}><p>Cargando categorías...</p></div>
+  if (catError) return <div className={styles.layout}><p>Error al cargar categorías</p></div>
+
+  async function handleEliminarProducto(id: number) {
+    try {
+      await eliminarProd.mutateAsync(id)
+    } catch {
+      // Error manejado por onError en useMutation
+    }
   }
 
   return (
@@ -147,22 +170,30 @@ function Menu() {
 
       <div className={styles.seccion}>
         <label className={styles.seccionLabel}>Subcategorías</label>
-        <ListaSubcategorias
-          subcategorias={subcategorias}
-          subcategoriaActivaId={subcategoriaActivaId}
-          onSeleccionar={setSubcategoriaActivaId}
-          onAbrirFormulario={() => setShowSubForm(true)}
-        />
+        {subCargando && <p>Cargando...</p>}
+        {subError && <p>Error al cargar subcategorías</p>}
+        {!subCargando && !subError && (
+          <ListaSubcategorias
+            subcategorias={subcategorias}
+            subcategoriaActivaId={subcategoriaActivaId}
+            onSeleccionar={setSubcategoriaActivaId}
+            onAbrirFormulario={() => setShowSubForm(true)}
+          />
+        )}
       </div>
 
       <div className={styles.seccionProductos}>
-        <ListaProductos
-          productos={productosFiltrados}
-          categoriaNombre={categoriaNombre}
-          onAgregar={() => abrirFormProducto()}
-          onEditar={abrirFormProducto}
-          onEliminar={(id) => eliminarProd.mutate(id)}
-        />
+        {prodCargando && <p>Cargando productos...</p>}
+        {prodError && <p>Error al cargar productos</p>}
+        {!prodCargando && !prodError && (
+          <ListaProductos
+            productos={productosFiltrados}
+            categoriaNombre={categoriaNombre}
+            onAgregar={() => abrirFormProducto()}
+            onEditar={abrirFormProducto}
+            onEliminar={handleEliminarProducto}
+          />
+        )}
       </div>
 
       {showCatForm && (

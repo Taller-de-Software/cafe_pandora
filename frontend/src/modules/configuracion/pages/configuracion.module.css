@@ -1,0 +1,45 @@
+.page {
+  height: 100%;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.tab:hover {
+  background: #f9fafb;
+}
+
+.tabActive {
+  background: #1f2937;
+  color: white;
+  border-color: #1f2937;
+}
+
+.tabActive:hover {
+  background: #374151;
+}
+
+.content {
+  min-height: calc(100vh - 16rem);
+}

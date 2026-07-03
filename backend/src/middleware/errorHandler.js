@@ -1,6 +1,14 @@
 import { z } from "zod";
 
 export const errorHandler = (err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    return res.status(400).json({
+      success: false,
+      message: "JSON malformado en el cuerpo de la petición",
+      data: null,
+    });
+  }
+
   if (err instanceof z.ZodError) {
     const flat = err.flatten();
     return res.status(400).json({
@@ -21,6 +29,14 @@ export const errorHandler = (err, req, res, next) => {
     if (err.code === "P2025") {
       message = "Registro no encontrado";
       status = 404;
+    }
+    if (err.code === "P2003") {
+      message = "El registro está siendo usado por otro recurso";
+      status = 409;
+    }
+    if (err.code === "P2014") {
+      message = "Violación de relación requerida";
+      status = 400;
     }
 
     return res.status(status).json({

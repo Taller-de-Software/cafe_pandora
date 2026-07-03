@@ -23,3 +23,14 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
 export async function getMe(): Promise<Usuario> {
   return api.get<Usuario>('/auth/me')
 }
+
+export interface RegisterResponse {
+  accessToken: string
+  refreshToken: string
+  usuario: Usuario
+  esPrimero: boolean
+}
+
+export async function register(pin?: string): Promise<RegisterResponse> {
+  return api.post<RegisterResponse>('/auth/register', { pin })
+}

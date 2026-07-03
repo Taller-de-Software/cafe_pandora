@@ -5,8 +5,10 @@ export interface AuthContextValue {
   user: Usuario | null
   loading: boolean
   login: (data: LoginRequest) => Promise<void>
+  register: (pin?: string) => Promise<void>
   logout: () => void
   isAuthenticated: boolean
+  isFirstUser: boolean | null
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

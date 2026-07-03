@@ -34,10 +34,15 @@ async function obtenerVentas(desde, hasta) {
       creadoEn: { gte: desde, lte: hasta },
     },
     include: {
+      metodoPago: true,
       pedido: {
         include: {
           mesa: true,
-          detalles: { include: { producto: true } },
+          detalles: {
+            include: {
+              producto: { include: { categoria: true } },
+            },
+          },
         },
       },
     },
@@ -52,10 +57,55 @@ async function obtenerVentas(desde, hasta) {
     { total: 0, cantidadPedidos: 0 }
   );
 
+  const itemsVendidos = facturas.reduce((acc, f) => {
+    const suma = f.pedido.detalles.reduce((s, d) => s + d.cantidad, 0);
+    return acc + suma;
+  }, 0);
+
+  const ticketPromedio =
+    resumen.cantidadPedidos > 0
+      ? resumen.total / resumen.cantidadPedidos
+      : 0;
+
+  const ventasPorCategoria = new Map();
+  const conteoProductos = new Map();
+
+  for (const f of facturas) {
+    for (const d of f.pedido.detalles) {
+      const catNombre = d.producto.categoria?.nombre ?? "Sin categoría";
+      const actual = ventasPorCategoria.get(catNombre) ?? {
+        categoria: catNombre,
+        total: 0,
+        cantidad: 0,
+      };
+      actual.total += d.precioUnitario * d.cantidad;
+      actual.cantidad += d.cantidad;
+      ventasPorCategoria.set(catNombre, actual);
+
+      const prodActual = conteoProductos.get(d.producto.nombre) ?? {
+        producto: d.producto.nombre,
+        cantidad: 0,
+        total: 0,
+      };
+      prodActual.cantidad += d.cantidad;
+      prodActual.total += d.precioUnitario * d.cantidad;
+      conteoProductos.set(d.producto.nombre, prodActual);
+    }
+  }
+
+  const porCategoria = Array.from(ventasPorCategoria.values()).sort(
+    (a, b) => b.total - a.total
+  );
+
+  const productosMasVendidos = Array.from(conteoProductos.values())
+    .sort((a, b) => b.cantidad - a.cantidad)
+    .slice(0, 10);
+
   const pedidos = facturas.map((f) => ({
     id: f.pedido.id,
     total: f.total,
     mesa: f.pedido.mesa?.nombre ?? "Sin mesa",
+    metodoPago: f.metodoPago?.nombre ?? "Desconocido",
     estado: f.pedido.estado,
     creadoEn: f.creadoEn,
     detalles: f.pedido.detalles.map((d) => ({
@@ -65,7 +115,17 @@ async function obtenerVentas(desde, hasta) {
     })),
   }));
 
-  return { resumen, pedidos };
+  return {
+    resumen: {
+      total: resumen.total,
+      cantidadPedidos: resumen.cantidadPedidos,
+      ticketPromedio,
+      itemsVendidos,
+    },
+    porCategoria,
+    productosMasVendidos,
+    pedidos,
+  };
 }
 
 export const dia = () => {
