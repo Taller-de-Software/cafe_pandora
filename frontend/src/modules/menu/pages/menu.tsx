@@ -37,9 +37,10 @@ function Menu() {
     queryFn: () => listarProductos({ categoriaId: categoriaActivaId ?? undefined }),
   })
 
+  const mostrarInhabilitados = categoriaActivaId === null && subcategoriaActivaId === null
   const productosFiltrados = subcategoriaActivaId
-    ? productos.filter((p) => p.subcategoriaId === subcategoriaActivaId)
-    : productos
+    ? productos.filter((p) => p.subcategoriaId === subcategoriaActivaId && (mostrarInhabilitados || p.habilitado !== false))
+    : productos.filter((p) => mostrarInhabilitados || p.habilitado !== false)
 
   const selectedCategoria = categorias.find((c) => c.id === categoriaActivaId)
   const categoriaNombre = selectedCategoria?.nombre ?? (categoriaActivaId === null ? 'Todos los productos' : null)
