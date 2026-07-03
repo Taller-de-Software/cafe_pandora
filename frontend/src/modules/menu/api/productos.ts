@@ -7,6 +7,7 @@ export interface Producto {
   precio: number
   imagenUrl?: string
   requierePreparacion: boolean
+  habilitado: boolean
   categoriaId: number
   subcategoriaId?: number
   categoria?: { id: number; nombre: string }
