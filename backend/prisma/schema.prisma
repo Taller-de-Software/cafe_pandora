@@ -107,6 +107,7 @@ model Producto {
   precio              Float
   imagenUrl           String?
   requierePreparacion Boolean       @default(false)
+  habilitado          Boolean       @default(true)
   categoriaId         Int
   categoria           Categoria     @relation(fields: [categoriaId], references: [id])
   subcategoriaId      Int?

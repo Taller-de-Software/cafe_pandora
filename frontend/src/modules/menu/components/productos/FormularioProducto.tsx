@@ -41,6 +41,7 @@ function FormularioProducto({
   const [subcategoriaId, setSubcategoriaId] = useState<number | ''>(producto?.subcategoriaId ?? '')
   const [descripcion, setDescripcion] = useState(producto?.descripcion ?? '')
   const [requierePreparacion, setRequierePreparacion] = useState(producto?.requierePreparacion ?? false)
+  const [habilitado, setHabilitado] = useState(producto?.habilitado ?? true)
   const [imagenUrl, setImagenUrl] = useState(producto?.imagenUrl ?? '')
   const [archivo, setArchivo] = useState<File | null>(null)
   const [archivoPreview, setArchivoPreview] = useState<string | null>(null)
@@ -71,6 +72,7 @@ function FormularioProducto({
     fd.append('categoriaId', String(categoriaId))
     if (descripcion.trim()) fd.append('descripcion', descripcion.trim())
     fd.append('requierePreparacion', String(requierePreparacion))
+    fd.append('habilitado', String(habilitado))
     if (subcategoriaId !== '') fd.append('subcategoriaId', String(subcategoriaId))
 
     if (archivo) {
@@ -185,6 +187,16 @@ function FormularioProducto({
               onChange={(e) => setRequierePreparacion(e.target.checked)}
             />
             <label htmlFor="reqPrep">¿Requiere preparación?</label>
+          </div>
+
+          <div className={styles.checkbox}>
+            <input
+              type="checkbox"
+              id="habilitado"
+              checked={habilitado}
+              onChange={(e) => setHabilitado(e.target.checked)}
+            />
+            <label htmlFor="habilitado">Habilitar producto para ventas de inmediato</label>
           </div>
 
           <div className={styles.seccionImagen}>
