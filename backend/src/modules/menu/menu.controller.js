@@ -76,8 +76,11 @@ export const eliminarCategoria = async (req, res, next) => {
 
 export const listarProductos = async (req, res, next) => {
   try {
-    const { categoriaId } = req.query;
-    const productos = await menuService.listarProductos(categoriaId ? parseInt(categoriaId) : undefined);
+    const { categoriaId, subcategoriaId } = req.query;
+    const productos = await menuService.listarProductos(
+      categoriaId ? parseInt(categoriaId) : undefined,
+      subcategoriaId ? parseInt(subcategoriaId) : undefined
+    );
     ok(res, productos);
   } catch (err) {
     next(err);
@@ -96,7 +99,7 @@ export const obtenerProducto = async (req, res, next) => {
 export const crearProducto = async (req, res, next) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.imagenUrl = req.file.path.replace(/\\/g, "/");
+    if (req.file) data.imagenUrl = `/uploads/productos/${req.file.filename}`;
     const producto = await menuService.crearProducto(data);
     created(res, producto, "Producto creado");
   } catch (err) {
@@ -107,7 +110,7 @@ export const crearProducto = async (req, res, next) => {
 export const actualizarProducto = async (req, res, next) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.imagenUrl = req.file.path.replace(/\\/g, "/");
+    if (req.file) data.imagenUrl = `/uploads/productos/${req.file.filename}`;
     const producto = await menuService.actualizarProducto(req.params.id, data);
     ok(res, producto, "Producto actualizado");
   } catch (err) {
