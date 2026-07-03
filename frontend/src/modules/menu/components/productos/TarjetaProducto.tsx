@@ -46,6 +46,9 @@ function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProp
       <div className={styles.cuerpo}>
         <div className={styles.encabezado}>
           <h4 className={styles.nombre}>{producto.nombre}</h4>
+          {!producto.habilitado && (
+            <span className={styles.badgeInhabilitado}>INHABILITADO</span>
+          )}
           <span className={producto.requierePreparacion ? styles.badgePrep : styles.badgePrepNo}>
             {producto.requierePreparacion ? 'REQ PREPARACIÓN' : 'NO REQ PREPARACIÓN'}
           </span>
