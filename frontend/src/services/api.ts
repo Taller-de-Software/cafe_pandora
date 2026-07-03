@@ -37,13 +37,15 @@ async function doRefreshTokens(): Promise<boolean> {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = storage.getAccessToken()
+  const headers: Record<string, string> = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json'
+  }
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
+    headers: { ...headers, ...(options.headers as Record<string, string>) },
   })
 
   if (res.status === 401 && storage.getRefreshToken()) {
@@ -66,4 +68,8 @@ export const api = {
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  postFormData: <T>(path: string, body: FormData) =>
+    request<T>(path, { method: 'POST', body }),
+  putFormData: <T>(path: string, body: FormData) =>
+    request<T>(path, { method: 'PUT', body }),
 }
