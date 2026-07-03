@@ -43,3 +43,59 @@ export async function listarRetiros(cajaSesionId: number): Promise<Retiro[]> {
 export async function crearRetiro(cajaSesionId: number, data: { tipo: 'entrada' | 'salida'; monto: number }): Promise<Retiro> {
   return api.post<Retiro>(`/caja/${cajaSesionId}/retiros`, data)
 }
+
+export interface ResumenCajaSesion {
+  id: number
+  apertura: string
+  cierre: string | null
+  baseInicial: number
+  totalVentas: number
+  totalEgresos: number
+  totalEnCaja: number
+  netoCajon: number
+  estaAbierta: boolean
+}
+
+export interface DesgloseMetodoPago {
+  count: number
+  total: number
+}
+
+export interface ResumenCajaData {
+  cantidadFacturas: number
+  sumaTotal: number
+  desglosePorMetodoPago: Record<string, DesgloseMetodoPago>
+  totalEntradasRetiros: number
+  totalSalidasRetiros: number
+  balanceEsperado: number
+}
+
+export interface ResumenFactura {
+  id: number
+  total: number
+  subtotal: number
+  impuestoConsumo: number
+  creadoEn: string
+  metodoPago: string
+  pedido: {
+    id: number
+    mesa: string
+    estado: string
+    detalles: {
+      producto: string
+      cantidad: number
+      precio: number
+    }[]
+  }
+}
+
+export interface ResumenCaja {
+  sesion: ResumenCajaSesion
+  resumen: ResumenCajaData
+  facturas: ResumenFactura[]
+  retiros: Retiro[]
+}
+
+export async function obtenerResumenCaja(id: number): Promise<ResumenCaja> {
+  return api.get<ResumenCaja>(`/caja/${id}/resumen`)
+}

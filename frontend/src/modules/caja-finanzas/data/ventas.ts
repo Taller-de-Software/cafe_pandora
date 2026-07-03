@@ -3,12 +3,27 @@ import { api } from '@/services/api'
 export interface VentaResumen {
   total: number
   cantidadPedidos: number
+  ticketPromedio: number
+  itemsVendidos: number
+}
+
+export interface VentaCategoria {
+  categoria: string
+  total: number
+  cantidad: number
+}
+
+export interface ProductoVendido {
+  producto: string
+  cantidad: number
+  total: number
 }
 
 export interface VentaDetalle {
   id: number
   total: number
   mesa: string
+  metodoPago: string
   estado: string
   creadoEn: string
   detalles: {
@@ -20,11 +35,12 @@ export interface VentaDetalle {
 
 export interface VentasResponse {
   resumen: VentaResumen
+  porCategoria: VentaCategoria[]
+  productosMasVendidos: ProductoVendido[]
   pedidos: VentaDetalle[]
 }
 
 export async function obtenerVentasDia(): Promise<VentasResponse> {
-  console.log("esta en el apartado de venta del dia")
   return api.get<VentasResponse>('/ventas/dia')
 }
 

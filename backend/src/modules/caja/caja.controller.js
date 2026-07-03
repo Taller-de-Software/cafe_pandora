@@ -46,6 +46,15 @@ export const cierre = async (req, res, next) => {
   }
 };
 
+export const resumenSesion = async (req, res, next) => {
+  try {
+    const resumen = await cajaService.resumenSesion(req.params.id);
+    ok(res, resumen);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const listarRetiros = async (req, res, next) => {
   try {
     const retiros = await cajaService.listarRetiros(req.params.id);

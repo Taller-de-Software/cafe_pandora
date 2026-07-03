@@ -46,6 +46,21 @@
   text-transform: capitalize;
 }
 
+.profileBtn {
+  color: #6b7280;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.profileBtn:hover {
+  background: #f3f4f6;
+  color: #b45309;
+}
+
 .logoutBtn {
   color: #6b7280;
   padding: 0.5rem;

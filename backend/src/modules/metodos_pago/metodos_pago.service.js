@@ -25,5 +25,9 @@ export const actualizar = async (id, data) => {
 };
 
 export const eliminar = async (id) => {
+  const facturas = await prisma.factura.count({ where: { metodoPagoId: id } });
+  if (facturas > 0) {
+    throw crearError(400, "No se puede eliminar: método de pago con facturas asociadas");
+  }
   return prisma.metodoPago.delete({ where: { id } });
 };

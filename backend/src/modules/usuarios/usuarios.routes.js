@@ -8,13 +8,12 @@ import { ROLES } from "../../config/constants.js";
 
 const router = Router();
 
-router.post("/", validate(crearUsuarioSchema), usuariosController.crear);
-
 router.use(authenticate);
 router.use(authorize(ROLES.ADMIN));
 
 router.get("/", usuariosController.listar);
 router.get("/:id", validateId, usuariosController.obtener);
+router.post("/", validate(crearUsuarioSchema), usuariosController.crear);
 router.put("/:id", validateId, validate(actualizarUsuarioSchema), usuariosController.actualizar);
 router.delete("/:id", validateId, usuariosController.eliminar);
 

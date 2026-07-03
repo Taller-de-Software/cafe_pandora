@@ -54,33 +54,40 @@ export const crear = async (data, usuarioId) => {
 
   const totalItems = items.reduce((sum, i) => sum + i.precioUnitario * i.cantidad, 0);
 
-  const pedido = await prisma.pedido.create({
-    data: {
-      turno: data.turno,
-      mesaId: data.mesaId,
-      mesaOrigenId: data.mesaOrigenId || null,
-      usuarioId,
-      total: totalItems,
-      estado: ESTADOS_PEDIDO.RECIBIDO,
-      detalles: { create: items },
-    },
-    include: {
-      mesa: true,
-      usuario: { select: { id: true, rol: true } },
-      detalles: { include: { producto: true } },
-    },
-  });
+  const pedido = await prisma.$transaction(async (tx) => {
+    const p = await tx.pedido.create({
+      data: {
+        turno: data.turno,
+        mesaId: data.mesaId,
+        mesaOrigenId: data.mesaOrigenId || null,
+        usuarioId,
+        total: totalItems,
+        estado: ESTADOS_PEDIDO.RECIBIDO,
+        detalles: { create: items },
+      },
+      include: {
+        mesa: true,
+        usuario: { select: { id: true, rol: true } },
+        detalles: { include: { producto: true } },
+      },
+    });
 
-  await prisma.mesa.update({
-    where: { id: data.mesaId },
-    data: { estado: ESTADOS_MESA.OCUPADA },
+    await tx.mesa.update({
+      where: { id: data.mesaId },
+      data: { estado: ESTADOS_MESA.OCUPADA },
+    });
+
+    return p;
   });
 
   return pedido;
 };
 
 export const cambiarEstado = async (id, nuevoEstado) => {
-  const pedido = await prisma.pedido.findUnique({ where: { id } });
+  const pedido = await prisma.pedido.findUnique({
+    where: { id },
+    include: { mesa: true },
+  });
   if (!pedido) throw crearError(404, "Pedido no encontrado");
 
   const transicionesValidas = {
@@ -101,13 +108,40 @@ export const cambiarEstado = async (id, nuevoEstado) => {
   if (nuevoEstado === ESTADOS_PEDIDO.FINALIZADO) timestamps.finalizadoEn = new Date();
   if (nuevoEstado === ESTADOS_PEDIDO.CANCELADO) timestamps.canceladoEn = new Date();
 
-  return prisma.pedido.update({
-    where: { id },
-    data: { estado: nuevoEstado, ...timestamps },
-    include: {
-      mesa: true,
-      detalles: { include: { producto: true } },
-    },
+  return prisma.$transaction(async (tx) => {
+    const p = await tx.pedido.update({
+      where: { id },
+      data: { estado: nuevoEstado, ...timestamps },
+      include: {
+        mesa: true,
+        detalles: { include: { producto: true } },
+      },
+    });
+
+    if (nuevoEstado === ESTADOS_PEDIDO.FINALIZADO) {
+      await tx.mesa.update({
+        where: { id: pedido.mesaId },
+        data: { estado: ESTADOS_MESA.POR_PAGAR },
+      });
+    }
+
+    if (nuevoEstado === ESTADOS_PEDIDO.CANCELADO) {
+      const activos = await tx.pedido.count({
+        where: {
+          mesaId: pedido.mesaId,
+          id: { not: id },
+          estado: { notIn: [ESTADOS_PEDIDO.FINALIZADO, ESTADOS_PEDIDO.CANCELADO] },
+        },
+      });
+      if (activos === 0) {
+        await tx.mesa.update({
+          where: { id: pedido.mesaId },
+          data: { estado: ESTADOS_MESA.VACIA },
+        });
+      }
+    }
+
+    return p;
   });
 };
 

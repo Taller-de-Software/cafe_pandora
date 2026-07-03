@@ -10,5 +10,5 @@ export const itemsFijos: ItemNavegacion[] = [
   { label: 'Inicio', path: '/dashboard/inicio', icon: 'home' },
   { label: 'Menú', path: '/dashboard/menu', icon: 'menu' },
   { label: 'Pedidos', path: '/dashboard/pedidos', icon: 'pedidos' },
-  { label: 'Caja / Finanzas', path: '/dashboard/caja-finanzas', icon: 'caja' },
+  { label: 'Caja y Finanzas', path: '/dashboard/caja-finanzas', icon: 'caja' },
 ]

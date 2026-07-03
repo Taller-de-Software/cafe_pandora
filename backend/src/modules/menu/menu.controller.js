@@ -1,5 +1,8 @@
+import { z } from "zod";
 import * as menuService from "./menu.service.js";
 import { ok, created } from "../../utils/response.js";
+
+const idQuery = z.coerce.number().int().positive().optional();
 
 export const listarCategorias = async (req, res, next) => {
   try {
@@ -30,8 +33,8 @@ export const actualizarCategoria = async (req, res, next) => {
 
 export const listarSubcategorias = async (req, res, next) => {
   try {
-    const { categoriaId } = req.query;
-    const subcategorias = await menuService.listarSubcategorias(categoriaId ? parseInt(categoriaId) : undefined);
+    const categoriaId = idQuery.parse(req.query.categoriaId);
+    const subcategorias = await menuService.listarSubcategorias(categoriaId);
     ok(res, subcategorias);
   } catch (err) {
     next(err);
@@ -76,11 +79,9 @@ export const eliminarCategoria = async (req, res, next) => {
 
 export const listarProductos = async (req, res, next) => {
   try {
-    const { categoriaId, subcategoriaId } = req.query;
-    const productos = await menuService.listarProductos(
-      categoriaId ? parseInt(categoriaId) : undefined,
-      subcategoriaId ? parseInt(subcategoriaId) : undefined
-    );
+    const categoriaId = idQuery.parse(req.query.categoriaId);
+    const subcategoriaId = idQuery.parse(req.query.subcategoriaId);
+    const productos = await menuService.listarProductos(categoriaId, subcategoriaId);
     ok(res, productos);
   } catch (err) {
     next(err);
