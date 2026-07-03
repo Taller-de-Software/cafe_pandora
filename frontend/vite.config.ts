@@ -19,6 +19,10 @@ export default defineConfig({
         target: 'http://backend:3001',
         changeOrigin: true,
       },
+      '/uploads': {
+        target: 'http://backend:3001',
+        changeOrigin: true,
+      },
       '/socket.io': {
         target: 'http://backend:3001',
         ws: true,

@@ -8,6 +8,7 @@ function crearError(statusCode, message) {
 
 export const listarCategorias = async () => {
   return prisma.categoria.findMany({
+    orderBy: { nombre: "asc" },
     include: {
       _count: { select: { productos: true, subcategorias: true } },
     },
@@ -58,15 +59,17 @@ export const eliminarCategoria = async (id) => {
   return prisma.categoria.delete({ where: { id } });
 };
 
-export const listarProductos = async (categoriaId) => {
-  const where = categoriaId ? { categoriaId } : {};
+export const listarProductos = async (categoriaId, subcategoriaId) => {
+  const where = {};
+  if (categoriaId) where.categoriaId = categoriaId;
+  if (subcategoriaId) where.subcategoriaId = subcategoriaId;
   return prisma.producto.findMany({
     where,
     include: {
       categoria: { select: { id: true, nombre: true } },
       subcategoria: { select: { id: true, nombre: true } },
     },
-    orderBy: { categoriaId: "asc" },
+    orderBy: { nombre: "asc" },
   });
 };
 
