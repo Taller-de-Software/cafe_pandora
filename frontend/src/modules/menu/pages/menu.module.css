@@ -1,20 +1,25 @@
 .layout {
-  display: grid;
-  grid-template-columns: 20rem 1fr;
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   height: 100%;
 }
 
-.sidebar {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1rem;
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.main {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1rem;
+.seccionLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.seccionProductos {
+  flex: 1;
+  min-height: 0;
 }
