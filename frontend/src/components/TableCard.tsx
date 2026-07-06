@@ -5,11 +5,16 @@ interface TableCardProps {
   table: Table
 }
 
+const statusClass: Record<string, string> = {
+  VACÍA: styles.vacia,
+}
+
 function TableCard({ table }: TableCardProps) {
+  const estadoClase = statusClass[table.status] || ''
+
   return (
-    <div className={styles.card}>
-      <span className={styles.name}>{table.name}</span>
-      <span className={styles.type}>{table.type}</span>
+    <div className={`${styles.card} ${estadoClase}`}>
+      <span className={styles.name}>Mesa {table.name} ({table.type})</span>
       <span className={styles.badge}>{table.status}</span>
     </div>
   )
