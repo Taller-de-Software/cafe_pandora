@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import PosScreen from '../componentes/PosScreen'
+import NuevoPedidoView from '../componentes/NuevoPedidoView'
 import ListaPedidos from '../componentes/ListaPedidos'
 import DetallePedido from '../componentes/DetallePedido'
 import FormularioPedido from '../componentes/FormularioPedido'
 import { listarPedidos, obtenerPedido } from '../data/pedidos'
 import styles from './pedidos.module.css'
 
-type Tab = 'mesas' | 'lista'
+type Tab = 'nuevo' | 'pendientes'
 
 function Pedidos() {
-  const [tab, setTab] = useState<Tab>('mesas')
+  const [tab, setTab] = useState<Tab>('nuevo')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [estadoFiltro, setEstadoFiltro] = useState('')
   const [showForm, setShowForm] = useState(false)
@@ -19,7 +19,7 @@ function Pedidos() {
   const { data: pedidos = [], isLoading: listaCargando, isError: listaError } = useQuery({
     queryKey: ['pedidos', estadoFiltro],
     queryFn: () => listarPedidos(estadoFiltro ? { estado: estadoFiltro } : undefined),
-    enabled: tab === 'lista',
+    enabled: tab === 'pendientes',
   })
 
   const { data: detalle, isLoading: detalleCargando, isError: detalleError } = useQuery({
@@ -38,26 +38,24 @@ function Pedidos() {
     <div>
       <div className={styles.tabs}>
         <button
-          className={`${styles.tab} ${tab === 'mesas' ? styles.tabActive : ''}`}
-          onClick={() => setTab('mesas')}
+          className={`${styles.tab} ${tab === 'nuevo' ? styles.tabActive : ''}`}
+          onClick={() => setTab('nuevo')}
         >
-          Mesas / Nuevo Pedido
+          Nuevo Pedido
         </button>
         <button
-          className={`${styles.tab} ${tab === 'lista' ? styles.tabActive : ''}`}
-          onClick={() => setTab('lista')}
+          className={`${styles.tab} ${tab === 'pendientes' ? styles.tabActive : ''}`}
+          onClick={() => setTab('pendientes')}
         >
-          Lista de Pedidos
+          Pedidos Pendientes
         </button>
       </div>
 
-      {tab === 'mesas' && (
-        <div className={styles.posContainer}>
-          <PosScreen />
-        </div>
+      {tab === 'nuevo' && (
+        <NuevoPedidoView />
       )}
 
-      {tab === 'lista' && (
+      {tab === 'pendientes' && (
         <div className={styles.layout}>
           <div className={styles.listPanel}>
             {listaCargando && <p>Cargando pedidos...</p>}
