@@ -65,6 +65,14 @@ export function classificarError(error: unknown): ErrorInfo {
     }
   }
 
+  if (/respuesta vacía|respuesta inválida/i.test(msg)) {
+    return {
+      type: 'server',
+      title: 'Error de comunicación',
+      message: 'El servidor no respondió correctamente. Verifica que el backend esté funcionando e intenta de nuevo.',
+    }
+  }
+
   return {
     type: 'unknown',
     title: 'Error inesperado',
