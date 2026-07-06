@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import AddTableModal from '@/components/modals/AddTableModal'
+import ReserveTableModal from '@/components/modals/ReserveTableModal'
 import TableCard from '@/components/TableCard'
 import { useTables } from '@/hooks/useTables'
 import styles from './NuevoPedidoView.module.css'
 
 function NuevoPedidoView() {
   const [isAddTableModalOpen, setIsAddTableModalOpen] = useState(false)
+  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
   const { tables, addTable } = useTables()
 
   return (
@@ -27,7 +29,7 @@ function NuevoPedidoView() {
           <button className={styles.btnPrimary} onClick={() => setIsAddTableModalOpen(true)}>
             + Agregar Nueva Mesa
           </button>
-          <button className={styles.btnSecondary} onClick={() => {}}>
+          <button className={styles.btnSecondary} onClick={() => setIsReserveModalOpen(true)}>
             Reservar una Mesa
           </button>
         </div>
@@ -37,6 +39,12 @@ function NuevoPedidoView() {
         open={isAddTableModalOpen}
         onClose={() => setIsAddTableModalOpen(false)}
         onConfirm={(name, type) => addTable(name, type)}
+      />
+
+      <ReserveTableModal
+        open={isReserveModalOpen}
+        onClose={() => setIsReserveModalOpen(false)}
+        tables={tables}
       />
     </div>
   )

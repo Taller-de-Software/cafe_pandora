@@ -28,7 +28,7 @@
 .mesasContainer {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
   min-height: 120px;
   border: 2px dashed #d1d5db;
   border-radius: 0.5rem;
