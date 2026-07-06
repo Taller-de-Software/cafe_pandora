@@ -1,0 +1,38 @@
+.card {
+  border: 2px solid #d1d5db;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.name {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #1f2937;
+}
+
+.type {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.badge {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  letter-spacing: 0.05em;
+  background: #f3f4f6;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
