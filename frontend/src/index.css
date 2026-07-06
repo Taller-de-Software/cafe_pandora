@@ -48,7 +48,6 @@
 .sidebar--collapsed .sidebar__label {
   @apply hidden;
 }
-
 /* ===== TOPBAR ===== */
 .topbar {
   @apply flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3;

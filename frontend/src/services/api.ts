@@ -29,7 +29,14 @@ async function doRefreshTokens(): Promise<boolean> {
     body: JSON.stringify({ refreshToken: refresh }),
   })
   if (!res.ok) return false
-  const json: ApiResponse<{ accessToken: string; refreshToken: string }> = await res.json()
+  const text = await res.text()
+  if (!text) return false
+  let json: ApiResponse<{ accessToken: string; refreshToken: string }>
+  try {
+    json = JSON.parse(text)
+  } catch {
+    return false
+  }
   storage.setAccessToken(json.data.accessToken)
   storage.setRefreshToken(json.data.refreshToken)
   return true
@@ -64,7 +71,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       throw new Error('401 Sesión expirada')
     }
 
-    const json: ApiResponse<T> = await res.json()
+    const text = await res.text()
+    if (!text) {
+      throw new Error(`${res.status} El servidor devolvió una respuesta vacía`)
+    }
+    let json: ApiResponse<T>
+    try {
+      json = JSON.parse(text)
+    } catch {
+      throw new Error(`${res.status} Respuesta inválida del servidor`)
+    }
     if (!res.ok) {
       throw new Error(`${res.status} ${json.message || 'Error de servidor'}`)
     }
