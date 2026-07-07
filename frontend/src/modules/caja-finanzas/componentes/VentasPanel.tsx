@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { obtenerVentasDia, obtenerVentasSemana, obtenerVentasMes } from '../data/ventas'
-import type { VentasResponse } from '../data/ventas'
+import type { VentaDetalle, VentasResponse } from '../data/ventas'
+import type { ResumenFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
+import FacturaDetalle from './FacturaDetalle'
 import styles from './VentasPanel.module.css'
 
 type Periodo = 'dia' | 'semana' | 'mes'
@@ -32,6 +35,7 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: cfg.key,
     queryFn: cfg.fn,
+    refetchInterval: 30_000,
   })
 
   if (isLoading) {
@@ -44,6 +48,26 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
 
   const { resumen, porCategoria, productosMasVendidos, pedidos } = data
   const hayVentas = pedidos.length > 0
+
+  const [selectedDetalle, setSelectedDetalle] = useState<ResumenFactura | null>(null)
+
+  function facturaDesdeVenta(p: VentaDetalle): ResumenFactura {
+    const subtotal = p.detalles.reduce((s, d) => s + d.precio * d.cantidad, 0)
+    return {
+      id: p.id,
+      total: p.total,
+      subtotal,
+      impuestoConsumo: p.total - subtotal,
+      creadoEn: p.creadoEn,
+      metodoPago: p.metodoPago,
+      pedido: {
+        id: p.id,
+        mesa: p.mesa,
+        estado: p.estado,
+        detalles: p.detalles,
+      },
+    }
+  }
 
   return (
     <div className={styles.layout}>
@@ -150,7 +174,7 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
               </thead>
               <tbody>
                 {pedidos.map((p) => (
-                  <tr key={p.id}>
+                  <tr key={p.id} className={styles.clickable} onClick={() => setSelectedDetalle(facturaDesdeVenta(p))}>
                     <td>#{p.id}</td>
                     <td>{p.mesa}</td>
                     <td>${formatearNumero(p.total)}</td>
@@ -168,6 +192,10 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
           </div>
         )}
       </div>
+
+        {selectedDetalle && (
+          <FacturaDetalle factura={selectedDetalle} onClose={() => setSelectedDetalle(null)} />
+        )}
     </div>
   )
 }

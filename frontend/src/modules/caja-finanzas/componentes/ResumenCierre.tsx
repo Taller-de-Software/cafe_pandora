@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { obtenerResumenCaja } from '../data/caja'
-import type { ResumenCaja } from '../data/caja'
+import type { ResumenCaja, ResumenFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
+import FacturaDetalle from './FacturaDetalle'
 import styles from './ResumenCierre.module.css'
 
 interface ResumenCierreProps {
@@ -36,9 +38,14 @@ function ResumenCierre({ sesionId, onCerrar, onCancelar }: ResumenCierreProps) {
 
 function ResumenContent({ data, onCerrar, onCancelar }: { data: ResumenCaja; onCerrar: () => void; onCancelar: () => void }) {
   const { sesion, resumen, facturas, retiros } = data
+  const [selectedFactura, setSelectedFactura] = useState<ResumenFactura | null>(null)
 
   return (
     <>
+      {selectedFactura && (
+        <FacturaDetalle factura={selectedFactura} onClose={() => setSelectedFactura(null)} />
+      )}
+
       <div className={styles.grid}>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Total Ventas</span>
@@ -112,7 +119,7 @@ function ResumenContent({ data, onCerrar, onCancelar }: { data: ResumenCaja; onC
               </thead>
               <tbody>
                 {facturas.map((f) => (
-                  <tr key={f.id}>
+                  <tr key={f.id} className={styles.clickable} onClick={() => setSelectedFactura(f)}>
                     <td>#{f.pedido.id}</td>
                     <td>{f.pedido.mesa}</td>
                     <td>${formatearNumero(f.total)}</td>

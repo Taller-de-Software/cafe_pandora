@@ -198,6 +198,15 @@
   color: #374151;
 }
 
+.clickable {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.clickable:hover {
+  background: #f9fafb;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

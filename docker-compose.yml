@@ -2,7 +2,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3001:3001"
     volumes:
@@ -15,12 +15,11 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
     volumes:
       - ./frontend:/app
-      - /app/node_modules
     environment:
       - VITE_API_URL=/api
     depends_on:

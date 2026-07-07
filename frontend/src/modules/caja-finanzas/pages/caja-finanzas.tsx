@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { useError } from '@/context/ErrorContext'
+import { usePedidosSocket } from '@/hooks/usePedidosSocket'
 import EstadoCaja from '../componentes/EstadoCaja'
 import FormularioApertura from '../componentes/FormularioApertura'
 import ListaRetiros from '../componentes/ListaRetiros'
 import FormularioRetiro from '../componentes/FormularioRetiro'
 import VentasPanel from '../componentes/VentasPanel'
+import FacturacionPanel from '../componentes/FacturacionPanel'
 import ResumenCierre from '../componentes/ResumenCierre'
 import { obtenerSesionActiva, apertura, cierre, listarRetiros, crearRetiro } from '../data/caja'
 
@@ -15,9 +17,11 @@ import styles from './caja-finanzas.module.css'
 type PeriodoVentas = 'dia' | 'semana' | 'mes'
 
 function CajaFinanzas() {
+  usePedidosSocket()
+
   const { user } = useAuth()
   const isAdmin = user?.rol === 'administrador'
-  const [tab, setTab] = useState<'caja' | 'ventas'>('caja')
+  const [tab, setTab] = useState<'caja' | 'ventas' | 'facturacion'>('caja')
   const { showError } = useError()
   const queryClient = useQueryClient()
 
@@ -29,7 +33,8 @@ function CajaFinanzas() {
   const { data: sesion = null, isLoading: sesionCargando, isError: sesionError } = useQuery({
     queryKey: ['caja', 'activa'],
     queryFn: obtenerSesionActiva,
-    enabled: isAdmin && tab === 'caja',
+    enabled: isAdmin && (tab === 'caja' || tab === 'facturacion'),
+    refetchInterval: tab === 'caja' || tab === 'facturacion' ? 15_000 : false,
   })
 
   const { data: retiros = [], isLoading: retirosCargando, isError: retirosError } = useQuery({
@@ -71,6 +76,7 @@ function CajaFinanzas() {
     ? [
       { id: 'caja', label: 'Caja' },
       { id: 'ventas', label: 'Ventas' },
+      { id: 'facturacion', label: 'Facturación' },
     ]
     : [
       { id: 'caja', label: 'Caja' },
@@ -149,6 +155,8 @@ function CajaFinanzas() {
             <VentasPanel periodo={periodo} />
           </>
         )
+      case 'facturacion':
+        return <FacturacionPanel sesion={sesion} />
       default:
         return null
     }
@@ -161,7 +169,7 @@ function CajaFinanzas() {
           <button
             key={t.id}
             className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`}
-            onClick={() => setTab(t.id as 'caja' | 'ventas')}
+            onClick={() => setTab(t.id as 'caja' | 'ventas' | 'facturacion')}
           >
             {t.label}
           </button>
