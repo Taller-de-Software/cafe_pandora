@@ -5,6 +5,7 @@ import type { Producto } from '../../menu/api/productos'
 import { listarCategorias } from '../../menu/api/categorias'
 import { listarProductos } from '../../menu/api/productos'
 import { formatearNumero } from '@/utils/formatear'
+import { useAuth } from '@modules/auth/context/useAuth'
 import TarjetaProductoPedido from './TarjetaProductoPedido'
 import styles from './TomaPedidoView.module.css'
 
@@ -18,10 +19,11 @@ interface ItemComanda {
 interface TomaPedidoViewProps {
   table: Table
   onBack: () => void
-  onConfirmarPedido: (mesa: string, items: { nombre: string; cantidad: number }[]) => void
+  onConfirmarPedido: (mesa: string, mesaNumero: number, items: { nombre: string; cantidad: number; precioUnitario: number }[], mesero: string) => void
 }
 
 function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProps) {
+  const { user } = useAuth()
   const [categoriaActivaId, setCategoriaActivaId] = useState<number | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [categorias, setCategorias] = useState<Categoria[]>([])
@@ -218,7 +220,12 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
                 </svg>
               </button>
               <button className={styles.confirmBtn} disabled={comanda.length === 0} onClick={() => {
-                onConfirmarPedido(`Mesa ${table.name} (${table.type})`, comanda.map((item) => ({ nombre: item.nombre, cantidad: item.cantidad })))
+                onConfirmarPedido(
+                  `Mesa ${table.name} (${table.type})`,
+                  Number(table.name),
+                  comanda.map((item) => ({ nombre: item.nombre, cantidad: item.cantidad, precioUnitario: item.precio })),
+                  user?.rol ?? 'mesero'
+                )
                 onBack()
               }}>
                 Confirmar Pedido

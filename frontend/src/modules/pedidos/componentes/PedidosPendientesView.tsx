@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { PedidoPendiente } from '@/types/PedidoPendiente'
+import DetallePedidoModal from './DetallePedidoModal'
+import { usePedidos } from '../context/PedidosContext'
 import styles from './PedidosPendientesView.module.css'
 
 interface PedidosPendientesViewProps {
@@ -9,15 +11,20 @@ interface PedidosPendientesViewProps {
 
 function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewProps) {
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+  const [detallePedido, setDetallePedido] = useState<PedidoPendiente | null>(null)
+  const { actualizarPedido } = usePedidos()
 
   useEffect(() => {
-    if (!confirmCancelId) return
+    if (!confirmCancelId && !detallePedido) return
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setConfirmCancelId(null)
+      if (e.key === 'Escape') {
+        setConfirmCancelId(null)
+        setDetallePedido(null)
+      }
     }
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
-  }, [confirmCancelId])
+  }, [confirmCancelId, detallePedido])
 
   if (pedidos.length === 0) {
     return (
@@ -42,7 +49,7 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
       </div>
       <div className={styles.grid}>
         {pedidos.map((pedido) => (
-          <div key={pedido.id} className={styles.card}>
+          <div key={pedido.id} className={styles.card} onClick={() => setDetallePedido(pedido)}>
             <div className={styles.cardHeader}>
               <div className={styles.headerLeft}>
                 <span className={styles.mesaName}>{pedido.mesa.toUpperCase()}</span>
@@ -71,10 +78,10 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
             <div className={styles.cardDivider} />
 
             <div className={styles.cardActions}>
-              <button className={styles.btnCocina} onClick={() => console.log('Recibo cocina:', pedido.id)}>
+              <button className={styles.btnCocina} onClick={(e) => { e.stopPropagation(); console.log('Recibo cocina:', pedido.id) }}>
                 GENERAR RECIBO<br />COCINA
               </button>
-              <button className={styles.btnCancelar} onClick={() => setConfirmCancelId(pedido.id)}>
+              <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(pedido.id) }}>
                 CANCELAR
               </button>
             </div>
@@ -96,6 +103,13 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
           </div>
         </div>
       )}
+
+      <DetallePedidoModal
+        open={detallePedido !== null}
+        pedido={detallePedido}
+        onClose={() => setDetallePedido(null)}
+        onActualizarPedido={actualizarPedido}
+      />
     </div>
   )
 }
