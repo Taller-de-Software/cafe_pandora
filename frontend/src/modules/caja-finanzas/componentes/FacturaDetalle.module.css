@@ -1,0 +1,130 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modal {
+  background: white;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.brand {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #b45309;
+  margin: 0;
+}
+
+.invoiceNum {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0;
+}
+
+.divider {
+  border: none;
+  border-top: 1px dashed #d1d5db;
+  margin: 0.75rem 0;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+  color: #374151;
+}
+
+.itemName {
+  flex: 1;
+}
+
+.itemPrice {
+  font-weight: 500;
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+
+.totals {
+  border-top: 1px dashed #d1d5db;
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  padding: 0.25rem 0;
+  color: #6b7280;
+}
+
+.total {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.payment {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  padding: 0.5rem 0;
+  border-top: 1px dashed #d1d5db;
+  margin-top: 0.25rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+}
+
+.closeBtn {
+  padding: 0.5rem 2rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.closeBtn:hover {
+  background: #f9fafb;
+}

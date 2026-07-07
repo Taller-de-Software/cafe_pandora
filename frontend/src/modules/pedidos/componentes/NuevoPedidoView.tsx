@@ -8,7 +8,11 @@ import type { Table } from '@/types/Table'
 import styles from './NuevoPedidoView.module.css'
 
 interface NuevoPedidoViewProps {
+<<<<<<< HEAD
   onConfirmarPedido: (mesa: string, mesaNumero: number, items: { nombre: string; cantidad: number; precioUnitario: number }[], mesero: string) => void
+=======
+  onConfirmarPedido: (mesa: string, items: { nombre: string; cantidad: number }[]) => void
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 }
 
 function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {

@@ -2,7 +2,11 @@ services:
   backend:
     build:
       context: ./backend
+<<<<<<< HEAD
       dockerfile: Dockerfile
+=======
+      dockerfile: Dockerfile.dev
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
     ports:
       - "3001:3001"
     volumes:
@@ -15,12 +19,19 @@ services:
   frontend:
     build:
       context: ./frontend
+<<<<<<< HEAD
       dockerfile: Dockerfile
+=======
+      dockerfile: Dockerfile.dev
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
     ports:
       - "5173:5173"
     volumes:
       - ./frontend:/app
+<<<<<<< HEAD
       - /app/node_modules
+=======
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
     environment:
       - VITE_API_URL=/api
     depends_on:

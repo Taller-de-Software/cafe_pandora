@@ -5,13 +5,7 @@ RUN npm install -g pnpm@11.8.0
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
-<<<<<<< HEAD
-RUN pnpm install --frozen-lockfile
-=======
 RUN CI=true pnpm install --frozen-lockfile
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
-
-COPY . .
 
 EXPOSE 5173
 

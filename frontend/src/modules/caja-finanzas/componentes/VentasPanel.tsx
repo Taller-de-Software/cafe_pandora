@@ -1,7 +1,17 @@
+<<<<<<< HEAD
 import { useQuery } from '@tanstack/react-query'
 import { obtenerVentasDia, obtenerVentasSemana, obtenerVentasMes } from '../data/ventas'
 import type { VentasResponse } from '../data/ventas'
 import { formatearNumero } from '@/utils/formatear'
+=======
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { obtenerVentasDia, obtenerVentasSemana, obtenerVentasMes } from '../data/ventas'
+import type { VentaDetalle, VentasResponse } from '../data/ventas'
+import type { ResumenFactura } from '../data/caja'
+import { formatearNumero } from '@/utils/formatear'
+import FacturaDetalle from './FacturaDetalle'
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 import styles from './VentasPanel.module.css'
 
 type Periodo = 'dia' | 'semana' | 'mes'
@@ -32,6 +42,10 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: cfg.key,
     queryFn: cfg.fn,
+<<<<<<< HEAD
+=======
+    refetchInterval: 30_000,
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   })
 
   if (isLoading) {
@@ -45,6 +59,29 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
   const { resumen, porCategoria, productosMasVendidos, pedidos } = data
   const hayVentas = pedidos.length > 0
 
+<<<<<<< HEAD
+=======
+  const [selectedDetalle, setSelectedDetalle] = useState<ResumenFactura | null>(null)
+
+  function facturaDesdeVenta(p: VentaDetalle): ResumenFactura {
+    const subtotal = p.detalles.reduce((s, d) => s + d.precio * d.cantidad, 0)
+    return {
+      id: p.id,
+      total: p.total,
+      subtotal,
+      impuestoConsumo: p.total - subtotal,
+      creadoEn: p.creadoEn,
+      metodoPago: p.metodoPago,
+      pedido: {
+        id: p.id,
+        mesa: p.mesa,
+        estado: p.estado,
+        detalles: p.detalles,
+      },
+    }
+  }
+
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   return (
     <div className={styles.layout}>
       {/* Header */}
@@ -150,7 +187,11 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
               </thead>
               <tbody>
                 {pedidos.map((p) => (
+<<<<<<< HEAD
                   <tr key={p.id}>
+=======
+                  <tr key={p.id} className={styles.clickable} onClick={() => setSelectedDetalle(facturaDesdeVenta(p))}>
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
                     <td>#{p.id}</td>
                     <td>{p.mesa}</td>
                     <td>${formatearNumero(p.total)}</td>
@@ -168,6 +209,13 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
           </div>
         )}
       </div>
+<<<<<<< HEAD
+=======
+
+        {selectedDetalle && (
+          <FacturaDetalle factura={selectedDetalle} onClose={() => setSelectedDetalle(null)} />
+        )}
+>>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
     </div>
   )
 }
