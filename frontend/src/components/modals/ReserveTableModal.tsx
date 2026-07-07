@@ -6,6 +6,7 @@ interface ReserveTableModalProps {
   open: boolean
   onClose: () => void
   tables: Table[]
+  onReserve: (tableId: string, date: string, time: string, customerName?: string) => void
 }
 
 function todayString(): string {
@@ -16,7 +17,7 @@ function todayString(): string {
   return `${y}-${m}-${day}`
 }
 
-function ReserveTableModal({ open, onClose, tables }: ReserveTableModalProps) {
+function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableModalProps) {
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
   const [fecha, setFecha] = useState('')
   const [hora, setHora] = useState('')
@@ -62,6 +63,7 @@ function ReserveTableModal({ open, onClose, tables }: ReserveTableModalProps) {
       return
     }
 
+    onReserve(selectedTableId!, fecha, hora, cliente || undefined)
     handleClose()
   }
 
@@ -82,20 +84,23 @@ function ReserveTableModal({ open, onClose, tables }: ReserveTableModalProps) {
           </p>
         </div>
 
-        <form onSubmit={handleConfirm}>
+        <form className={styles.formBody} onSubmit={handleConfirm}>
           <div className={styles.field}>
             <label className={styles.label}>SELECCIONAR MESA</label>
             {tables.length === 0 ? (
               <p className={styles.emptyText}>No hay mesas disponibles. Cree una mesa primero.</p>
             ) : (
+              <div className={styles.mesasContainer}>
               <div className={styles.mesasGrid}>
                 {tables.map((t) => {
                   const isSelected = selectedTableId === t.id
+                  const isDisabled = t.status !== 'VACÍA'
                   return (
                     <div
                       key={t.id}
-                      className={`${styles.mesaCard} ${isSelected ? styles.mesaCardSelected : ''}`}
+                      className={`${styles.mesaCard} ${isSelected ? styles.mesaCardSelected : ''} ${isDisabled ? styles.mesaCardDisabled : ''}`}
                       onClick={() => {
+                        if (isDisabled) return
                         setSelectedTableId(t.id)
                         if (errors.mesa) setErrors((prev) => { const next = { ...prev }; delete next.mesa; return next })
                       }}
@@ -105,6 +110,7 @@ function ReserveTableModal({ open, onClose, tables }: ReserveTableModalProps) {
                     </div>
                   )
                 })}
+              </div>
               </div>
             )}
             {errors.mesa && <p className={styles.errorText}>{errors.mesa}</p>}

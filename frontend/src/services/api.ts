@@ -89,6 +89,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     if (err instanceof DOMException && err.name === 'AbortError') {
       throw new Error('La solicitud tardó demasiado en responder', { cause: err })
     }
+    console.error('[API Error]', err)
     throw err
   } finally {
     clearTimeout(timeoutId)

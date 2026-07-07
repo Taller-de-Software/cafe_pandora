@@ -20,7 +20,17 @@
 }
 
 .modalWider {
-  max-width: 34rem;
+  max-width: 1040px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.formBody {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
 }
 
 .header {
@@ -120,6 +130,11 @@
   margin: 0;
 }
 
+.mesasContainer {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
 .mesasGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -143,6 +158,17 @@
 .mesaCard:hover {
   border-color: #d1d5db;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.mesaCardDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mesaCardDisabled:hover {
+  border-color: #e5e7eb;
+  box-shadow: none;
+  transform: none;
 }
 
 .mesaCardSelected {

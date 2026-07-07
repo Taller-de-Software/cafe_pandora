@@ -11,6 +11,7 @@ export function ErrorProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<unknown>(null)
 
   const showError = useCallback((err: unknown) => {
+    console.error('[ErrorContext]', err)
     setError(err)
   }, [])
 
