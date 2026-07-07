@@ -13,6 +13,9 @@ node_modules/
 prisma/dev.db
 prisma/dev.db-journal
 
+# Package lockfiles (use pnpm only)
+package-lock.json
+
 # Uploads
 uploads/productos/*
 !uploads/productos/.gitkeep
