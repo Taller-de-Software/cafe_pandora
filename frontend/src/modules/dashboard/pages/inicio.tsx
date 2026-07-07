@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@modules/auth/context/useAuth'
+import { usePedidosSocket } from '@/hooks/usePedidosSocket'
 import CocinaKanban from '@modules/pedidos/componentes/CocinaKanban'
 import PagoPedido from '@modules/pedidos/componentes/PagoPedido'
 import { listarPedidos } from '@modules/pedidos/data/pedidos'
@@ -9,19 +10,21 @@ import { formatearNumero } from '@/utils/formatear'
 import styles from './inicio.module.css'
 
 function Inicio() {
+  usePedidosSocket()
+
   const { user } = useAuth()
   const [pagoPedido, setPagoPedido] = useState<Pedido | null>(null)
 
   const { data: hechos = [] } = useQuery({
     queryKey: ['pedidos-por-pagar-hecho'],
     queryFn: () => listarPedidos({ estado: 'hecho' }),
-    refetchInterval: 15_000,
+    refetchInterval: 30_000,
   })
 
   const { data: finalizados = [] } = useQuery({
     queryKey: ['pedidos-por-pagar-finalizado'],
     queryFn: () => listarPedidos({ estado: 'finalizado' }),
-    refetchInterval: 15_000,
+    refetchInterval: 30_000,
   })
 
   const porCobrar = useMemo(() => [...hechos, ...finalizados], [hechos, finalizados])
