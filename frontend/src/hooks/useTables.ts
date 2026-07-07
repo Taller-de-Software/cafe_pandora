@@ -39,5 +39,15 @@ export function useTables() {
     setTables((prev) => [...prev, table])
   }, [])
 
-  return { tables, addTable }
+  const reserveTable = useCallback((id: string, date: string, time: string, customerName?: string) => {
+    setTables((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? { ...t, status: 'RESERVADA' as const, reservation: { date, time, ...(customerName ? { customerName } : {}) } }
+          : t
+      )
+    )
+  }, [])
+
+  return { tables, addTable, reserveTable }
 }

@@ -1,0 +1,439 @@
+.wrapper {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.leftColumn {
+  flex: 72;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.rightColumn {
+  flex: 28;
+  display: flex;
+}
+
+.header {
+  margin-bottom: 0;
+}
+
+.headerLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.headerTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.backLink {
+  background: none;
+  border: none;
+  color: #b45309;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  transition: background 0.15s;
+}
+
+.backLink:hover {
+  background: #fff7ed;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.categoriesRow {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.categoryPill {
+  white-space: nowrap;
+  padding: 0.25rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 9999px;
+  background: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1.5;
+}
+
+.categoryPill:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.categoryPillActive {
+  background: #b45309;
+  color: white;
+  border-color: #b45309;
+}
+
+.categoryPillActive:hover {
+  background: #92400e;
+  border-color: #92400e;
+}
+
+.searchInput {
+  padding: 0.25rem 0.75rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  outline: none;
+  width: 200px;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+}
+
+.searchInput:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.catalogScroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.emptyProducts {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #9ca3af;
+  padding: 2rem 0;
+  font-size: 0.875rem;
+}
+
+.summaryCard {
+  flex: 1;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.summaryTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin: 0 0 10px;
+}
+
+.summaryDivider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0 0 0;
+}
+
+.summaryBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cartIcon {
+  width: 48px;
+  height: 48px;
+  color: #d1d5db;
+  margin: 0 auto 10px;
+  display: block;
+}
+
+.emptyCart {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.emptyCartHint {
+  text-align: center;
+  color: #d1d5db;
+  font-size: 0.7rem;
+  margin: 0 0 0;
+  line-height: 1.4;
+}
+
+.comandaScroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.comandaItem {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.comandaItem:last-child {
+  border-bottom: none;
+}
+
+.comandaItemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comandaName {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.comandaUnitPrice {
+  font-size: 0.65rem;
+  color: #6b7280;
+}
+
+.comandaLineTotal {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.comandaControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.qtyBtn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  transition: background 0.15s;
+}
+
+.qtyBtn:hover {
+  background: #f3f4f6;
+}
+
+.qtyValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  color: #1f2937;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 2px;
+  width: 24px;
+  height: 24px;
+  transition: color 0.15s;
+}
+
+.deleteBtn:hover {
+  color: #ef4444;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #374151;
+  padding: 2px 0;
+}
+
+.totalRow {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1f2937;
+  margin-top: 4px;
+}
+
+.actionsRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vaciarBtn {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  transition: all 0.15s;
+}
+
+.vaciarBtn:hover:not(:disabled) {
+  color: #ef4444;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.vaciarBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.confirmBtn {
+  flex: 1;
+  padding: 0.65rem;
+  background: #b45309;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.confirmBtn:hover:not(:disabled) {
+  background: #92400e;
+}
+
+.confirmBtn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirmModal {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 24rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.25s ease;
+  text-align: center;
+}
+
+.confirmTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.75rem;
+}
+
+.confirmText {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.confirmCancel {
+  background: white;
+  color: #374151;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.confirmCancel:hover {
+  background: #f3f4f6;
+}
+
+.confirmDelete {
+  background: #dc2626;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.confirmDelete:hover {
+  background: #b91c1c;
+}

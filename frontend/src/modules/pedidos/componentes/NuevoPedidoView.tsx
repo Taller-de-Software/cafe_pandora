@@ -2,13 +2,26 @@ import { useState } from 'react'
 import AddTableModal from '@/components/modals/AddTableModal'
 import ReserveTableModal from '@/components/modals/ReserveTableModal'
 import TableCard from '@/components/TableCard'
+import TomaPedidoView from './TomaPedidoView'
 import { useTables } from '@/hooks/useTables'
+import type { Table } from '@/types/Table'
 import styles from './NuevoPedidoView.module.css'
 
-function NuevoPedidoView() {
+interface NuevoPedidoViewProps {
+  onConfirmarPedido: (mesa: string, items: { nombre: string; cantidad: number }[]) => void
+}
+
+function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
   const [isAddTableModalOpen, setIsAddTableModalOpen] = useState(false)
   const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
-  const { tables, addTable } = useTables()
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null)
+  const { tables, addTable, reserveTable } = useTables()
+
+  if (selectedTable) {
+    return (
+      <TomaPedidoView table={selectedTable} onBack={() => setSelectedTable(null)} onConfirmarPedido={onConfirmarPedido} />
+    )
+  }
 
   return (
     <div className={styles.card}>
@@ -19,7 +32,7 @@ function NuevoPedidoView() {
 
       <div className={`${styles.mesasContainer} ${tables.length > 0 ? styles.mesasContainerFilled : ''}`}>
         {tables.map((t) => (
-          <TableCard key={t.id} table={t} />
+          <TableCard key={t.id} table={t} onClick={() => setSelectedTable(t)} />
         ))}
       </div>
 
@@ -45,6 +58,7 @@ function NuevoPedidoView() {
         open={isReserveModalOpen}
         onClose={() => setIsReserveModalOpen(false)}
         tables={tables}
+        onReserve={reserveTable}
       />
     </div>
   )
