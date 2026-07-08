@@ -45,7 +45,6 @@ function ResumenContent({ data, onCerrar, onCancelar }: { data: ResumenCaja; onC
       {selectedFactura && (
         <FacturaDetalle factura={selectedFactura} onClose={() => setSelectedFactura(null)} />
       )}
-
       <div className={styles.grid}>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Total Ventas</span>

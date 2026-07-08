@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 import type { PedidoPendiente } from '@/types/PedidoPendiente'
+
+const PEDIDOS_STORAGE_KEY = 'pedidosPendientes'
 
 interface PedidosContextValue {
   pedidosPendientes: PedidoPendiente[]
@@ -10,7 +12,23 @@ interface PedidosContextValue {
 const PedidosContext = createContext<PedidosContextValue | null>(null)
 
 export function PedidosProvider({ children }: { children: ReactNode }) {
-  const [pedidosPendientes, setPedidosPendientes] = useState<PedidoPendiente[]>([])
+  const [pedidosPendientes, setPedidosPendientes] = useState<PedidoPendiente[]>(() => {
+    try {
+      const raw = localStorage.getItem(PEDIDOS_STORAGE_KEY)
+      if (!raw) return []
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return []
+      return parsed
+    } catch {
+      return []
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PEDIDOS_STORAGE_KEY, JSON.stringify(pedidosPendientes))
+    } catch {}
+  }, [pedidosPendientes])
 
   const agregarPedido = useCallback(
     (mesa: string, items: { nombre: string; cantidad: number }[]) => {

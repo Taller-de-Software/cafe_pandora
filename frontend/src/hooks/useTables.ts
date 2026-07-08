@@ -39,15 +39,35 @@ export function useTables() {
     setTables((prev) => [...prev, table])
   }, [])
 
-  const reserveTable = useCallback((id: string, date: string, time: string, customerName?: string) => {
+  const reserveTable = useCallback((id: string, fecha: string, hora: string, nombreCliente?: string) => {
     setTables((prev) =>
       prev.map((t) =>
         t.id === id
-          ? { ...t, status: 'RESERVADA' as const, reservation: { date, time, ...(customerName ? { customerName } : {}) } }
+          ? { ...t, status: 'RESERVADA' as const, reservation: { fecha, hora, ...(nombreCliente ? { nombreCliente } : {}), estado: 'reservada' as const } }
           : t
       )
     )
   }, [])
 
-  return { tables, addTable, reserveTable }
+  const updateReservation = useCallback((id: string, fecha: string, hora: string, nombreCliente?: string) => {
+    setTables((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? { ...t, reservation: { fecha, hora, ...(nombreCliente ? { nombreCliente } : {}), estado: 'reservada' as const } }
+          : t
+      )
+    )
+  }, [])
+
+  const cancelReservation = useCallback((id: string) => {
+    setTables((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? { ...t, status: 'VACÍA' as const, reservation: undefined }
+          : t
+      )
+    )
+  }, [])
+
+  return { tables, addTable, reserveTable, updateReservation, cancelReservation }
 }

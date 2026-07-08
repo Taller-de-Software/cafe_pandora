@@ -6,7 +6,7 @@ interface ReserveTableModalProps {
   open: boolean
   onClose: () => void
   tables: Table[]
-  onReserve: (tableId: string, date: string, time: string, customerName?: string) => void
+  onReserve: (tableId: string, fecha: string, hora: string, nombreCliente?: string) => void
 }
 
 function todayString(): string {
