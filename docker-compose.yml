@@ -22,6 +22,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
+      - CI=true
       - VITE_API_URL=/api
     depends_on:
       - backend
