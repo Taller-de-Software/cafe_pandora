@@ -2,19 +2,13 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { useError } from '@/context/ErrorContext'
-<<<<<<< HEAD
-=======
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 import EstadoCaja from '../componentes/EstadoCaja'
 import FormularioApertura from '../componentes/FormularioApertura'
 import ListaRetiros from '../componentes/ListaRetiros'
 import FormularioRetiro from '../componentes/FormularioRetiro'
 import VentasPanel from '../componentes/VentasPanel'
-<<<<<<< HEAD
-=======
 import FacturacionPanel from '../componentes/FacturacionPanel'
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 import ResumenCierre from '../componentes/ResumenCierre'
 import { obtenerSesionActiva, apertura, cierre, listarRetiros, crearRetiro } from '../data/caja'
 
@@ -23,17 +17,11 @@ import styles from './caja-finanzas.module.css'
 type PeriodoVentas = 'dia' | 'semana' | 'mes'
 
 function CajaFinanzas() {
-<<<<<<< HEAD
-  const { user } = useAuth()
-  const isAdmin = user?.rol === 'administrador'
-  const [tab, setTab] = useState<'caja' | 'ventas'>('caja')
-=======
   usePedidosSocket()
 
   const { user } = useAuth()
   const isAdmin = user?.rol === 'administrador'
   const [tab, setTab] = useState<'caja' | 'ventas' | 'facturacion'>('caja')
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   const { showError } = useError()
   const queryClient = useQueryClient()
 
@@ -45,12 +33,8 @@ function CajaFinanzas() {
   const { data: sesion = null, isLoading: sesionCargando, isError: sesionError } = useQuery({
     queryKey: ['caja', 'activa'],
     queryFn: obtenerSesionActiva,
-<<<<<<< HEAD
-    enabled: isAdmin && tab === 'caja',
-=======
     enabled: isAdmin && (tab === 'caja' || tab === 'facturacion'),
     refetchInterval: tab === 'caja' || tab === 'facturacion' ? 15_000 : false,
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   })
 
   const { data: retiros = [], isLoading: retirosCargando, isError: retirosError } = useQuery({
@@ -92,10 +76,7 @@ function CajaFinanzas() {
     ? [
       { id: 'caja', label: 'Caja' },
       { id: 'ventas', label: 'Ventas' },
-<<<<<<< HEAD
-=======
       { id: 'facturacion', label: 'Facturación' },
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
     ]
     : [
       { id: 'caja', label: 'Caja' },
@@ -174,11 +155,8 @@ function CajaFinanzas() {
             <VentasPanel periodo={periodo} />
           </>
         )
-<<<<<<< HEAD
-=======
       case 'facturacion':
         return <FacturacionPanel sesion={sesion} />
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
       default:
         return null
     }
@@ -191,11 +169,7 @@ function CajaFinanzas() {
           <button
             key={t.id}
             className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`}
-<<<<<<< HEAD
-            onClick={() => setTab(t.id as 'caja' | 'ventas')}
-=======
             onClick={() => setTab(t.id as 'caja' | 'ventas' | 'facturacion')}
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
           >
             {t.label}
           </button>

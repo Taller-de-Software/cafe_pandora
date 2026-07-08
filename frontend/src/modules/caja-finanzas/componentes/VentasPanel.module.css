@@ -129,8 +129,6 @@
   font-size: 0.875rem;
 }
 
-<<<<<<< HEAD
-=======
 .clickable {
   cursor: pointer;
   transition: background 0.12s;
@@ -140,7 +138,6 @@
   background: #f9fafb;
 }
 
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 .badge {
   font-size: 0.75rem;
   font-weight: 500;

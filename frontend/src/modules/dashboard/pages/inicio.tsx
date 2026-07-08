@@ -1,10 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@modules/auth/context/useAuth'
-<<<<<<< HEAD
-=======
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 import CocinaKanban from '@modules/pedidos/componentes/CocinaKanban'
 import PagoPedido from '@modules/pedidos/componentes/PagoPedido'
 import { listarPedidos } from '@modules/pedidos/data/pedidos'
@@ -13,32 +10,21 @@ import { formatearNumero } from '@/utils/formatear'
 import styles from './inicio.module.css'
 
 function Inicio() {
-<<<<<<< HEAD
-=======
   usePedidosSocket()
 
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   const { user } = useAuth()
   const [pagoPedido, setPagoPedido] = useState<Pedido | null>(null)
 
   const { data: hechos = [] } = useQuery({
     queryKey: ['pedidos-por-pagar-hecho'],
     queryFn: () => listarPedidos({ estado: 'hecho' }),
-<<<<<<< HEAD
-    refetchInterval: 15_000,
-=======
     refetchInterval: 30_000,
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   })
 
   const { data: finalizados = [] } = useQuery({
     queryKey: ['pedidos-por-pagar-finalizado'],
     queryFn: () => listarPedidos({ estado: 'finalizado' }),
-<<<<<<< HEAD
-    refetchInterval: 15_000,
-=======
     refetchInterval: 30_000,
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   })
 
   const porCobrar = useMemo(() => [...hechos, ...finalizados], [hechos, finalizados])

@@ -1,28 +1,26 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react'
 import type { Table } from '@/types/Table'
-import styles from './ReserveTableModal.module.css'
+import { formatearHora, formatearFecha } from '@/utils/formatear'
+import styles from './EditReservationModal.module.css'
 
-interface ReserveTableModalProps {
+interface EditReservationModalProps {
   open: boolean
   onClose: () => void
   tables: Table[]
-  onReserve: (tableId: string, fecha: string, hora: string, nombreCliente?: string) => void
+  onUpdateReservation: (tableId: string, fecha: string, hora: string, nombreCliente?: string) => void
+  onCancelReservation: (tableId: string) => void
 }
 
-function todayString(): string {
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableModalProps) {
+function EditReservationModal({ open, onClose, tables, onUpdateReservation, onCancelReservation }: EditReservationModalProps) {
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
   const [fecha, setFecha] = useState('')
   const [hora, setHora] = useState('')
   const [cliente, setCliente] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+
+  const reservedTables = tables.filter((t) => t.status === 'RESERVADA')
+  const selectedTable = selectedTableId ? tables.find((t) => t.id === selectedTableId) : null
 
   const reset = useCallback(() => {
     setSelectedTableId(null)
@@ -30,6 +28,7 @@ function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableMod
     setHora('')
     setCliente('')
     setErrors({})
+    setConfirmCancelId(null)
   }, [])
 
   const handleClose = useCallback(() => {
@@ -50,6 +49,16 @@ function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableMod
     return () => document.removeEventListener('keydown', handleKey)
   }, [open, handleClose])
 
+  function handleSelectTable(table: Table) {
+    setSelectedTableId(table.id)
+    if (table.reservation) {
+      setFecha(table.reservation.fecha)
+      setHora(table.reservation.hora)
+      setCliente(table.reservation.nombreCliente ?? '')
+    }
+    if (errors.mesa) setErrors((prev) => { const next = { ...prev }; delete next.mesa; return next })
+  }
+
   function handleConfirm(e: FormEvent) {
     e.preventDefault()
     const newErrors: Record<string, string> = {}
@@ -63,7 +72,14 @@ function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableMod
       return
     }
 
-    onReserve(selectedTableId!, fecha, hora, cliente || undefined)
+    onUpdateReservation(selectedTableId!, fecha, hora, cliente || undefined)
+    handleClose()
+  }
+
+  function handleCancelReservation() {
+    if (!confirmCancelId) return
+    onCancelReservation(confirmCancelId)
+    setConfirmCancelId(null)
     handleClose()
   }
 
@@ -78,35 +94,37 @@ function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableMod
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className={styles.title}>RESERVAR UNA MESA</h2>
+          <h2 className={styles.title}>EDITAR RESERVA</h2>
           <p className={styles.description}>
-            Seleccione la mesa, fecha y hora para la reserva.
+            Seleccione una reserva para modificar sus datos.
           </p>
         </div>
 
         <form className={styles.formBody} onSubmit={handleConfirm}>
           <div className={styles.field}>
-            <label className={styles.label}>SELECCIONAR MESA</label>
-            {tables.length === 0 ? (
-              <p className={styles.emptyText}>No hay mesas disponibles. Cree una mesa primero.</p>
+            <label className={styles.label}>SELECCIONAR RESERVA</label>
+            {reservedTables.length === 0 ? (
+              <p className={styles.emptyText}>No hay mesas reservadas. Reserve una mesa primero.</p>
             ) : (
               <div className={styles.mesasContainer}>
               <div className={styles.mesasGrid}>
-                {tables.map((t) => {
+                {reservedTables.map((t) => {
                   const isSelected = selectedTableId === t.id
-                  const isDisabled = t.status !== 'VACÍA'
                   return (
                     <div
                       key={t.id}
-                      className={`${styles.mesaCard} ${isSelected ? styles.mesaCardSelected : ''} ${isDisabled ? styles.mesaCardDisabled : ''}`}
-                      onClick={() => {
-                        if (isDisabled) return
-                        setSelectedTableId(t.id)
-                        if (errors.mesa) setErrors((prev) => { const next = { ...prev }; delete next.mesa; return next })
-                      }}
+                      className={`${styles.mesaCard} ${isSelected ? styles.mesaCardSelected : ''}`}
+                      onClick={() => handleSelectTable(t)}
                     >
                       <span className={styles.mesaName}>Mesa {t.name} ({t.type})</span>
                       <span className={styles.mesaBadge}>{t.status}</span>
+                      {t.reservation && (
+                        <div className={styles.mesaReservationDetail}>
+                          <span>Cliente: {t.reservation.nombreCliente ?? '—'}</span>
+                          <span>Fecha: {formatearFecha(t.reservation?.fecha)}</span>
+                          <span>Hora: {formatearHora(t.reservation?.hora)}</span>
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -116,13 +134,21 @@ function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableMod
             {errors.mesa && <p className={styles.errorText}>{errors.mesa}</p>}
           </div>
 
+          {selectedTable && (
+            <div className={styles.field}>
+              <label className={styles.label}>MESA</label>
+              <div className={styles.mesaReadonly}>
+                Mesa {selectedTable.name} ({selectedTable.type})
+              </div>
+            </div>
+          )}
+
           <div className={styles.row}>
             <div className={styles.field}>
               <label className={styles.label}>FECHA</label>
               <input
                 className={`${styles.input} ${errors.fecha ? styles.inputError : ''}`}
                 type="date"
-                min={todayString()}
                 value={fecha}
                 onChange={(e) => {
                   setFecha(e.target.value)
@@ -148,7 +174,7 @@ function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableMod
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>NOMBRE DEL CLIENTE (opcional)</label>
+            <label className={styles.label}>NOMBRE DEL CLIENTE</label>
             <input
               className={styles.input}
               type="text"
@@ -159,17 +185,39 @@ function ReserveTableModal({ open, onClose, tables, onReserve }: ReserveTableMod
           </div>
 
           <div className={styles.actions}>
-            <button type="button" className={styles.btnCancel} onClick={handleClose}>
-              Cancelar
-            </button>
-            <button type="submit" className={styles.btnConfirm}>
-              Confirmar Reserva
-            </button>
+            {selectedTableId && (
+              <button type="button" className={styles.btnCancelReservation} onClick={() => setConfirmCancelId(selectedTableId)}>
+                Cancelar Reserva
+              </button>
+            )}
+            <div className={styles.actionsRight}>
+              <button type="button" className={styles.btnCancel} onClick={handleClose}>
+                Cancelar
+              </button>
+              <button type="submit" className={styles.btnConfirm}>
+                Guardar Cambios
+              </button>
+            </div>
           </div>
         </form>
       </div>
+
+      {confirmCancelId && (
+        <div className={styles.confirmOverlay} onClick={() => setConfirmCancelId(null)}>
+          <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.confirmTitle}>¿Cancelar reserva?</h3>
+            <p className={styles.confirmText}>
+              Se eliminará la reserva y la mesa quedará libre. Esta acción no se puede deshacer.
+            </p>
+            <div className={styles.confirmActions}>
+              <button className={styles.confirmNo} onClick={() => setConfirmCancelId(null)}>No</button>
+              <button className={styles.confirmYes} onClick={handleCancelReservation}>Sí, cancelar reserva</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-export default ReserveTableModal
+export default EditReservationModal

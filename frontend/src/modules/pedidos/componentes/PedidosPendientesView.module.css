@@ -17,29 +17,9 @@
 
 .grid {
   display: grid;
-<<<<<<< HEAD
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-=======
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1rem;
 }
-
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 .card {
   background: white;
   border: 1px solid #e5e7eb;
@@ -49,16 +29,6 @@
   flex-direction: column;
   gap: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-<<<<<<< HEAD
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.card:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-=======
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 }
 
 .cardHeader {
@@ -134,10 +104,7 @@
 .itemsScroll {
   flex: 1;
   overflow-y: auto;
-<<<<<<< HEAD
-=======
   max-height: 180px;
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   display: flex;
   flex-direction: column;
   gap: 0.3rem;

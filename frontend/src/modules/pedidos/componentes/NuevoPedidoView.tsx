@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import AddTableModal from '@/components/modals/AddTableModal'
 import ReserveTableModal from '@/components/modals/ReserveTableModal'
+import EditReservationModal from '@/components/modals/EditReservationModal'
 import TableCard from '@/components/TableCard'
 import TomaPedidoView from './TomaPedidoView'
 import { useTables } from '@/hooks/useTables'
@@ -8,18 +9,15 @@ import type { Table } from '@/types/Table'
 import styles from './NuevoPedidoView.module.css'
 
 interface NuevoPedidoViewProps {
-<<<<<<< HEAD
-  onConfirmarPedido: (mesa: string, mesaNumero: number, items: { nombre: string; cantidad: number; precioUnitario: number }[], mesero: string) => void
-=======
   onConfirmarPedido: (mesa: string, items: { nombre: string; cantidad: number }[]) => void
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 }
 
 function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
   const [isAddTableModalOpen, setIsAddTableModalOpen] = useState(false)
   const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
+  const [isEditReserveModalOpen, setIsEditReserveModalOpen] = useState(false)
   const [selectedTable, setSelectedTable] = useState<Table | null>(null)
-  const { tables, addTable, reserveTable } = useTables()
+  const { tables, addTable, reserveTable, updateReservation, cancelReservation } = useTables()
 
   if (selectedTable) {
     return (
@@ -41,13 +39,16 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
       </div>
 
       <div className={styles.footer}>
-        <p className={styles.footerText}>¿No encuentra la mesa? Cree una personalizada o reserve.</p>
+        <p className={styles.footerText}>¿No encuentra la mesa? Crea una personalizada o reserva una mesa.</p>
         <div className={styles.buttons}>
           <button className={styles.btnPrimary} onClick={() => setIsAddTableModalOpen(true)}>
             + Agregar Nueva Mesa
           </button>
           <button className={styles.btnSecondary} onClick={() => setIsReserveModalOpen(true)}>
             Reservar una Mesa
+          </button>
+          <button className={styles.btnSecondary} onClick={() => setIsEditReserveModalOpen(true)}>
+            Editar Reserva
           </button>
         </div>
       </div>
@@ -63,6 +64,14 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
         onClose={() => setIsReserveModalOpen(false)}
         tables={tables}
         onReserve={reserveTable}
+      />
+
+      <EditReservationModal
+        open={isEditReserveModalOpen}
+        onClose={() => setIsEditReserveModalOpen(false)}
+        tables={tables}
+        onUpdateReservation={updateReservation}
+        onCancelReservation={cancelReservation}
       />
     </div>
   )

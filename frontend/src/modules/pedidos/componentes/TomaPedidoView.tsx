@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react'
 import type { Table } from '@/types/Table'
 import type { Categoria } from '../../menu/api/categorias'
 import type { Producto } from '../../menu/api/productos'
+import type { Subcategoria } from '../../menu/api/subcategorias'
 import { listarCategorias } from '../../menu/api/categorias'
 import { listarProductos } from '../../menu/api/productos'
+import { listarSubcategorias } from '../../menu/api/subcategorias'
 import { formatearNumero } from '@/utils/formatear'
-<<<<<<< HEAD
-import { useAuth } from '@modules/auth/context/useAuth'
-=======
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
+
 import TarjetaProductoPedido from './TarjetaProductoPedido'
 import styles from './TomaPedidoView.module.css'
 
@@ -22,21 +21,15 @@ interface ItemComanda {
 interface TomaPedidoViewProps {
   table: Table
   onBack: () => void
-<<<<<<< HEAD
-  onConfirmarPedido: (mesa: string, mesaNumero: number, items: { nombre: string; cantidad: number; precioUnitario: number }[], mesero: string) => void
-}
-
-function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProps) {
-  const { user } = useAuth()
-=======
   onConfirmarPedido: (mesa: string, items: { nombre: string; cantidad: number }[]) => void
 }
 
 function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProps) {
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
   const [categoriaActivaId, setCategoriaActivaId] = useState<number | null>(null)
+  const [subcategoriaActivaId, setSubcategoriaActivaId] = useState<number | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(true)
   const [comanda, setComanda] = useState<ItemComanda[]>([])
@@ -49,12 +42,26 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
   }, [])
 
   useEffect(() => {
+    if (!categoriaActivaId) {
+      setSubcategorias([])
+      setSubcategoriaActivaId(null)
+      return
+    }
+    listarSubcategorias(categoriaActivaId)
+      .then(setSubcategorias)
+      .catch(() => setSubcategorias([]))
+  }, [categoriaActivaId])
+
+  useEffect(() => {
     setLoading(true)
-    listarProductos(categoriaActivaId ? { categoriaId: categoriaActivaId } : undefined)
+    const params: { categoriaId?: number; subcategoriaId?: number } = {}
+    if (categoriaActivaId) params.categoriaId = categoriaActivaId
+    if (subcategoriaActivaId) params.subcategoriaId = subcategoriaActivaId
+    listarProductos(Object.keys(params).length > 0 ? params : undefined)
       .then(setProductos)
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [categoriaActivaId])
+  }, [categoriaActivaId, subcategoriaActivaId])
 
   useEffect(() => {
     if (!showVaciarConfirm) return
@@ -136,7 +143,7 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
             <div className={styles.categoriesRow}>
               <button
                 className={`${styles.categoryPill} ${categoriaActivaId === null ? styles.categoryPillActive : ''}`}
-                onClick={() => setCategoriaActivaId(null)}
+                onClick={() => { setCategoriaActivaId(null); setSubcategoriaActivaId(null) }}
               >
                 Todos
               </button>
@@ -144,13 +151,12 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
                 <button
                   key={cat.id}
                   className={`${styles.categoryPill} ${categoriaActivaId === cat.id ? styles.categoryPillActive : ''}`}
-                  onClick={() => setCategoriaActivaId(cat.id)}
+                  onClick={() => { setCategoriaActivaId(cat.id); setSubcategoriaActivaId(null) }}
                 >
                   {cat.nombre}
                 </button>
               ))}
             </div>
-
             <input
               className={styles.searchInput}
               type="text"
@@ -159,6 +165,20 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
               onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
+
+          {categoriaActivaId !== null && subcategorias.length > 0 && (
+            <div className={styles.subcategoriesRow}>
+              {subcategorias.map((sub) => (
+                <button
+                  key={sub.id}
+                  className={`${styles.categoryPill} ${subcategoriaActivaId === sub.id ? styles.categoryPillActive : ''}`}
+                  onClick={() => setSubcategoriaActivaId(subcategoriaActivaId === sub.id ? null : sub.id)}
+                >
+                  {sub.nombre}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className={styles.catalogScroll}>
             <div className={styles.productGrid}>
@@ -230,16 +250,7 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
                 </svg>
               </button>
               <button className={styles.confirmBtn} disabled={comanda.length === 0} onClick={() => {
-<<<<<<< HEAD
-                onConfirmarPedido(
-                  `Mesa ${table.name} (${table.type})`,
-                  Number(table.name),
-                  comanda.map((item) => ({ nombre: item.nombre, cantidad: item.cantidad, precioUnitario: item.precio })),
-                  user?.rol ?? 'mesero'
-                )
-=======
                 onConfirmarPedido(`Mesa ${table.name} (${table.type})`, comanda.map((item) => ({ nombre: item.nombre, cantidad: item.cantidad })))
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
                 onBack()
               }}>
                 Confirmar Pedido

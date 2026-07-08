@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react'
 import type { PedidoPendiente } from '@/types/PedidoPendiente'
-<<<<<<< HEAD
-import DetallePedidoModal from './DetallePedidoModal'
-import { usePedidos } from '../context/PedidosContext'
-=======
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 import styles from './PedidosPendientesView.module.css'
 
 interface PedidosPendientesViewProps {
@@ -14,22 +9,6 @@ interface PedidosPendientesViewProps {
 
 function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewProps) {
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
-<<<<<<< HEAD
-  const [detallePedido, setDetallePedido] = useState<PedidoPendiente | null>(null)
-  const { actualizarPedido } = usePedidos()
-
-  useEffect(() => {
-    if (!confirmCancelId && !detallePedido) return
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setConfirmCancelId(null)
-        setDetallePedido(null)
-      }
-    }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [confirmCancelId, detallePedido])
-=======
 
   useEffect(() => {
     if (!confirmCancelId) return
@@ -39,7 +18,6 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
   }, [confirmCancelId])
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
 
   if (pedidos.length === 0) {
     return (
@@ -64,11 +42,7 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
       </div>
       <div className={styles.grid}>
         {pedidos.map((pedido) => (
-<<<<<<< HEAD
-          <div key={pedido.id} className={styles.card} onClick={() => setDetallePedido(pedido)}>
-=======
           <div key={pedido.id} className={styles.card}>
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
             <div className={styles.cardHeader}>
               <div className={styles.headerLeft}>
                 <span className={styles.mesaName}>{pedido.mesa.toUpperCase()}</span>
@@ -97,17 +71,10 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
             <div className={styles.cardDivider} />
 
             <div className={styles.cardActions}>
-<<<<<<< HEAD
-              <button className={styles.btnCocina} onClick={(e) => { e.stopPropagation(); console.log('Recibo cocina:', pedido.id) }}>
-                GENERAR RECIBO<br />COCINA
-              </button>
-              <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(pedido.id) }}>
-=======
               <button className={styles.btnCocina} onClick={() => console.log('Recibo cocina:', pedido.id)}>
                 GENERAR RECIBO<br />COCINA
               </button>
               <button className={styles.btnCancelar} onClick={() => setConfirmCancelId(pedido.id)}>
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
                 CANCELAR
               </button>
             </div>
@@ -129,16 +96,6 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
           </div>
         </div>
       )}
-<<<<<<< HEAD
-
-      <DetallePedidoModal
-        open={detallePedido !== null}
-        pedido={detallePedido}
-        onClose={() => setDetallePedido(null)}
-        onActualizarPedido={actualizarPedido}
-      />
-=======
->>>>>>> 851c78be1872df1fd6718c45d83774748d0663a5
     </div>
   )
 }
