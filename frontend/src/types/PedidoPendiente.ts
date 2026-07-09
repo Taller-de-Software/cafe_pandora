@@ -10,6 +10,12 @@ export interface CuentaSeparada {
   total: number
 }
 
+export interface Abono {
+  monto: number
+  metodo: 'Efectivo' | 'Tarjeta' | 'Transferencia'
+  hora: string
+}
+
 export interface PedidoPendiente {
   id: string
   mesa: string
@@ -19,4 +25,5 @@ export interface PedidoPendiente {
   items: ItemPedidoPendiente[]
   mesero: string
   cuentas?: CuentaSeparada[]
+  abonos?: Abono[]
 }

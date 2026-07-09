@@ -69,5 +69,13 @@ export function useTables() {
     )
   }, [])
 
-  return { tables, addTable, reserveTable, updateReservation, cancelReservation }
+  const setTableStatus = useCallback((id: string, status: Table['status']) => {
+    setTables((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, status } : t
+      )
+    )
+  }, [])
+
+  return { tables, addTable, reserveTable, updateReservation, cancelReservation, setTableStatus }
 }
