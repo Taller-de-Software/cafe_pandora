@@ -14,6 +14,7 @@ export interface LoginResponse {
 export interface Usuario {
   id: number
   rol: string
+  nombre?: string
 }
 
 export async function login(data: LoginRequest): Promise<LoginResponse> {

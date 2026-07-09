@@ -17,8 +17,20 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 .card {
   background: white;
@@ -29,6 +41,14 @@
   flex-direction: column;
   gap: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  height: 100%;
+}
+
+.card:hover {
+  border-color: #c2410c;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .cardHeader {
@@ -103,8 +123,8 @@
 
 .itemsScroll {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 180px;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
