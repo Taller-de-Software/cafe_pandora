@@ -690,6 +690,302 @@
   margin-top: 0.2rem;
 }
 
+/* --- Unir Mesas panel styles --- */
+
+.unirDescripcion {
+  font-size: 0.75rem;
+  color: #6b7280;
+  padding: 0.5rem 1.25rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.unirGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0 1.25rem 0.75rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.unirCard {
+  background: white;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.625rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.unirCard:hover {
+  border-color: #c2410c;
+}
+
+.unirCardSel {
+  border-color: #c2410c;
+  background: #fff7ed;
+  box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.15);
+}
+
+.unirCardDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.unirCardDisabled:hover {
+  border-color: #e5e7eb;
+}
+
+.unirCardName {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: block;
+  line-height: 1.3;
+}
+
+.unirCardInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+}
+
+.unirCardEstado {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.unirCardEstadoActual {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #c2410c;
+  text-transform: uppercase;
+}
+
+.unirCardEstadoSin {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.unirCardReserva {
+  font-size: 0.6rem;
+  color: #6b7280;
+}
+
+/* --- Fusion confirmation modal --- */
+
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirmModalFusion {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 26rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.25s ease;
+  text-align: center;
+}
+
+.confirmTitleFusion {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.75rem;
+}
+
+.confirmTextFusion {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.confirmActionsFusion {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.confirmNoFusion {
+  background: white;
+  color: #374151;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.confirmNoFusion:hover {
+  background: #f3f4f6;
+}
+
+.confirmYesFusion {
+  background: #c2410c;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.confirmYesFusion:hover {
+  background: #9a3412;
+}
+
+/* --- Abonar Dinero panel styles --- */
+
+.abonoTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem 0.25rem;
+}
+
+.abonoSaldoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 1.25rem 0.5rem;
+}
+
+.abonoLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.abonoTotal {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.abonoAbonado {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.abonoInputLabel {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.25rem 0.25rem;
+}
+
+.abonoInput {
+  display: block;
+  width: calc(100% - 2.5rem);
+  margin: 0 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  text-align: right;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+
+.abonoInput::-webkit-outer-spin-button,
+.abonoInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.abonoInput:focus {
+  border-color: #c2410c;
+  box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.1);
+}
+
+.abonoError {
+  font-size: 0.7rem;
+  color: #dc2626;
+  font-weight: 600;
+  padding: 0.25rem 1.25rem 0;
+  margin: 0;
+}
+
+.abonoResultadosFinal {
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.abonoSaldoGrande {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #dc2626;
+}
+
+.abonoHistorialBlock {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 0.25rem;
+}
+
+.abonoHistorial {
+  padding: 0 1.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.abonoHistItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.abonoHistItem + .abonoHistItem {
+  border-top: 1px solid #f3f4f6;
+}
+
+.abonoHistHora {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.abonoHistMetodo {
+  color: #374151;
+  font-weight: 500;
+}
+
+.abonoHistMonto {
+  font-weight: 700;
+  color: #1f2937;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
-import type { PedidoPendiente, ItemPedidoPendiente, CuentaSeparada } from '@/types/PedidoPendiente'
+import type { PedidoPendiente, ItemPedidoPendiente, CuentaSeparada, Abono } from '@/types/PedidoPendiente'
 
 const PEDIDOS_STORAGE_KEY = 'pedidosPendientes'
 
@@ -9,6 +9,8 @@ interface PedidosContextValue {
   eliminarPedido: (id: string) => void
   actualizarPedido: (id: string, items: ItemPedidoPendiente[]) => void
   separarCuenta: (id: string, cuentas: CuentaSeparada[]) => void
+  cambiarMesaPedido: (id: string, newMesa: string) => void
+  registrarAbono: (id: string, abono: Abono) => void
 }
 
 const PedidosContext = createContext<PedidosContextValue | null>(null)
@@ -62,8 +64,24 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const cambiarMesaPedido = useCallback((id: string, newMesa: string) => {
+    setPedidosPendientes((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, mesa: newMesa } : p))
+    )
+  }, [])
+
+  const registrarAbono = useCallback((id: string, abono: Abono) => {
+    setPedidosPendientes((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, abonos: [...(p.abonos ?? []), abono] }
+          : p
+      )
+    )
+  }, [])
+
   return (
-    <PedidosContext.Provider value={{ pedidosPendientes, agregarPedido, eliminarPedido, actualizarPedido, separarCuenta }}>
+    <PedidosContext.Provider value={{ pedidosPendientes, agregarPedido, eliminarPedido, actualizarPedido, separarCuenta, cambiarMesaPedido, registrarAbono }}>
       {children}
     </PedidosContext.Provider>
   )
