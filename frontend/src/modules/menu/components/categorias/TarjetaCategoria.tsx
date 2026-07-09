@@ -1,4 +1,4 @@
-import type { Categoria } from '../data/categorias'
+import type { Categoria } from '../../api/categorias'
 import styles from './TarjetaCategoria.module.css'
 
 interface TarjetaCategoriaProps {

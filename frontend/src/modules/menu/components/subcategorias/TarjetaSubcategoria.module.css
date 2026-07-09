@@ -1,16 +1,16 @@
 .pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.875rem;
-  border-radius: 9999px;
-  font-size: 0.8125rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
   border: 1px solid #d1d5db;
   background: transparent;
-  color: #6b7280;
+  color: #374151;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s ease, transform 0.1s ease;
   flex-shrink: 0;
 }
 

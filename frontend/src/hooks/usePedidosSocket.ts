@@ -14,12 +14,16 @@ export function usePedidosSocket() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-pendientes'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-cocinando'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-listos'] })
+      queryClient.invalidateQueries({ queryKey: ['inicio-recibido'] })
+      queryClient.invalidateQueries({ queryKey: ['inicio-pendiente'] })
+      queryClient.invalidateQueries({ queryKey: ['inicio-hecho'] })
       queryClient.invalidateQueries({ queryKey: ['caja', 'activa'] })
       queryClient.invalidateQueries({ queryKey: ['ventas'] })
     }
 
     function onNuevo() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-pendientes'] })
+      queryClient.invalidateQueries({ queryKey: ['inicio-recibido'] })
       queryClient.invalidateQueries({ queryKey: ['caja', 'activa'] })
     }
 
