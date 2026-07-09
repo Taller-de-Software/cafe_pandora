@@ -38,6 +38,8 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
     refetchInterval: 30_000,
   })
 
+  const [selectedDetalle, setSelectedDetalle] = useState<ResumenFactura | null>(null)
+
   if (isLoading) {
     return <div className={styles.card}>Cargando {cfg.titulo.toLowerCase()}...</div>
   }
@@ -49,7 +51,10 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
   const { resumen, porCategoria, productosMasVendidos, pedidos } = data
   const hayVentas = pedidos.length > 0
 
-  const [selectedDetalle, setSelectedDetalle] = useState<ResumenFactura | null>(null)
+  const ventasPorMetodoPago = pedidos.reduce<Record<string, number>>((acc, p) => {
+    acc[p.metodoPago] = (acc[p.metodoPago] ?? 0) + p.total
+    return acc
+  }, {})
 
   function facturaDesdeVenta(p: VentaDetalle): ResumenFactura {
     const subtotal = p.detalles.reduce((s, d) => s + d.precio * d.cantidad, 0)
@@ -150,6 +155,21 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
                 ))}
               </tbody>
             </table>
+          )}
+        </div>
+
+        {/* Ventas por Método de Pago */}
+        <div className={styles.card}>
+          <h4 className={styles.sectionTitle}>Ventas por Método de Pago</h4>
+          {!hayVentas || Object.keys(ventasPorMetodoPago).length === 0 ? (
+            <p className={styles.empty}>Sin ventas en este período</p>
+          ) : (
+            Object.entries(ventasPorMetodoPago).map(([metodo, total]) => (
+              <div key={metodo} className={styles.metodoCard}>
+                <span className={styles.metodoNombre}>{metodo}</span>
+                <span className={styles.metodoMonto}>${formatearNumero(total)}</span>
+              </div>
+            ))
           )}
         </div>
       </div>

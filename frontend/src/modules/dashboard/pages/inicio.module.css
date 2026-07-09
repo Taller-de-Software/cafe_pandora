@@ -113,12 +113,30 @@
 .estadoBadge {
   display: inline-block;
   align-self: flex-start;
-  background: #f3f4f6;
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #374151;
+}
+
+.estadoRecibido {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.estadoPendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.estadoHecho {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.estadoFinalizado {
+  background: #d1fae5;
+  color: #065f46;
 }
 
 /* Items list */
@@ -197,5 +215,27 @@
 }
 
 .cobrarBtnSmall:hover { background: #16a34a; }
+
+.printBtn {
+  background: transparent;
+  color: #2563eb;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #2563eb;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.printBtn:hover {
+  background: #2563eb;
+  color: white;
+}
+
+.printBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 

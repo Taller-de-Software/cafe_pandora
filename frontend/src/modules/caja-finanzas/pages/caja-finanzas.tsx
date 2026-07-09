@@ -7,10 +7,13 @@ import EstadoCaja from '../componentes/EstadoCaja'
 import FormularioApertura from '../componentes/FormularioApertura'
 import ListaRetiros from '../componentes/ListaRetiros'
 import FormularioRetiro from '../componentes/FormularioRetiro'
+import ListaFacturas from '../componentes/ListaFacturas'
+import FacturaDetalle from '../componentes/FacturaDetalle'
 import VentasPanel from '../componentes/VentasPanel'
 import FacturacionPanel from '../componentes/FacturacionPanel'
 import ResumenCierre from '../componentes/ResumenCierre'
-import { obtenerSesionActiva, apertura, cierre, listarRetiros, crearRetiro } from '../data/caja'
+import { obtenerSesionActiva, apertura, cierre, listarRetiros, crearRetiro, obtenerResumenCaja } from '../data/caja'
+import type { ResumenFactura } from '../data/caja'
 
 import styles from './caja-finanzas.module.css'
 
@@ -29,6 +32,7 @@ function CajaFinanzas() {
   const [showApertura, setShowApertura] = useState(false)
   const [showRetiro, setShowRetiro] = useState(false)
   const [showResumen, setShowResumen] = useState(false)
+  const [selectedFactura, setSelectedFactura] = useState<ResumenFactura | null>(null)
 
   const { data: sesion = null, isLoading: sesionCargando, isError: sesionError } = useQuery({
     queryKey: ['caja', 'activa'],
@@ -41,6 +45,14 @@ function CajaFinanzas() {
     queryKey: ['caja', sesion?.id, 'retiros'],
     queryFn: () => listarRetiros(sesion!.id),
     enabled: !!sesion && !sesion.cierre && tab === 'caja',
+    refetchInterval: 15_000,
+  })
+
+  const { data: resumenCaja } = useQuery({
+    queryKey: ['caja', sesion?.id, 'resumen'],
+    queryFn: () => obtenerResumenCaja(sesion!.id),
+    enabled: !!sesion && !sesion.cierre && tab === 'caja',
+    refetchInterval: 15_000,
   })
 
   const aperturaMut = useMutation({
@@ -104,7 +116,21 @@ function CajaFinanzas() {
                 {!retirosCargando && !retirosError && (
                   <ListaRetiros retiros={retiros} onAdd={() => setShowRetiro(true)} />
                 )}
+
+                {resumenCaja && resumenCaja.facturas.length > 0 && (
+                  <ListaFacturas
+                    facturas={resumenCaja.facturas}
+                    onSelect={(f) => setSelectedFactura(f)}
+                  />
+                )}
               </>
+            )}
+
+            {selectedFactura && (
+              <FacturaDetalle
+                factura={selectedFactura}
+                onClose={() => setSelectedFactura(null)}
+              />
             )}
 
             {showResumen && sesion && (
