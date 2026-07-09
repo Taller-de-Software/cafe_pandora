@@ -58,6 +58,10 @@ export async function cancelarPedido(id: number): Promise<Pedido> {
   return api.post<Pedido>(`/pedidos/${id}/cancelar`)
 }
 
+export async function imprimirCocina(pedidoId: number): Promise<{ message: string }> {
+  return api.post<{ message: string }>(`/impresion/cocina/${pedidoId}`)
+}
+
 export async function listarMesas(): Promise<Mesa[]> {
   return api.get<Mesa[]>('/mesas')
 }

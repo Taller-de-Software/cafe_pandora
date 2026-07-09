@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
 import PagoPedido from '@modules/pedidos/componentes/PagoPedido'
-import { listarPedidos, cambiarEstado } from '@modules/pedidos/data/pedidos'
+import { listarPedidos, cambiarEstado, imprimirCocina } from '@modules/pedidos/data/pedidos'
 import type { Pedido, EstadoPedido } from '@modules/pedidos/data/pedidos'
 import { useError } from '@/context/ErrorContext'
 import { formatearNumero, formatearFecha } from '@/utils/formatear'
@@ -41,6 +41,7 @@ function Inicio() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const [pagoPedido, setPagoPedido] = useState<Pedido | null>(null)
+  const [printingId, setPrintingId] = useState<number | null>(null)
 
   const { data: recibidos = [] } = useQuery({
     queryKey: ['inicio-recibido'],
@@ -76,6 +77,21 @@ function Inicio() {
     const next = nextState[pedido.estado]
     if (next) {
       avanzarMut.mutate({ id: pedido.id, estado: next })
+    }
+  }
+
+  async function handlePrintCocina(e: React.MouseEvent, pedidoId: number) {
+    e.stopPropagation()
+    setPrintingId(pedidoId)
+    try {
+      const result = await imprimirCocina(pedidoId)
+      if (result.message) {
+        alert(result.message)
+      }
+    } catch (err) {
+      showError(err)
+    } finally {
+      setPrintingId(null)
     }
   }
 
@@ -137,7 +153,7 @@ function Inicio() {
                           </span>
                         </span>
                       </div>
-                      <span className={styles.estadoBadge}>
+                      <span className={`${styles.estadoBadge} ${styles[`estado${pedido.estado.charAt(0).toUpperCase() + pedido.estado.slice(1)}`] || ''}`}>
                         {estadoLabels[pedido.estado]}
                       </span>
                       <ul className={styles.items}>
@@ -160,6 +176,15 @@ function Inicio() {
                           ${formatearNumero(pedido.total ?? 0)}
                         </span>
                         <div className={styles.cardActions}>
+                          {pedido.estado === 'recibido' && (
+                            <button
+                              className={styles.printBtn}
+                              onClick={(e) => handlePrintCocina(e, pedido.id)}
+                              disabled={printingId === pedido.id}
+                            >
+                              {printingId === pedido.id ? '...' : 'Imprimir'}
+                            </button>
+                          )}
                           {pedido.estado === 'hecho' && (
                             <button
                               className={styles.cobrarBtnSmall}

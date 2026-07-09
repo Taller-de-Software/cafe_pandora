@@ -99,3 +99,7 @@ export interface ResumenCaja {
 export async function obtenerResumenCaja(id: number): Promise<ResumenCaja> {
   return api.get<ResumenCaja>(`/caja/${id}/resumen`)
 }
+
+export async function imprimirFactura(facturaId: number): Promise<{ message: string }> {
+  return api.post<{ message: string }>(`/impresion/pago/${facturaId}`)
+}

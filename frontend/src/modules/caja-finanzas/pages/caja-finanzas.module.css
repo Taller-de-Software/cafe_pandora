@@ -6,29 +6,33 @@
 
 .tabs {
   display: flex;
-  gap: 0;
-  background: #f3f4f6;
-  border-radius: 0.75rem;
-  padding: 0.25rem;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .tab {
-  flex: 1;
-  padding: 0.625rem 1rem;
-  border: none;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid #d1d5db;
   border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #6b7280;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
+}
+
+.tab:hover {
+  background: #f9fafb;
 }
 
 .tabActive {
-  background: white;
-  color: #b45309;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: #1f2937;
+  color: white;
+  border-color: #1f2937;
+}
+
+.tabActive:hover {
+  background: #374151;
 }
 
 .content {
@@ -39,28 +43,27 @@
 .subtabs {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 0;
+  margin-bottom: 1.5rem;
 }
 
 .subtab {
   padding: 0.5rem 1rem;
-  border: none;
-  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: white;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #9ca3af;
+  color: #6b7280;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .subtab:hover {
-  color: #6b7280;
+  background: #f9fafb;
 }
 
 .subtabActive {
-  color: #b45309;
-  border-bottom-color: #b45309;
+  background: #1f2937;
+  color: white;
+  border-color: #1f2937;
 }
