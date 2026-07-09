@@ -4,8 +4,7 @@ import { useError } from '@/context/ErrorContext'
 import ListaCategorias from '../components/categorias/ListaCategorias'
 import ListaSubcategorias from '../components/subcategorias/ListaSubcategorias'
 import ListaProductos from '../components/productos/ListaProductos'
-import FormularioCategoria from '../components/categorias/FormularioCategoria'
-import FormularioSubcategoria from '../components/subcategorias/FormularioSubcategoria'
+import GestionMenu from '../components/gestion/GestionMenu'
 import FormularioProducto from '../components/productos/FormularioProducto'
 import { listarCategorias, crearCategoria, actualizarCategoria, eliminarCategoria } from '../api/categorias'
 import { listarSubcategorias, crearSubcategoria, actualizarSubcategoria, eliminarSubcategoria } from '../api/subcategorias'
@@ -19,8 +18,7 @@ function Menu() {
 
   const [categoriaActivaId, setCategoriaActivaId] = useState<number | null>(null)
   const [subcategoriaActivaId, setSubcategoriaActivaId] = useState<number | null>(null)
-  const [showCatForm, setShowCatForm] = useState(false)
-  const [showSubForm, setShowSubForm] = useState(false)
+  const [showGestion, setShowGestion] = useState(false)
   const [showProdForm, setShowProdForm] = useState(false)
   const [productoEditando, setProductoEditando] = useState<Producto | null>(null)
 
@@ -115,7 +113,6 @@ function Menu() {
   const crearProd = useMutation({
     mutationFn: crearProducto,
     onSuccess: () => {
-      setShowProdForm(false)
       queryClient.invalidateQueries({ queryKey: ['productos', categoriaActivaId] })
     },
     onError: showError,
@@ -140,8 +137,8 @@ function Menu() {
     onError: showError,
   })
 
-  function abrirFormProducto(producto?: Producto) {
-    setProductoEditando(producto ?? null)
+  function abrirFormProducto(producto: Producto) {
+    setProductoEditando(producto)
     setShowProdForm(true)
   }
 
@@ -158,13 +155,23 @@ function Menu() {
 
   return (
     <div className={styles.layout}>
+      <div className={styles.banner}>
+        <div className={styles.bannerIcono}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2l1.5 5.5L19 6.5l-4 4.5 2 6.5-5-3.5L7 17.5l2-6.5-4-4.5 5.5 1z"/>
+          </svg>
+        </div>
+        <div className={styles.bannerTexto}>
+          <h2>MENÚ</h2>
+          <p>Accede a los servicios de menú de Cafe Pandora</p>
+        </div>
+      </div>
       <div className={styles.seccion}>
         <label className={styles.seccionLabel}>Categorías</label>
         <ListaCategorias
           categorias={categorias}
           categoriaActivaId={categoriaActivaId}
           onSeleccionar={handleSelectCategoria}
-          onAbrirFormulario={() => setShowCatForm(true)}
         />
       </div>
 
@@ -177,7 +184,6 @@ function Menu() {
             subcategorias={subcategorias}
             subcategoriaActivaId={subcategoriaActivaId}
             onSeleccionar={setSubcategoriaActivaId}
-            onAbrirFormulario={() => setShowSubForm(true)}
           />
         )}
       </div>
@@ -189,47 +195,38 @@ function Menu() {
           <ListaProductos
             productos={productosFiltrados}
             categoriaNombre={categoriaNombre}
-            onAgregar={() => abrirFormProducto()}
+            onGestionar={() => setShowGestion(true)}
             onEditar={abrirFormProducto}
             onEliminar={handleEliminarProducto}
           />
         )}
       </div>
 
-      {showCatForm && (
-        <FormularioCategoria
+      {showGestion && (
+        <GestionMenu
           categorias={categorias}
-          onCrear={async (nombre) => { await crearCat.mutateAsync({ nombre }) }}
-          onActualizar={async (id, nombre) => { await actualizarCat.mutateAsync({ id, nombre }) }}
-          onEliminar={async (id) => { await eliminarCat.mutateAsync(id) }}
-          onCerrar={() => setShowCatForm(false)}
-        />
-      )}
-
-      {showSubForm && (
-        <FormularioSubcategoria
           subcategorias={subcategorias}
-          categorias={categorias}
-          onCrear={async (nombre, catId) => { await crearSub.mutateAsync({ nombre, categoriaId: catId }) }}
-          onActualizar={async (id, nombre) => { await actualizarSub.mutateAsync({ id, nombre }) }}
-          onEliminar={async (id) => { await eliminarSub.mutateAsync(id) }}
-          onCambiarCategoria={async (id, catId) => { await cambiarCatSub.mutateAsync({ id, categoriaId: catId }) }}
-          onCerrar={() => setShowSubForm(false)}
+          subcategoriasCargando={subcategoriasCargando}
+          onCrearCat={async (nombre) => { await crearCat.mutateAsync({ nombre }) }}
+          onActualizarCat={async (id, nombre) => { await actualizarCat.mutateAsync({ id, nombre }) }}
+          onEliminarCat={async (id) => { await eliminarCat.mutateAsync(id) }}
+          onCrearSub={async (nombre, categoriaId) => { await crearSub.mutateAsync({ nombre, categoriaId }) }}
+          onActualizarSub={async (id, nombre) => { await actualizarSub.mutateAsync({ id, nombre }) }}
+          onEliminarSub={async (id) => { await eliminarSub.mutateAsync(id) }}
+          onCambiarCatSub={async (id, categoriaId) => { await cambiarCatSub.mutateAsync({ id, categoriaId }) }}
+          onCrearProd={async (formData) => { await crearProd.mutateAsync(formData) }}
+          onCerrar={() => setShowGestion(false)}
         />
       )}
 
-      {showProdForm && (
+      {showProdForm && productoEditando && (
         <FormularioProducto
           producto={productoEditando}
           categorias={categorias}
           subcategorias={subcategorias}
           subcategoriasCargando={subcategoriasCargando}
           onGuardar={async (formData) => {
-            if (productoEditando) {
-              await actualizarProd.mutateAsync({ id: productoEditando.id, formData })
-            } else {
-              await crearProd.mutateAsync(formData)
-            }
+            await actualizarProd.mutateAsync({ id: productoEditando.id, formData })
           }}
           onCerrar={() => {
             setShowProdForm(false)

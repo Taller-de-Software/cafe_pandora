@@ -4,6 +4,13 @@
   gap: 1rem;
 }
 
+.gestionBar {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -12,9 +19,11 @@
 }
 
 .titulo {
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .contador {
@@ -33,18 +42,19 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background-color 0.15s ease, transform 0.1s ease;
   white-space: nowrap;
 }
 
 .btnAgregar:hover {
   background: #b45309;
+  transform: translateY(-1px);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
 }
 
 .vacio {

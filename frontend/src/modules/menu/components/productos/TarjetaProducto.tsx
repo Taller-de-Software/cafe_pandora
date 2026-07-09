@@ -21,6 +21,7 @@ interface TarjetaProductoProps {
 function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProps) {
   const [expandido, setExpandido] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
+  const [descExpandida, setDescExpandida] = useState(false)
 
   const imgUrl = imagenUrlCompleta(producto.imagenUrl)
 
@@ -35,10 +36,11 @@ function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProp
       )}
       {!imgUrl && (
         <div className={styles.sinImagen}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <path d="M21 15l-5-5L5 21" />
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 2v5a3 3 0 006 0V2" />
+            <path d="M18 2v5a3 3 0 01-6 0V2" />
+            <path d="M3 16h18" />
+            <path d="M5 16v3a2 2 0 002 2h10a2 2 0 002-2v-3" />
           </svg>
         </div>
       )}
@@ -54,24 +56,29 @@ function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProp
           </span>
         </div>
 
-        <p className={styles.descripcion}>
-          {expandido
+        <p
+          className={`${styles.descripcion} ${!expandido || !descExpandida ? styles.descripcionCorta : ''}`}
+          onClick={expandido ? () => setDescExpandida((v) => !v) : undefined}
+          style={expandido ? { cursor: 'pointer' } : undefined}
+        >
+          {expandido && descExpandida
             ? producto.descripcion || 'Sin descripción'
             : (producto.descripcion?.length ?? 0) > 60
               ? producto.descripcion?.slice(0, 60) + '...'
               : producto.descripcion || 'Sin descripción'}
         </p>
 
-        <div className={styles.precio}>${formatearNumero(producto.precio)}</div>
-
-        {!expandido && (
-          <button
-            className={styles.linkAccion}
-            onClick={() => setExpandido(true)}
-          >
-            Ver más →
-          </button>
-        )}
+        <div className={styles.precioRow}>
+          <span className={styles.precio}>${formatearNumero(producto.precio)}</span>
+          {!expandido && (
+            <button
+              className={styles.linkAccion}
+              onClick={() => setExpandido(true)}
+            >
+              Ver más →
+            </button>
+          )}
+        </div>
 
         {expandido && (
           <div className={styles.acciones}>
@@ -107,7 +114,7 @@ function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProp
             )}
             <button
               className={styles.linkOcultar}
-              onClick={() => { setExpandido(false); setConfirmando(false) }}
+              onClick={() => { setExpandido(false); setConfirmando(false); setDescExpandida(false) }}
             >
               Ocultar
             </button>

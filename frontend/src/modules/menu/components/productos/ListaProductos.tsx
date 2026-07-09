@@ -5,7 +5,7 @@ import styles from './ListaProductos.module.css'
 interface ListaProductosProps {
   productos: Producto[]
   categoriaNombre: string | null
-  onAgregar: () => void
+  onGestionar: () => void
   onEditar: (producto: Producto) => void
   onEliminar: (id: number) => void
 }
@@ -13,7 +13,7 @@ interface ListaProductosProps {
 function ListaProductos({
   productos,
   categoriaNombre,
-  onAgregar,
+  onGestionar,
   onEditar,
   onEliminar,
 }: ListaProductosProps) {
@@ -23,12 +23,14 @@ function ListaProductos({
 
   return (
     <div className={styles.contenedor}>
-      <div className={styles.header}>
-        <h3 className={styles.titulo}>{categoriaNombre}</h3>
-        <span className={styles.contador}>{productos.length} producto(s)</span>
-        <button className={styles.btnAgregar} onClick={onAgregar}>
-          + Agregar Producto
-        </button>
+      <div className={styles.gestionBar}>
+        <div className={styles.header}>
+          <h3 className={styles.titulo}>GESTIÓN DE CARTA</h3>
+          <span className={styles.contador}>{productos.length} producto(s)</span>
+          <button className={styles.btnAgregar} onClick={onGestionar}>
+            Gestionar Menú
+          </button>
+        </div>
       </div>
       <div className={styles.grid}>
         {productos.length === 0 && (
