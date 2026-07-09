@@ -9,6 +9,7 @@ interface FormularioCategoriaProps {
   onActualizar: (id: number, nombre: string) => Promise<void>
   onEliminar: (id: number) => Promise<void>
   onCerrar: () => void
+  embedded?: boolean
 }
 
 type Tab = 'crear' | 'editar'
@@ -19,6 +20,7 @@ function FormularioCategoria({
   onActualizar,
   onEliminar,
   onCerrar,
+  embedded = false,
 }: FormularioCategoriaProps) {
   const { showError } = useError()
   const [tab, setTab] = useState<Tab>('crear')
@@ -80,6 +82,96 @@ function FormularioCategoria({
     setEditNombre(c?.nombre ?? '')
   }
 
+  const contenido = (
+    <>
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tab} ${tab === 'crear' ? styles.tabActiva : ''}`}
+          onClick={() => setTab('crear')}
+        >
+          Crear
+        </button>
+        <button
+          className={`${styles.tab} ${tab === 'editar' ? styles.tabActiva : ''}`}
+          onClick={() => setTab('editar')}
+        >
+          Elegir
+        </button>
+      </div>
+
+      {tab === 'crear' && (
+        <form onSubmit={handleCrear} className={styles.form}>
+          <label className={styles.label}>Nombre de la categoría</label>
+          <input
+            className={styles.input}
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Ej: Bebidas"
+            autoFocus
+          />
+          <div className={styles.actions}>
+            <button
+              type="submit"
+              className={styles.btnPrimario}
+              disabled={saving || !nombre.trim()}
+            >
+              {saving ? 'Creando...' : 'Crear Categoría'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {tab === 'editar' && (
+        <div className={styles.form}>
+          <label className={styles.label}>Seleccionar categoría</label>
+          <select
+            className={styles.select}
+            value={catId ?? ''}
+            onChange={(e) => seleccionarCat(Number(e.target.value))}
+          >
+            <option value="">-- Elegir --</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nombre}
+              </option>
+            ))}
+          </select>
+
+          {catSeleccionada && (
+            <div className={styles.accionesCat}>
+              <div className={styles.campoActualizar}>
+                <label className={styles.label}>Nombre</label>
+                <input
+                  className={styles.input}
+                  value={editNombre}
+                  onChange={(e) => setEditNombre(e.target.value)}
+                />
+              </div>
+              <div className={styles.botonesAccion}>
+                <button
+                  className={styles.btnActualizar}
+                  onClick={handleActualizar}
+                  disabled={saving || !editNombre.trim()}
+                >
+                  {saving ? 'Guardando...' : 'Actualizar'}
+                </button>
+                <button
+                  className={styles.btnEliminar}
+                  onClick={() => handleEliminar(catSeleccionada.id)}
+                  disabled={deleting === catSeleccionada.id}
+                >
+                  {deleting === catSeleccionada.id ? 'Eliminando...' : 'Eliminar'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  )
+
+  if (embedded) return contenido
+
   return (
     <div className={styles.overlay} onClick={onCerrar}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -87,90 +179,7 @@ function FormularioCategoria({
           <h3>Gestión de Categorías</h3>
           <button className={styles.btnCerrar} onClick={onCerrar}>&times;</button>
         </div>
-
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${tab === 'crear' ? styles.tabActiva : ''}`}
-            onClick={() => setTab('crear')}
-          >
-            Crear
-          </button>
-          <button
-            className={`${styles.tab} ${tab === 'editar' ? styles.tabActiva : ''}`}
-            onClick={() => setTab('editar')}
-          >
-            Elegir
-          </button>
-        </div>
-
-        {tab === 'crear' && (
-          <form onSubmit={handleCrear} className={styles.form}>
-            <label className={styles.label}>Nombre de la categoría</label>
-            <input
-              className={styles.input}
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej: Bebidas"
-              autoFocus
-            />
-            <div className={styles.actions}>
-              <button
-                type="submit"
-                className={styles.btnPrimario}
-                disabled={saving || !nombre.trim()}
-              >
-                {saving ? 'Creando...' : 'Crear Categoría'}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {tab === 'editar' && (
-          <div className={styles.form}>
-            <label className={styles.label}>Seleccionar categoría</label>
-            <select
-              className={styles.select}
-              value={catId ?? ''}
-              onChange={(e) => seleccionarCat(Number(e.target.value))}
-            >
-              <option value="">-- Elegir --</option>
-              {categorias.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
-
-            {catSeleccionada && (
-              <div className={styles.accionesCat}>
-                <div className={styles.campoActualizar}>
-                  <label className={styles.label}>Nombre</label>
-                  <input
-                    className={styles.input}
-                    value={editNombre}
-                    onChange={(e) => setEditNombre(e.target.value)}
-                  />
-                </div>
-                <div className={styles.botonesAccion}>
-                  <button
-                    className={styles.btnActualizar}
-                    onClick={handleActualizar}
-                    disabled={saving || !editNombre.trim()}
-                  >
-                    {saving ? 'Guardando...' : 'Actualizar'}
-                  </button>
-                  <button
-                    className={styles.btnEliminar}
-                    onClick={() => handleEliminar(catSeleccionada.id)}
-                    disabled={deleting === catSeleccionada.id}
-                  >
-                    {deleting === catSeleccionada.id ? 'Eliminando...' : 'Eliminar'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {contenido}
       </div>
     </div>
   )

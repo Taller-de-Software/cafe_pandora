@@ -1,4 +1,4 @@
-import type { Subcategoria } from '../data/subcategorias'
+import type { Subcategoria } from '../../api/subcategorias'
 import styles from './TarjetaSubcategoria.module.css'
 
 interface TarjetaSubcategoriaProps {
