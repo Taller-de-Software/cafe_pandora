@@ -31,6 +31,8 @@ export const obtenerSesionActiva = async (req, res, next) => {
 export const apertura = async (req, res, next) => {
   try {
     const sesion = await cajaService.apertura(req.body.baseInicial);
+    const io = req.app.get("io");
+    io.to("room:all").emit("caja:apertura", { sesionId: sesion.id });
     created(res, sesion, "Sesión de caja abierta");
   } catch (err) {
     next(err);
@@ -40,6 +42,8 @@ export const apertura = async (req, res, next) => {
 export const cierre = async (req, res, next) => {
   try {
     const sesion = await cajaService.cierre(req.params.id);
+    const io = req.app.get("io");
+    io.to("room:all").emit("caja:cierre", { sesionId: sesion.id });
     ok(res, sesion, "Sesión de caja cerrada");
   } catch (err) {
     next(err);
@@ -67,6 +71,8 @@ export const listarRetiros = async (req, res, next) => {
 export const crearRetiro = async (req, res, next) => {
   try {
     const retiro = await cajaService.crearRetiro(req.params.id, req.body);
+    const io = req.app.get("io");
+    io.to("room:all").emit("caja:retiro", { cajaSesionId: Number(req.params.id) });
     created(res, retiro, "Retiro registrado");
   } catch (err) {
     next(err);

@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import type { ResumenFactura } from '../data/caja'
+import { imprimirFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
+import { useError } from '@/context/ErrorContext'
 import styles from './FacturaDetalle.module.css'
 
 interface FacturaDetalleProps {
@@ -8,6 +11,23 @@ interface FacturaDetalleProps {
 }
 
 function FacturaDetalle({ factura, onClose }: FacturaDetalleProps) {
+  const { showError } = useError()
+  const [printing, setPrinting] = useState(false)
+
+  async function handlePrint() {
+    setPrinting(true)
+    try {
+      const result = await imprimirFactura(factura.id)
+      if (result.message) {
+        alert(result.message)
+      }
+    } catch (err) {
+      showError(err)
+    } finally {
+      setPrinting(false)
+    }
+  }
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -59,6 +79,9 @@ function FacturaDetalle({ factura, onClose }: FacturaDetalleProps) {
         </div>
 
         <div className={styles.actions}>
+          <button className={styles.printBtn} onClick={handlePrint} disabled={printing}>
+            {printing ? 'Imprimiendo...' : 'Imprimir'}
+          </button>
           <button className={styles.closeBtn} onClick={onClose}>Cerrar</button>
         </div>
       </div>

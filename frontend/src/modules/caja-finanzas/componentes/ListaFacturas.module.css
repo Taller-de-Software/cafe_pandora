@@ -1,0 +1,48 @@
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  color: #9ca3af;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table td {
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.clickable:hover {
+  background: #f9fafb;
+}
+
+.empty {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 1rem;
+}

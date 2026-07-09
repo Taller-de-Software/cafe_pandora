@@ -77,3 +77,24 @@
   color: #6b7280;
   font-size: 0.875rem;
 }
+
+.printBtn {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  background: #b45309;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.printBtn:hover {
+  background: #92400e;
+}
+
+.printBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
