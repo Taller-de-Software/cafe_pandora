@@ -56,6 +56,9 @@ function PagoPedido({ pedido, onClose, onPagoExitoso }: PagoPedidoProps) {
       queryClient.invalidateQueries({ queryKey: ['pedidos-cocinando'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-listos'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-por-pagar'] })
+      queryClient.invalidateQueries({ queryKey: ['inicio-recibido'] })
+      queryClient.invalidateQueries({ queryKey: ['inicio-pendiente'] })
+      queryClient.invalidateQueries({ queryKey: ['inicio-hecho'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
       onPagoExitoso()
     },
