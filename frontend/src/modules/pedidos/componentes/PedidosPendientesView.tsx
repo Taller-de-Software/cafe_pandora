@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { PedidoPendiente } from '@/types/PedidoPendiente'
+import DetallePedidoModal from './DetallePedidoModal'
 import styles from './PedidosPendientesView.module.css'
 
 interface PedidosPendientesViewProps {
@@ -9,6 +10,13 @@ interface PedidosPendientesViewProps {
 
 function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewProps) {
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+  const [detailPedido, setDetailPedido] = useState<PedidoPendiente | null>(null)
+
+  useEffect(() => {
+    if (detailPedido) document.body.style.overflow = 'hidden'
+    else document.body.style.overflow = ''
+    return () => { document.body.style.overflow = '' }
+  }, [detailPedido])
 
   useEffect(() => {
     if (!confirmCancelId) return
@@ -42,7 +50,7 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
       </div>
       <div className={styles.grid}>
         {pedidos.map((pedido) => (
-          <div key={pedido.id} className={styles.card}>
+          <div key={pedido.id} className={styles.card} onClick={() => setDetailPedido(pedido)}>
             <div className={styles.cardHeader}>
               <div className={styles.headerLeft}>
                 <span className={styles.mesaName}>{pedido.mesa.toUpperCase()}</span>
@@ -71,10 +79,10 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
             <div className={styles.cardDivider} />
 
             <div className={styles.cardActions}>
-              <button className={styles.btnCocina} onClick={() => console.log('Recibo cocina:', pedido.id)}>
+              <button className={styles.btnCocina} onClick={(e) => { e.stopPropagation(); console.log('Recibo cocina:', pedido.id) }}>
                 GENERAR RECIBO<br />COCINA
               </button>
-              <button className={styles.btnCancelar} onClick={() => setConfirmCancelId(pedido.id)}>
+              <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(pedido.id) }}>
                 CANCELAR
               </button>
             </div>
@@ -95,6 +103,10 @@ function PedidosPendientesView({ pedidos, onCancelar }: PedidosPendientesViewPro
             </div>
           </div>
         </div>
+      )}
+
+      {detailPedido && (
+        <DetallePedidoModal pedido={detailPedido} onClose={() => setDetailPedido(null)} />
       )}
     </div>
   )

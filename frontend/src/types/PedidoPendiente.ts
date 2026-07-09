@@ -1,6 +1,13 @@
 export interface ItemPedidoPendiente {
   nombre: string
   cantidad: number
+  precioUnitario: number
+  subtotal: number
+}
+
+export interface CuentaSeparada {
+  productos: { nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[]
+  total: number
 }
 
 export interface PedidoPendiente {
@@ -10,4 +17,6 @@ export interface PedidoPendiente {
   horaCreacion: string
   estado: 'RECIBIDO'
   items: ItemPedidoPendiente[]
+  mesero: string
+  cuentas?: CuentaSeparada[]
 }
