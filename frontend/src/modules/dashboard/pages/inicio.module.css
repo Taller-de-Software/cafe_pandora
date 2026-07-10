@@ -1,201 +1,177 @@
-.welcome {
-  margin-bottom: 2rem;
-}
-
-.welcome h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.welcome p {
-  color: #6b7280;
-  margin-top: 0.25rem;
-}
-
-.section {
-  margin-bottom: 2rem;
-}
-
-.sectionTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.75rem;
-}
-
-.empty {
-  color: #9ca3af;
-  font-size: 0.875rem;
-  font-style: italic;
-}
-
-/* Kanban layout */
-.kanbanLayout {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-}
-
-.kanbanColumn {
+.page {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  background: #f9fafb;
-  border-radius: 0.75rem;
-  padding: 0.75rem;
+  gap: 1.5rem;
 }
 
-.kanbanTitle {
-  font-size: 0.9rem;
-  font-weight: 700;
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.75rem;
-  border-bottom: 3px solid;
-  color: #1f2937;
-  flex-shrink: 0;
-  text-transform: capitalize;
-}
-
-.kanbanBody {
-  flex: 1;
-  overflow-y: auto;
+/* ── Top card ── */
+.topCard {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-/* Shared card styles */
-.card {
+  justify-content: space-between;
+  gap: 1.5rem;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.topLeft {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.2s, transform 0.2s;
+  flex: 1;
 }
 
-.card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: translateY(-1px);
-}
-
-.card_recibido { border-left: 4px solid #fbbf24; }
-.card_pendiente { border-left: 4px solid #f97316; }
-.card_hecho { border-left: 4px solid #22c55e; }
-.card_finalizado { opacity: 0.6; }
-.card_cancelado { opacity: 0.4; }
-.cardHeader {
+.serviceRow {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.serviceBadge {
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.fechaActual {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+}
+
+.saludo {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.descripcion {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 36rem;
+}
+
+.topRight {
+  flex-shrink: 0;
+  display: flex;
   align-items: center;
 }
 
-.mesaName {
+.resumenCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #fef9ef;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+}
+
+.resumenIcon {
+  flex-shrink: 0;
+}
+
+.resumenText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.resumenTitle {
+  font-size: 0.75rem;
   font-weight: 700;
-  font-size: 1rem;
-  color: #1f2937;
+  color: #b45309;
+  line-height: 1.2;
 }
 
-.turno {
-  font-size: 0.75rem;
-  color: #9ca3af;
+.resumenCount {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.2;
 }
 
-.hora {
-  font-size: 0.7rem;
-  color: #9ca3af;
+/* ── Quick access ── */
+.quickAccess {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.estadoBadge {
-  display: inline-block;
-  align-self: flex-start;
-  background: #f3f4f6;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #374151;
+.quickTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.05em;
 }
 
-/* Items list */
-.items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.nuevoPedidoBtn {
+  background: #b45309;
+  color: white;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.nuevoPedidoBtn:hover {
+  background: #92400e;
+}
+
+/* ── Queue section ── */
+.queueSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.queueHeader {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.item {
+.queueHeaderTop {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-size: 0.85rem;
-  color: #4b5563;
-}
-
-.precioUnitario {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-.notas {
-  display: block;
-  font-size: 0.75rem;
-  color: #9ca3af;
-  font-style: italic;
-  margin-left: 0.5rem;
-}
-
-/* Card footer */
-.cardFooter {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: 0.25rem;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-.cardActions {
-  display: flex;
-  gap: 0.35rem;
-}
-
-.total {
+.queueTitle {
+  font-size: 1.25rem;
   font-weight: 700;
   color: #1f2937;
+  margin: 0;
 }
 
-.advanceBtn {
-  background: #b45309;
-  color: white;
+.queueCounter {
+  flex-shrink: 0;
+  background: #fef9ef;
+  border: 1px solid #fde68a;
+  color: #b45309;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.35rem 0.75rem;
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background 0.2s;
+  padding: 0.25rem 0.875rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  line-height: 1.4;
 }
 
-.advanceBtn:hover { background: #92400e; }
-
-.cobrarBtnSmall {
-  background: #22c55e;
-  color: white;
-  font-weight: 600;
-  padding: 0.35rem 0.75rem;
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background 0.15s;
+.queueDesc {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
 }
-
-.cobrarBtnSmall:hover { background: #16a34a; }
-
-

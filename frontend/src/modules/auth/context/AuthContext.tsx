@@ -27,11 +27,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: loginApi,
-    onSuccess: (res) => {
+    onSuccess: (res, variables) => {
       storage.setAccessToken(res.accessToken)
       storage.setRefreshToken(res.refreshToken)
-      storage.setUser(res.usuario)
-      queryClient.setQueryData(['auth', 'me'], res.usuario)
+      const usuarioCompleto = { ...res.usuario, rol: variables.rol }
+      storage.setUser(usuarioCompleto)
+      queryClient.setQueryData(['auth', 'me'], usuarioCompleto)
     },
   })
 

@@ -1,0 +1,459 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header (dark background) ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: #1f2937;
+  border-radius: 16px 16px 0 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.mesaBadge {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: #b45309;
+  color: white;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.headerTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #b45309;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.headerDate {
+  font-size: 0.75rem;
+  color: #d1d5db;
+}
+
+.closeBtn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #d1d5db;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* ── Info row ── */
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.infoLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.infoLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mesaNombre {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.mesero {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.infoRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.totalGrande {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #b45309;
+  line-height: 1.1;
+}
+
+/* ── Section common ── */
+.section {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sectionTitle {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Payment methods ── */
+.metodosGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.metodoCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.metodoCard:hover {
+  border-color: #d4a373;
+}
+
+.metodoActivo {
+  border-color: #b45309;
+  background: #fef9ef;
+  box-shadow: 0 0 0 1px #b45309;
+}
+
+.metodoIconCircle {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.metodoIconActivo {
+  background: #b45309;
+  color: white;
+}
+
+.metodoLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.metodoActivo .metodoLabel {
+  color: #b45309;
+}
+
+/* ── Entidad de Transferencia ── */
+.entidadGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.entidadCard {
+  padding: 0.625rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.entidadCard:hover {
+  border-color: #9ca3af;
+}
+
+.entidadActiva {
+  background: #1f2937;
+  color: white;
+  border-color: #1f2937;
+}
+
+/* ── Monto row ── */
+.montoRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.montoField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.montoLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+}
+
+.montoInput {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.montoInput:focus {
+  border-color: #b45309;
+}
+
+.montoInput[readonly] {
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+/* ── Impuesto switch ── */
+.impuestoRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 2.5rem;
+  height: 1.375rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switchSlider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #d1d5db;
+  border-radius: 9999px;
+  transition: background 0.2s;
+}
+
+.switchSlider::before {
+  content: '';
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  left: 0.1875rem;
+  bottom: 0.1875rem;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.switch input:checked + .switchSlider {
+  background: #16a34a;
+}
+
+.switch input:checked + .switchSlider::before {
+  transform: translateX(1.125rem);
+}
+
+.impuestoText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.impuestoTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.impuestoDesc {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  line-height: 1.3;
+}
+
+/* ── Resumen ── */
+.resumen {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.resumenRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resumenLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.resumenValor {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.resumenTotal {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.625rem;
+}
+
+.totalFinal {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #b45309;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.btnCancelar {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: white;
+  color: #374151;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnCancelar:hover {
+  background: #f3f4f6;
+}
+
+.btnGenerar {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #16a34a;
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btnGenerar:hover {
+  background: #15803d;
+}
+
+.btnGenerar:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

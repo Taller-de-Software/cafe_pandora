@@ -65,3 +65,7 @@ export async function listarMesas(): Promise<Mesa[]> {
 export async function listarProductos(): Promise<{ id: number; nombre: string; precio: number }[]> {
   return api.get('/menu/productos')
 }
+
+export async function imprimirReciboCocina(id: string): Promise<void> {
+  return api.post(`/pedidos/${id}/recibo-cocina`)
+}

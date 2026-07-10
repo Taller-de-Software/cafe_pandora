@@ -21,9 +21,11 @@ export interface PedidoPendiente {
   mesa: string
   turno: number
   horaCreacion: string
-  estado: 'RECIBIDO'
+  estado: 'RECIBIDO' | 'PENDIENTE' | 'HECHO' | 'FINALIZADO'
   items: ItemPedidoPendiente[]
   mesero: string
   cuentas?: CuentaSeparada[]
   abonos?: Abono[]
+  total: number
+  esCuentaSeparada?: boolean
 }
