@@ -26,6 +26,8 @@ export interface PedidoPendiente {
   mesero: string
   cuentas?: CuentaSeparada[]
   abonos?: Abono[]
+  totalAbonado: number
   total: number
   esCuentaSeparada?: boolean
+  esFusion?: boolean
 }

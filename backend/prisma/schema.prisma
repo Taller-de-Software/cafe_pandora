@@ -89,11 +89,12 @@ model Subcategoria {
 
 model MetodoPago {
   id      Int     @id @default(autoincrement())
-  nombre  String  @unique
+  nombre  String
   entidad String?
 
   facturas Factura[]
 
+  @@unique([nombre, entidad])
   @@map("metodos_pago")
 }
 

@@ -38,13 +38,16 @@ const ICONOS: Record<string, React.ReactNode> = {
   TARJETA: SVG_TARJETA,
 }
 
+const TRANSFERENCIA_ENTIDADES = ['NEQUI', 'DAVIPLATA', 'NU'] as const
+
 function FacturaModal({ pedido, onClose }: FacturaModalProps) {
   const { showError } = useError()
   const [metodoSeleccionId, setMetodoSeleccionId] = useState<number | null>(null)
   const [recibido, setRecibido] = useState('')
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
+  const [entidadTransferencia, setEntidadTransferencia] = useState<typeof TRANSFERENCIA_ENTIDADES[number]>('NEQUI')
 
-  const { data: metodosPago = [] } = useQuery({
+  const { data: metodosPago = [], isPending: metodosLoading } = useQuery({
     queryKey: ['metodos-pago'],
     queryFn: listarMetodosPago,
   })
@@ -75,34 +78,30 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
     })
   }, [metodosPago])
 
-  const entidades = useMemo(() => {
-    return metodosPago
-      .filter((m) => m.entidad)
-      .reduce<Record<string, MetodoPago[]>>((acc, m) => {
-        const key = m.nombre.toUpperCase()
-        if (!acc[key]) acc[key] = []
-        acc[key].push(m)
-        return acc
-      }, {})
-  }, [metodosPago])
-
   const metodoSeleccionado = useMemo(() => {
     if (!metodoSeleccionId) return null
     return metodosPago.find((m) => m.id === metodoSeleccionId) ?? null
   }, [metodosPago, metodoSeleccionId])
 
   const handleMetodoClick = useCallback((metodo: MetodoPago) => {
-    const metodoEntidad = entidades[metodo.nombre.toUpperCase()]
-    if (metodoEntidad && metodoEntidad.length > 0) {
-      setMetodoSeleccionId(metodoEntidad[0].id)
+    if (metodo.nombre.toUpperCase() === 'TRANSFERENCIA') {
+      setEntidadTransferencia('NEQUI')
+      const match = metodosPago.find(
+        (m) => m.nombre.toUpperCase() === 'TRANSFERENCIA' && m.entidad?.toUpperCase() === 'NEQUI'
+      )
+      setMetodoSeleccionId(match?.id ?? null)
     } else {
       setMetodoSeleccionId(metodo.id)
     }
-  }, [entidades])
+  }, [metodosPago])
 
-  const handleEntidadClick = useCallback((entidad: MetodoPago) => {
-    setMetodoSeleccionId(entidad.id)
-  }, [])
+  const handleEntidadTransferenciaClick = useCallback((entidad: string) => {
+    setEntidadTransferencia(entidad as typeof TRANSFERENCIA_ENTIDADES[number])
+    const match = metodosPago.find(
+      (m) => m.nombre.toUpperCase() === 'TRANSFERENCIA' && m.entidad?.toUpperCase() === entidad
+    )
+    setMetodoSeleccionId(match?.id ?? null)
+  }, [metodosPago])
 
   const subtotal = useMemo(() => {
     return pedido.total ?? pedido.detalles.reduce((acc, d) => acc + d.precioUnitario * d.cantidad, 0)
@@ -199,7 +198,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
           <div className={styles.infoLeft}>
             <span className={styles.infoLabel}>MESA</span>
             <span className={styles.mesaNombre}>{mesaNombre.toUpperCase()}</span>
-            <span className={styles.mesero}>Rol: {pedido.usuario?.rol?.toUpperCase() ?? '—'}</span>
+            <span className={styles.mesero}>Mesero: {(pedido.usuario as any)?.nombre?.toUpperCase() ?? pedido.usuario?.rol?.toUpperCase() ?? '—'}</span>
           </div>
           <div className={styles.infoRight}>
             <span className={styles.infoLabel}>TOTAL</span>
@@ -209,33 +208,39 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
 
         <div className={styles.section}>
           <span className={styles.sectionTitle}>MÉTODO DE PAGO</span>
-          <div className={styles.metodosGrid}>
-            {metodosUnicos.map((m) => (
-              <button
-                key={m.id}
-                className={`${styles.metodoCard} ${metodoSeleccionado?.nombre === m.nombre ? styles.metodoActivo : ''}`}
-                onClick={() => handleMetodoClick(m)}
-              >
-                <span className={`${styles.metodoIconCircle} ${metodoSeleccionado?.nombre === m.nombre ? styles.metodoIconActivo : ''}`}>
-                  {ICONOS[m.nombre.toUpperCase()] ?? SVG_EFECTIVO}
-                </span>
-                <span className={styles.metodoLabel}>{m.nombre.toUpperCase()}</span>
-              </button>
-            ))}
-          </div>
+          {metodosLoading ? (
+            <p className={styles.emptyMsg}>Cargando métodos de pago...</p>
+          ) : metodosUnicos.length === 0 ? (
+            <p className={styles.emptyMsg}>No hay métodos de pago configurados</p>
+          ) : (
+            <div className={styles.metodosGrid}>
+              {metodosUnicos.map((m) => (
+                <button
+                  key={m.id}
+                  className={`${styles.metodoCard} ${metodoSeleccionado?.nombre === m.nombre ? styles.metodoActivo : ''}`}
+                  onClick={() => handleMetodoClick(m)}
+                >
+                  <span className={`${styles.metodoIconCircle} ${metodoSeleccionado?.nombre === m.nombre ? styles.metodoIconActivo : ''}`}>
+                    {ICONOS[m.nombre.toUpperCase()] ?? SVG_EFECTIVO}
+                  </span>
+                  <span className={styles.metodoLabel}>{m.nombre.toUpperCase()}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {metodoSeleccionado?.nombre.toUpperCase() === 'TRANSFERENCIA' && entidades['TRANSFERENCIA'] && (
+        {metodoSeleccionado?.nombre.toUpperCase() === 'TRANSFERENCIA' && (
           <div className={styles.section}>
             <span className={styles.sectionTitle}>ENTIDAD DE TRANSFERENCIA</span>
             <div className={styles.entidadGrid}>
-              {entidades['TRANSFERENCIA'].map((e) => (
+              {TRANSFERENCIA_ENTIDADES.map((entidad) => (
                 <button
-                  key={e.id}
-                  className={`${styles.entidadCard} ${metodoSeleccionId === e.id ? styles.entidadActiva : ''}`}
-                  onClick={() => handleEntidadClick(e)}
+                  key={entidad}
+                  className={`${styles.entidadCard} ${entidadTransferencia === entidad ? styles.entidadActiva : ''}`}
+                  onClick={() => handleEntidadTransferenciaClick(entidad)}
                 >
-                  {e.entidad?.toUpperCase() ?? e.nombre.toUpperCase()}
+                  {entidad}
                 </button>
               ))}
             </div>

@@ -11,6 +11,10 @@ export function formatearHora(hora?: string | null): string {
   return `${h12}:${String(mm).padStart(2, '0')} ${ampm}`
 }
 
+export function formatearPesos(valor: number): string {
+  return Math.round(valor).toLocaleString('es-CO')
+}
+
 export function formatearFecha(fecha?: string | null): string {
   if (!fecha) return '—'
   const partes = fecha.split('-')

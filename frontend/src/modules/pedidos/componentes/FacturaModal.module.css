@@ -28,7 +28,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  background: #1f2937;
+  background: #1a0f0a;
   border-radius: 16px 16px 0 0;
 }
 
@@ -153,6 +153,13 @@
 }
 
 /* ── Payment methods ── */
+.emptyMsg {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  text-align: center;
+  margin: 0.75rem 0;
+}
+
 .metodosGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

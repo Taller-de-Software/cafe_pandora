@@ -21,13 +21,14 @@ interface PedidosContextValue {
   agregarPedido: (mesa: string, items: ItemPedidoPendiente[], mesero: string, esCuentaSeparada?: boolean) => void
   eliminarPedido: (id: string) => void
   actualizarPedido: (id: string, items: ItemPedidoPendiente[]) => void
-  separarCuenta: (id: string, cuentas: CuentaSeparada[]) => void
+  separarCuenta: (id: string, itemsPorCuenta: ItemPedidoPendiente[][]) => void
   cambiarMesaPedido: (id: string, newMesa: string) => void
+  unirPedidos: (id: string, targetMesa: string) => void
   registrarAbono: (id: string, abono: Abono) => void
   cambiarEstado: (id: string, estado: PedidoPendiente['estado']) => void
 }
 
-const PedidosContext = createContext<PedidosContextValue | null>(null)
+export const PedidosContext = createContext<PedidosContextValue | null>(null)
 
 export function PedidosProvider({ children }: { children: ReactNode }) {
   const [pedidosPendientes, setPedidosPendientes] = useState<PedidoPendiente[]>(() => {
@@ -39,7 +40,7 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
       return parsed.map((p: any) => {
         const items = Array.isArray(p.items) ? normalizarItems(p.items) : []
         const total = p.total ?? calcularTotal(items)
-        return { ...p, items, total }
+        return { ...p, items, total, totalAbonado: p.totalAbonado ?? 0 }
       })
     } catch {
       return []
@@ -62,7 +63,7 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
       setPedidosPendientes((prev) => {
         const turno = prev.length + 1
         const id = String(Date.now() + turno).slice(-4)
-        return [...prev, { id, mesa, turno, horaCreacion: `${hh}:${mm}`, estado: 'RECIBIDO', items: itemsNorm, mesero, total, esCuentaSeparada }]
+        return [...prev, { id, mesa, turno, horaCreacion: `${hh}:${mm}`, estado: 'RECIBIDO', items: itemsNorm, mesero, total, totalAbonado: 0, esCuentaSeparada }]
       })
     },
     []
@@ -80,10 +81,40 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
-  const separarCuenta = useCallback((id: string, cuentas: CuentaSeparada[]) => {
-    setPedidosPendientes((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, cuentas } : p))
-    )
+  const separarCuenta = useCallback((id: string, itemsPorCuenta: ItemPedidoPendiente[][]) => {
+    setPedidosPendientes((prev) => {
+      const source = prev.find((p) => p.id === id)
+      if (!source) return prev
+      if (itemsPorCuenta.length < 2) return prev
+      const ahora = new Date()
+      const hh = String(ahora.getHours()).padStart(2, '0')
+      const mm = String(ahora.getMinutes()).padStart(2, '0')
+      const nuevos: PedidoPendiente[] = []
+      for (let i = 0; i < itemsPorCuenta.length; i++) {
+        const items = itemsPorCuenta[i]
+        if (!items || items.length === 0) continue
+        const total = calcularTotal(items)
+        if (i === 0) {
+          nuevos.push({ ...source, items, total, esCuentaSeparada: true, cuentas: [] })
+        } else {
+          const turno = prev.length + nuevos.length
+          const newId = String(Date.now() + turno).slice(-4)
+          nuevos.push({
+            id: newId,
+            mesa: source.mesa,
+            turno,
+            horaCreacion: `${hh}:${mm}`,
+            estado: source.estado,
+            items,
+            mesero: source.mesero,
+            total,
+            totalAbonado: 0,
+            esCuentaSeparada: true,
+          })
+        }
+      }
+      return prev.filter((p) => p.id !== id).concat(nuevos)
+    })
   }, [])
 
   const cambiarMesaPedido = useCallback((id: string, newMesa: string) => {
@@ -92,11 +123,36 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const unirPedidos = useCallback((id: string, targetMesa: string) => {
+    setPedidosPendientes((prev) => {
+      const source = prev.find((p) => p.id === id)
+      if (!source) return prev
+      const target = prev.find((p) => p.mesa === targetMesa)
+      if (!target) return prev
+      const mergedItems = [...source.items]
+      for (const targetItem of target.items) {
+        const idx = mergedItems.findIndex((i) => i.nombre === targetItem.nombre)
+        if (idx >= 0) {
+          const newCant = Math.max(mergedItems[idx].cantidad, 0) + Math.max(targetItem.cantidad, 0)
+          mergedItems[idx] = { ...mergedItems[idx], cantidad: newCant, subtotal: newCant * mergedItems[idx].precioUnitario }
+        } else {
+          mergedItems.push({ ...targetItem })
+        }
+      }
+      const total = calcularTotal(mergedItems)
+      return prev
+        .map((p) =>
+          p.id === id ? { ...p, items: mergedItems, total, esFusion: true } : p
+        )
+        .filter((p) => p.id !== target.id)
+    })
+  }, [])
+
   const registrarAbono = useCallback((id: string, abono: Abono) => {
     setPedidosPendientes((prev) =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, abonos: [...(p.abonos ?? []), abono] }
+          ? { ...p, abonos: [...(p.abonos ?? []), abono], totalAbonado: (p.totalAbonado ?? 0) + abono.monto }
           : p
       )
     )
@@ -109,7 +165,7 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <PedidosContext.Provider value={{ pedidosPendientes, agregarPedido, eliminarPedido, actualizarPedido, separarCuenta, cambiarMesaPedido, registrarAbono, cambiarEstado }}>
+    <PedidosContext.Provider value={{ pedidosPendientes, agregarPedido, eliminarPedido, actualizarPedido, separarCuenta, cambiarMesaPedido, unirPedidos, registrarAbono, cambiarEstado }}>
       {children}
     </PedidosContext.Provider>
   )
