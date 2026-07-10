@@ -96,6 +96,26 @@ function ResumenContent({ data, onCerrar, onCancelar }: { data: ResumenCaja; onC
               <span className={styles.retiroValor}>${formatearNumero(resumen.totalSalidasRetiros)}</span>
             </div>
           </div>
+          <table className={styles.retiroTable}>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {retiros.map((r) => (
+                <tr key={r.id}>
+                  <td className={r.tipo === 'entrada' ? styles.entrada : styles.salida}>
+                    {r.tipo === 'entrada' ? 'Entrada' : 'Salida'}
+                  </td>
+                  <td>${formatearNumero(r.monto)}</td>
+                  <td>{new Date(r.retiradoEn).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

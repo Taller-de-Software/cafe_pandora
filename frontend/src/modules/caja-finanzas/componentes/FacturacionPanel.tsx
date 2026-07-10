@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { obtenerResumenCaja } from '../data/caja'
+import { obtenerResumenCaja, imprimirFactura } from '../data/caja'
 import type { CajaSesion, ResumenFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
+import { useError } from '@/context/ErrorContext'
 import FacturaDetalle from './FacturaDetalle'
 import styles from './FacturacionPanel.module.css'
 
@@ -11,7 +12,9 @@ interface FacturacionPanelProps {
 }
 
 function FacturacionPanel({ sesion }: FacturacionPanelProps) {
+  const { showError } = useError()
   const [selected, setSelected] = useState<ResumenFactura | null>(null)
+  const [printingId, setPrintingId] = useState<number | null>(null)
 
   const { data: resumen, isLoading } = useQuery({
     queryKey: ['caja', sesion?.id, 'facturacion'],
@@ -19,6 +22,21 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
     enabled: !!sesion,
     refetchInterval: 15_000,
   })
+
+  async function handlePrint(e: React.MouseEvent, facturaId: number) {
+    e.stopPropagation()
+    setPrintingId(facturaId)
+    try {
+      const result = await imprimirFactura(facturaId)
+      if (result.message) {
+        alert(result.message)
+      }
+    } catch (err) {
+      showError(err)
+    } finally {
+      setPrintingId(null)
+    }
+  }
 
   if (!sesion) {
     return <p className={styles.empty}>No hay una sesión de caja activa</p>
@@ -51,6 +69,7 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
                 <th>Total</th>
                 <th>Método Pago</th>
                 <th>Hora</th>
+                <th>Acción</th>
               </tr>
             </thead>
             <tbody>
@@ -61,6 +80,15 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
                   <td>${formatearNumero(f.total)}</td>
                   <td>{f.metodoPago}</td>
                   <td>{new Date(f.creadoEn).toLocaleTimeString()}</td>
+                  <td>
+                    <button
+                      className={styles.printBtn}
+                      onClick={(e) => handlePrint(e, f.id)}
+                      disabled={printingId === f.id}
+                    >
+                      {printingId === f.id ? '...' : 'Imprimir'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
