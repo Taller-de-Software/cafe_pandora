@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Receipt, Printer } from 'lucide-react'
 import { obtenerResumenCaja, imprimirFactura } from '../data/caja'
 import type { CajaSesion, ResumenFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
@@ -75,11 +76,11 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
             <tbody>
               {facturas.map((f) => (
                 <tr key={f.id} className={styles.clickable} onClick={() => setSelected(f)}>
-                  <td>#{f.id}</td>
+                  <td className={styles.monoCell}>#{f.id}</td>
                   <td>{f.pedido.mesa}</td>
-                  <td>${formatearNumero(f.total)}</td>
+                  <td className={styles.monoCell}>${formatearNumero(f.total)}</td>
                   <td>{f.metodoPago}</td>
-                  <td>{new Date(f.creadoEn).toLocaleTimeString()}</td>
+                  <td className={styles.dateCell}>{new Date(f.creadoEn).toLocaleTimeString()}</td>
                   <td>
                     <button
                       className={styles.printBtn}

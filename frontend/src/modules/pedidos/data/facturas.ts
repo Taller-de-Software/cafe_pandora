@@ -39,6 +39,6 @@ export async function obtenerSesionCajaActiva(): Promise<{ id: number } | null> 
   return api.get<{ id: number } | null>('/caja/activa')
 }
 
-export async function imprimirFactura(pedidoId: string): Promise<void> {
-  return api.post(`/pedidos/${pedidoId}/factura`)
+export async function imprimirFactura(facturaId: number): Promise<{ message: string }> {
+  return api.post<{ message: string }>(`/impresion/pago/${facturaId}`)
 }

@@ -1,13 +1,43 @@
 import { useAuth } from '@modules/auth/context/useAuth'
-import { usePedidos } from '@modules/pedidos/context/PedidosContext'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { listarPedidos, cambiarEstado, cancelarPedido } from '@modules/pedidos/data/pedidos'
+import type { EstadoPedido } from '@modules/pedidos/data/pedidos'
+import { useError } from '@/context/ErrorContext'
 import ColaDeComandasPendientes from '@modules/pedidos/componentes/ColaDeComandasPendientes'
 import styles from './inicio.module.css'
 
 function Inicio() {
   const { user } = useAuth()
-  const { pedidosPendientes, eliminarPedido, cambiarEstado } = usePedidos()
   const navigate = useNavigate()
+  const { showError } = useError()
+  const queryClient = useQueryClient()
+
+  const { data: pedidos = [], isLoading, isError } = useQuery({
+    queryKey: ['pedidos-activos'],
+    queryFn: () => listarPedidos(),
+    refetchInterval: 10_000,
+  })
+
+  const cambiarEstadoMut = useMutation({
+    mutationFn: ({ id, estado }: { id: number; estado: EstadoPedido }) => cambiarEstado(id, estado),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+    },
+    onError: showError,
+  })
+
+  const cancelarMut = useMutation({
+    mutationFn: cancelarPedido,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+    },
+    onError: showError,
+  })
+
+  const pedidosActivos = pedidos.filter((p) => p.estado !== 'cancelado' && !p.factura)
 
   const hoy = new Date()
   const diaSemana = hoy.toLocaleDateString('es-MX', { weekday: 'long' })
@@ -15,7 +45,7 @@ function Inicio() {
 
   const rol = user?.rol ?? 'Usuario'
   const rolCapitalizado = rol.charAt(0).toUpperCase() + rol.slice(1)
-  const total = pedidosPendientes.length
+  const total = pedidosActivos.length
 
   return (
     <div className={styles.page}>
@@ -65,11 +95,24 @@ function Inicio() {
           </div>
           <p className={styles.queueDesc}>Control de despachos en cocina y barra ordenados por orden de llegada.</p>
         </div>
-        <ColaDeComandasPendientes
-          pedidos={pedidosPendientes}
-          onCancelar={eliminarPedido}
-          onCambiarEstado={cambiarEstado}
-        />
+        {isLoading && <p className={styles.queueDesc}>Cargando pedidos...</p>}
+        {isError && <p className={styles.queueDesc}>Error al cargar pedidos</p>}
+        {!isLoading && !isError && (
+          <ColaDeComandasPendientes
+            pedidos={pedidosActivos}
+            onCancelar={(id) => cancelarMut.mutate(Number(id))}
+            onCambiarEstado={(id, estado) => {
+              const apiEstado: Record<string, EstadoPedido> = {
+                RECIBIDO: 'recibido',
+                PENDIENTE: 'pendiente',
+                HECHO: 'hecho',
+                FINALIZADO: 'finalizado',
+              }
+              const mapped = apiEstado[estado] ?? estado.toLowerCase() as EstadoPedido
+              cambiarEstadoMut.mutate({ id: Number(id), estado: mapped })
+            }}
+          />
+        )}
       </div>
     </div>
   )

@@ -1,3 +1,4 @@
+import { Wallet, ArrowDownCircle, ArrowUpCircle, TrendingUp, CircleDollarSign } from 'lucide-react'
 import type { CajaSesion } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
 import styles from './EstadoCaja.module.css'
@@ -12,8 +13,9 @@ function EstadoCaja({ sesion, onCierre, onShowApertura }: EstadoCajaProps) {
   if (!sesion) {
     return (
       <div className={styles.openForm}>
+        <Wallet size={32} color="#9B9792" style={{ marginBottom: '0.5rem' }} />
         <p>No hay una sesión de caja activa</p>
-        <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={onShowApertura}>
+        <button className={styles.btnPrimary} onClick={onShowApertura}>
           Abrir Caja
         </button>
       </div>
@@ -26,7 +28,7 @@ function EstadoCaja({ sesion, onCierre, onShowApertura }: EstadoCajaProps) {
     <div className={styles.card}>
       <div className={styles.header}>
         <h3>Sesión de Caja</h3>
-        <span className={`${styles.badge} ${abierta ? styles.activo : styles.cerrado}`}>
+        <span className={`${styles.badge} ${abierta ? styles.badgeExito : styles.badgeCerrado}`}>
           {abierta ? 'Activa' : 'Cerrada'}
         </span>
       </div>
@@ -38,21 +40,21 @@ function EstadoCaja({ sesion, onCierre, onShowApertura }: EstadoCajaProps) {
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Ventas</span>
-          <span className={styles.statValue}>${formatearNumero(sesion.totalVentas)}</span>
+          <span className={`${styles.statValue} ${styles.valorExito}`}>${formatearNumero(sesion.totalVentas)}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Egresos</span>
-          <span className={styles.statValue}>${formatearNumero(sesion.totalEgresos)}</span>
+          <span className={`${styles.statValue} ${styles.valorPeligro}`}>${formatearNumero(sesion.totalEgresos)}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>En Caja</span>
-          <span className={styles.statValue}>${formatearNumero(sesion.totalEnCaja)}</span>
+          <span className={`${styles.statValue} ${styles.valorOro}`}>${formatearNumero(sesion.totalEnCaja)}</span>
         </div>
       </div>
 
       {abierta && (
         <div className={styles.actions}>
-          <button className={`${styles.btn} ${styles.btnDanger}`} onClick={onCierre}>
+          <button className={styles.btnPeligro} onClick={onCierre}>
             Cerrar Caja
           </button>
         </div>

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import BarraSuperior from '../componentes/barra-superior'
 import SliderLateral from '../componentes/slider-lateral'
-import { PedidosProvider } from '@modules/pedidos/context/PedidosContext'
 
 function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -13,9 +12,7 @@ function DashboardLayout() {
       <div className="dashboard__body">
         <BarraSuperior onToggle={() => setSidebarOpen((prev) => !prev)} />
         <main className="dashboard__content">
-          <PedidosProvider>
-            <Outlet />
-          </PedidosProvider>
+          <Outlet />
         </main>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { Receipt } from 'lucide-react'
 import type { ResumenFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
 import styles from './ListaFacturas.module.css'
@@ -28,11 +29,11 @@ function ListaFacturas({ facturas, onSelect }: ListaFacturasProps) {
           <tbody>
             {facturas.map((f) => (
               <tr key={f.id} className={styles.clickable} onClick={() => onSelect(f)}>
-                <td>#{f.pedido.id}</td>
+                <td className={styles.monoCell}>#{f.pedido.id}</td>
                 <td>{f.pedido.mesa}</td>
-                <td>${formatearNumero(f.total)}</td>
+                <td className={styles.monoCell}>${formatearNumero(f.total)}</td>
                 <td>{f.metodoPago}</td>
-                <td>{new Date(f.creadoEn).toLocaleTimeString()}</td>
+                <td className={styles.dateCell}>{new Date(f.creadoEn).toLocaleTimeString()}</td>
               </tr>
             ))}
           </tbody>

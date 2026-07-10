@@ -41,6 +41,60 @@
   min-height: auto;
 }
 
+.mesaCard {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.mesaCard:hover {
+  border-color: #b45309;
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.12);
+  transform: translateY(-1px);
+}
+
+.mesaName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.mesaUbicacion {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.mesaBadge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mesaPedido {
+  font-size: 0.6875rem;
+  color: #b45309;
+  font-weight: 500;
+}
+
+.mesaReserva {
+  font-size: 0.6875rem;
+  color: #5E87B8;
+  font-weight: 500;
+}
+
 .footer {
   text-align: center;
 }

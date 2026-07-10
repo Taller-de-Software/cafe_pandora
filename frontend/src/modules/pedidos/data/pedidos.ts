@@ -21,6 +21,7 @@ export interface Pedido {
   usuario: { id: number; rol: string }
   detalles: DetallePedido[]
   creadoEn: string
+  factura?: { id: number } | null
 }
 
 export interface Mesa {

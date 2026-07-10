@@ -1,4 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Paleta Caja y Finanzas — Café Premium */
+  --color-pagina-fondo: #FCFAF7;
+  --color-encabezado-fondo: #7A3E1D;
+  --color-sidebar-fondo: #7A3E1D;
+  --color-sidebar-texto: #FFFFFF;
+  --color-sidebar-texto-secundario: #F8F4EE;
+
+  --color-hover-fondo: #FAF7F2;
+  --color-contenido-fondo: #FFFFFF;
+  --color-tarjeta-fondo: #FFFFFF;
+  --color-tarjeta-hover: #FAF7F2;
+  --color-input-fondo: #FAF7F2;
+
+  --color-titulo: #2D2A26;
+  --color-cuerpo: #6E6A65;
+  --color-atenuado: #9B9792;
+  --color-inactivo: #C8C4BF;
+  --color-texto-acento: #7A3E1D;
+
+  --color-acento: #7A3E1D;
+  --color-acento-hover: #5E2F17;
+  --color-oro: #C99835;
+  --color-oro-hover: #B3882D;
+  --color-oro-superficie: #FDF6E3;
+  --color-oro-insignia: #C99835;
+  --color-crema: #F8F4EE;
+  --color-madera: #E8E1D8;
+  --color-borde: #E8E1D8;
+
+  --color-exito: #3D8B5F;
+  --color-exito-hover: #2E7A4E;
+  --color-exito-superficie: #EDF9F1;
+  --color-peligro: #C7544A;
+  --color-peligro-hover: #A84440;
+  --color-peligro-superficie: #FDEEE8;
+  --color-text-muted: #6E6A65;
+}
 
 /* ===== LAYOUT ===== */
 .dashboard {

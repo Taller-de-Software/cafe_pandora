@@ -1,36 +1,41 @@
 import { useState, useEffect } from 'react'
-import type { PedidoPendiente } from '@/types/PedidoPendiente'
-import DetallePedidoModal from './DetallePedidoModal'
+import type { Pedido } from '../data/pedidos'
+import DetallePedidoSimple from './DetallePedidoSimple'
 import FacturaModal from './FacturaModal'
-import { imprimirReciboCocina } from '../data/pedidos'
-import { imprimirFactura } from '../data/facturas'
 import styles from './ColaDeComandasPendientes.module.css'
 
 interface ColaDeComandasPendientesProps {
-  pedidos: PedidoPendiente[]
+  pedidos: Pedido[]
   onCancelar: (id: string) => void
-  onCambiarEstado: (id: string, estado: PedidoPendiente['estado']) => void
+  onCambiarEstado: (id: string, estado: string) => void
   emptyMessage?: string
   emptyHint?: string
 }
 
-const BADGE_CLASS: Record<PedidoPendiente['estado'], string> = {
-  RECIBIDO: styles.badge,
-  PENDIENTE: styles.badgePendiente,
-  HECHO: styles.badgeHecho,
-  FINALIZADO: styles.badgeFinalizado,
+const BADGE_CLASS: Record<string, string> = {
+  recibido: styles.badge,
+  pendiente: styles.badgePendiente,
+  hecho: styles.badgeHecho,
+  finalizado: styles.badgeFinalizado,
+}
+
+const BADGE_LABEL: Record<string, string> = {
+  recibido: 'RECIBIDO',
+  pendiente: 'PENDIENTE',
+  hecho: 'HECHO',
+  finalizado: 'FINALIZADO',
 }
 
 function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyMessage, emptyHint }: ColaDeComandasPendientesProps) {
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
-  const [detailPedido, setDetailPedido] = useState<PedidoPendiente | null>(null)
-  const [facturaPedido, setFacturaPedido] = useState<PedidoPendiente | null>(null)
+  const [detailPedido, setDetailPedido] = useState<Pedido | null>(null)
+  const [pedidoAFacturar, setPedidoAFacturar] = useState<Pedido | null>(null)
 
   useEffect(() => {
-    if (detailPedido) document.body.style.overflow = 'hidden'
+    if (detailPedido || pedidoAFacturar) document.body.style.overflow = 'hidden'
     else document.body.style.overflow = ''
     return () => { document.body.style.overflow = '' }
-  }, [detailPedido])
+  }, [detailPedido, pedidoAFacturar])
 
   useEffect(() => {
     if (!confirmCancelId) return
@@ -42,74 +47,81 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
   }, [confirmCancelId])
 
   const handleReciboCocina = (id: string) => {
-    onCambiarEstado(id, 'PENDIENTE')
-    imprimirReciboCocina(id).catch((err) => console.error('Error al imprimir recibo cocina:', err))
+    onCambiarEstado(id, 'pendiente')
   }
 
   const handleCambiarEstado = (id: string) => {
-    onCambiarEstado(id, 'HECHO')
+    onCambiarEstado(id, 'hecho')
   }
 
-  const handleFacturaPago = (pedido: PedidoPendiente) => {
-    setFacturaPedido(pedido)
+  const handleMarcarFinalizado = (id: string) => {
+    onCambiarEstado(id, 'finalizado')
   }
 
-  const handleConfirmarFactura = (id: string) => {
-    onCambiarEstado(id, 'FINALIZADO')
-    imprimirFactura(id).catch((err) => console.error('Error al generar factura:', err))
-    setFacturaPedido(null)
-  }
-
-  const renderActions = (pedido: PedidoPendiente) => {
+  const renderActions = (pedido: Pedido) => {
     switch (pedido.estado) {
-      case 'RECIBIDO':
+      case 'recibido':
         return (
           <div className={styles.cardActions}>
             <button
               className={styles.btnCocina}
-              onClick={(e) => { e.stopPropagation(); handleReciboCocina(pedido.id) }}
+              onClick={(e) => { e.stopPropagation(); handleReciboCocina(String(pedido.id)) }}
             >
-              GENERAR RECIBO<br />COCINA
+              ENVIAR A COCINA
             </button>
-            <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(pedido.id) }}>
+            <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(String(pedido.id)) }}>
               CANCELAR
             </button>
           </div>
         )
-      case 'PENDIENTE':
+      case 'pendiente':
         return (
           <div className={styles.cardActions}>
             <button
               className={styles.btnEstadoPendiente}
-              onClick={(e) => { e.stopPropagation(); handleCambiarEstado(pedido.id) }}
+              onClick={(e) => { e.stopPropagation(); handleCambiarEstado(String(pedido.id)) }}
             >
-              CAMBIAR ESTADO<br />PEDIDO
+              MARCAR LISTO
             </button>
-            <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(pedido.id) }}>
+            <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(String(pedido.id)) }}>
               CANCELAR
             </button>
           </div>
         )
-      case 'HECHO':
+      case 'hecho':
         return (
           <div className={styles.cardActions}>
             <button
               className={styles.btnEstadoHecho}
-              onClick={(e) => { e.stopPropagation(); handleFacturaPago(pedido) }}
+              onClick={(e) => { e.stopPropagation(); handleMarcarFinalizado(String(pedido.id)) }}
             >
-              GENERAR FACTURA<br />PAGO
+              MARCAR FINALIZADO
             </button>
-            <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(pedido.id) }}>
+            <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(String(pedido.id)) }}>
               CANCELAR
             </button>
           </div>
         )
-      case 'FINALIZADO':
+      case 'finalizado':
+        if (pedido.factura) {
+          return (
+            <div className={styles.cardActionsFinalizado}>
+              <span className={styles.badgePagado}>COBRADO</span>
+            </div>
+          )
+        }
         return (
-          <div className={styles.cardActionsFinalizado}>
-            <span className={styles.finalizadoText}>PEDIDO FINALIZADO</span>
+          <div className={styles.cardActions}>
+            <button
+              className={styles.btnCobrar}
+              onClick={(e) => { e.stopPropagation(); setPedidoAFacturar(pedido) }}
+            >
+              COBRAR
+            </button>
           </div>
         )
+      default:
+        return null
     }
   }
 
@@ -128,18 +140,17 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
         {pedidos.map((pedido) => (
           <div
             key={pedido.id}
-            className={`${styles.card} ${pedido.estado === 'FINALIZADO' ? styles.cardFinalizado : ''}`}
+            className={`${styles.card} ${pedido.estado === 'finalizado' ? styles.cardFinalizado : ''}`}
             onClick={() => setDetailPedido(pedido)}
           >
             <div className={styles.cardHeader}>
               <div className={styles.headerLeft}>
                 <span className={styles.mesaName}>
-                  {pedido.mesa.replace(/\s*\(.*?\)\s*$/, '').toUpperCase()}
-                  {pedido.esCuentaSeparada && ' (SEPARADA)'}
+                  {pedido.mesa?.nombre?.toUpperCase() ?? `MESA ${pedido.mesaId}`}
                 </span>
-                <span className={styles.hora}>&#x1F550; {pedido.horaCreacion}</span>
+                <span className={styles.hora}>&#x1F550; {new Date(pedido.creadoEn).toLocaleTimeString()}</span>
               </div>
-              <span className={BADGE_CLASS[pedido.estado]}>{pedido.estado}</span>
+              <span className={BADGE_CLASS[pedido.estado] ?? styles.badge}>{BADGE_LABEL[pedido.estado] ?? pedido.estado.toUpperCase()}</span>
               <div className={styles.headerRight}>
                 <span className={styles.turno}>Turno #{pedido.turno}</span>
                 <span className={styles.id}>ID: #{pedido.id}</span>
@@ -151,10 +162,10 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
             <span className={styles.itemsTitle}>ÍTEMS EN COMANDA</span>
 
             <div className={styles.itemsScroll}>
-              {pedido.items.map((item, i) => (
-                <div key={i} className={styles.itemRow}>
-                  <span className={styles.itemName}>{item.nombre.toUpperCase()}</span>
-                  <span className={styles.itemCant}>Cant: {item.cantidad}</span>
+              {pedido.detalles.map((d) => (
+                <div key={d.id} className={styles.itemRow}>
+                  <span className={styles.itemName}>{d.producto.nombre.toUpperCase()}</span>
+                  <span className={styles.itemCant}>Cant: {d.cantidad}</span>
                 </div>
               ))}
             </div>
@@ -182,14 +193,15 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
       )}
 
       {detailPedido && (
-        <DetallePedidoModal pedido={detailPedido} onClose={() => setDetailPedido(null)} />
+        <DetallePedidoSimple pedido={detailPedido} onClose={() => setDetailPedido(null)} />
       )}
 
-      {facturaPedido && (
+      {pedidoAFacturar && (
         <FacturaModal
-          pedido={facturaPedido}
-          onClose={() => setFacturaPedido(null)}
-          onConfirmar={handleConfirmarFactura}
+          pedido={pedidoAFacturar}
+          onClose={() => {
+            setPedidoAFacturar(null)
+          }}
         />
       )}
     </div>
