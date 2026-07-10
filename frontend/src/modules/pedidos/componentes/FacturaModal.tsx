@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import type { PedidoPendiente } from '@/types/PedidoPendiente'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import type { Pedido } from '../data/pedidos'
+import { listarMetodosPago, crearFactura, imprimirFactura, obtenerSesionCajaActiva } from '../data/facturas'
+import type { MetodoPago } from '../data/facturas'
+import { useError } from '@/context/ErrorContext'
 import styles from './FacturaModal.module.css'
 
-type MetodoPago = 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA'
-type EntidadTransferencia = 'NEQUI' | 'DAVIPLATA' | 'NU'
-
 interface FacturaModalProps {
-  pedido: PedidoPendiente
+  pedido: Pedido
   onClose: () => void
-  onConfirmar: (pedidoId: string) => void
 }
 
 const SVG_EFECTIVO = (
@@ -32,19 +32,27 @@ const SVG_TARJETA = (
   </svg>
 )
 
-const METODOS: { label: MetodoPago; svg: React.ReactNode }[] = [
-  { label: 'EFECTIVO', svg: SVG_EFECTIVO },
-  { label: 'TRANSFERENCIA', svg: SVG_TRANSFERENCIA },
-  { label: 'TARJETA', svg: SVG_TARJETA },
-]
+const ICONOS: Record<string, React.ReactNode> = {
+  EFECTIVO: SVG_EFECTIVO,
+  TRANSFERENCIA: SVG_TRANSFERENCIA,
+  TARJETA: SVG_TARJETA,
+}
 
-const ENTIDADES: EntidadTransferencia[] = ['NEQUI', 'DAVIPLATA', 'NU']
-
-function FacturaModal({ pedido, onClose, onConfirmar }: FacturaModalProps) {
-  const [metodoPago, setMetodoPago] = useState<MetodoPago | null>(null)
-  const [entidadTransferencia, setEntidadTransferencia] = useState<EntidadTransferencia>('NEQUI')
+function FacturaModal({ pedido, onClose }: FacturaModalProps) {
+  const { showError } = useError()
+  const [metodoSeleccionId, setMetodoSeleccionId] = useState<number | null>(null)
   const [recibido, setRecibido] = useState('')
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
+
+  const { data: metodosPago = [] } = useQuery({
+    queryKey: ['metodos-pago'],
+    queryFn: listarMetodosPago,
+  })
+
+  const { data: sesionCaja } = useQuery({
+    queryKey: ['sesion-caja-activa'],
+    queryFn: obtenerSesionCajaActiva,
+  })
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -58,14 +66,47 @@ function FacturaModal({ pedido, onClose, onConfirmar }: FacturaModalProps) {
     }
   }, [onClose])
 
-  const handleMetodoChange = useCallback((m: MetodoPago) => {
-    setMetodoPago(m)
-    if (m === 'TRANSFERENCIA') {
-      setEntidadTransferencia('NEQUI')
+  const metodosUnicos = useMemo(() => {
+    const seen = new Set<string>()
+    return metodosPago.filter((m) => {
+      if (seen.has(m.nombre)) return false
+      seen.add(m.nombre)
+      return true
+    })
+  }, [metodosPago])
+
+  const entidades = useMemo(() => {
+    return metodosPago
+      .filter((m) => m.entidad)
+      .reduce<Record<string, MetodoPago[]>>((acc, m) => {
+        const key = m.nombre.toUpperCase()
+        if (!acc[key]) acc[key] = []
+        acc[key].push(m)
+        return acc
+      }, {})
+  }, [metodosPago])
+
+  const metodoSeleccionado = useMemo(() => {
+    if (!metodoSeleccionId) return null
+    return metodosPago.find((m) => m.id === metodoSeleccionId) ?? null
+  }, [metodosPago, metodoSeleccionId])
+
+  const handleMetodoClick = useCallback((metodo: MetodoPago) => {
+    const metodoEntidad = entidades[metodo.nombre.toUpperCase()]
+    if (metodoEntidad && metodoEntidad.length > 0) {
+      setMetodoSeleccionId(metodoEntidad[0].id)
+    } else {
+      setMetodoSeleccionId(metodo.id)
     }
+  }, [entidades])
+
+  const handleEntidadClick = useCallback((entidad: MetodoPago) => {
+    setMetodoSeleccionId(entidad.id)
   }, [])
 
-  const subtotal = useMemo(() => pedido.total, [pedido.total])
+  const subtotal = useMemo(() => {
+    return pedido.total ?? pedido.detalles.reduce((acc, d) => acc + d.precioUnitario * d.cantidad, 0)
+  }, [pedido])
 
   const impuesto = useMemo(
     () => (cobrarImpuesto ? subtotal * 0.08 : 0),
@@ -88,43 +129,62 @@ function FacturaModal({ pedido, onClose, onConfirmar }: FacturaModalProps) {
   )
 
   const hoy = new Date()
-  const fechaStr = hoy.toLocaleDateString('es-MX', {
+  const fechaStr = hoy.toLocaleDateString('es-CL', {
     day: '2-digit', month: '2-digit', year: 'numeric',
   })
 
-  const mesaNum = pedido.mesa.replace(/[^0-9]/g, '')
+  const mesaNombre = pedido.mesa?.nombre ?? `Mesa ${pedido.mesaId}`
+  const mesaNum = mesaNombre.replace(/\D/g, '')
 
   function handleRecibidoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value.replace(/[^0-9.]/g, '')
     setRecibido(val)
   }
 
-  function handleGenerar() {
-    console.log('Factura lista para generarse', {
-      pedidoId: pedido.id,
-      metodoPago,
-      entidadTransferencia: metodoPago === 'TRANSFERENCIA' ? entidadTransferencia : undefined,
-      total,
-      subtotal,
-      impuesto,
-      recibido: metodoPago === 'EFECTIVO' ? recibidoNum : undefined,
-      cambio: metodoPago === 'EFECTIVO' ? cambio : undefined,
-    })
-    onConfirmar(pedido.id)
+  const crearFacturaMut = useMutation({
+    mutationFn: crearFactura,
+    onError: showError,
+  })
+
+  const imprimirFacturaMut = useMutation({
+    mutationFn: imprimirFactura,
+    onError: showError,
+  })
+
+  async function handleGenerar() {
+    if (!metodoSeleccionId || !sesionCaja?.id) {
+      showError('No hay método de pago seleccionado o no hay sesión de caja activa')
+      return
+    }
+
+    try {
+      const factura = await crearFacturaMut.mutateAsync({
+        pedidoId: pedido.id,
+        subtotal,
+        impuestoConsumo: impuesto,
+        total,
+        metodoPagoId: metodoSeleccionId,
+        cajaSesionId: sesionCaja.id,
+      })
+
+      await imprimirFacturaMut.mutateAsync(factura.id)
+      onClose()
+    } catch {
+      // error handled by mutation onError
+    }
   }
 
-  const puedeGenerar = metodoPago !== null
+  const puedeGenerar = metodoSeleccionId !== null && sesionCaja?.id
 
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.mesaBadge}>{mesaNum || '?'}</div>
             <div className={styles.headerInfo}>
               <h2 className={styles.headerTitle}>MESA {mesaNum}</h2>
-              <span className={styles.headerDate}>{fechaStr} - {pedido.horaCreacion}</span>
+              <span className={styles.headerDate}>{fechaStr} &middot; {new Date(pedido.creadoEn).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Cerrar">
@@ -135,58 +195,54 @@ function FacturaModal({ pedido, onClose, onConfirmar }: FacturaModalProps) {
           </button>
         </div>
 
-        {/* Mesa / Total row */}
         <div className={styles.infoRow}>
           <div className={styles.infoLeft}>
             <span className={styles.infoLabel}>MESA</span>
-            <span className={styles.mesaNombre}>{pedido.mesa.toUpperCase()}</span>
-            <span className={styles.mesero}>Mesero: {pedido.mesero}</span>
+            <span className={styles.mesaNombre}>{mesaNombre.toUpperCase()}</span>
+            <span className={styles.mesero}>Rol: {pedido.usuario?.rol?.toUpperCase() ?? '—'}</span>
           </div>
           <div className={styles.infoRight}>
             <span className={styles.infoLabel}>TOTAL</span>
-            <span className={styles.totalGrande}>${(subtotal).toLocaleString()}</span>
+            <span className={styles.totalGrande}>${subtotal.toLocaleString('es-CL')}</span>
           </div>
         </div>
 
-        {/* Payment method */}
         <div className={styles.section}>
           <span className={styles.sectionTitle}>MÉTODO DE PAGO</span>
           <div className={styles.metodosGrid}>
-            {METODOS.map((m) => (
+            {metodosUnicos.map((m) => (
               <button
-                key={m.label}
-                className={`${styles.metodoCard} ${metodoPago === m.label ? styles.metodoActivo : ''}`}
-                onClick={() => handleMetodoChange(m.label)}
+                key={m.id}
+                className={`${styles.metodoCard} ${metodoSeleccionado?.nombre === m.nombre ? styles.metodoActivo : ''}`}
+                onClick={() => handleMetodoClick(m)}
               >
-                <span className={`${styles.metodoIconCircle} ${metodoPago === m.label ? styles.metodoIconActivo : ''}`}>
-                  {m.svg}
+                <span className={`${styles.metodoIconCircle} ${metodoSeleccionado?.nombre === m.nombre ? styles.metodoIconActivo : ''}`}>
+                  {ICONOS[m.nombre.toUpperCase()] ?? SVG_EFECTIVO}
                 </span>
-                <span className={styles.metodoLabel}>{m.label}</span>
+                <span className={styles.metodoLabel}>{m.nombre.toUpperCase()}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Entidad de Transferencia (only when TRANSFERENCIA selected) */}
-        {metodoPago === 'TRANSFERENCIA' && (
+        {metodoSeleccionado?.nombre.toUpperCase() === 'TRANSFERENCIA' && entidades['TRANSFERENCIA'] && (
           <div className={styles.section}>
             <span className={styles.sectionTitle}>ENTIDAD DE TRANSFERENCIA</span>
             <div className={styles.entidadGrid}>
-              {ENTIDADES.map((e) => (
+              {entidades['TRANSFERENCIA'].map((e) => (
                 <button
-                  key={e}
-                  className={`${styles.entidadCard} ${entidadTransferencia === e ? styles.entidadActiva : ''}`}
-                  onClick={() => setEntidadTransferencia(e)}
+                  key={e.id}
+                  className={`${styles.entidadCard} ${metodoSeleccionId === e.id ? styles.entidadActiva : ''}`}
+                  onClick={() => handleEntidadClick(e)}
                 >
-                  {e}
+                  {e.entidad?.toUpperCase() ?? e.nombre.toUpperCase()}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Recibido / Cambio (only when EFECTIVO selected) */}
-        {metodoPago === 'EFECTIVO' && (
+        {metodoSeleccionado?.nombre.toUpperCase() === 'EFECTIVO' && (
           <div className={styles.montoRow}>
             <div className={styles.montoField}>
               <label className={styles.montoLabel}>RECIBIDO</label>
@@ -205,14 +261,13 @@ function FacturaModal({ pedido, onClose, onConfirmar }: FacturaModalProps) {
                 className={styles.montoInput}
                 type="text"
                 readOnly
-                value={`$${cambio.toLocaleString()}`}
+                value={`$${cambio.toLocaleString('es-CL')}`}
                 tabIndex={-1}
               />
             </div>
           </div>
         )}
 
-        {/* Impuesto switch */}
         <div className={styles.impuestoRow}>
           <label className={styles.switch}>
             <input
@@ -228,25 +283,23 @@ function FacturaModal({ pedido, onClose, onConfirmar }: FacturaModalProps) {
           </div>
         </div>
 
-        {/* Summary */}
         <div className={styles.resumen}>
           <div className={styles.resumenRow}>
             <span className={styles.resumenLabel}>Subtotal</span>
-            <span className={styles.resumenValor}>${subtotal.toLocaleString()}</span>
+            <span className={styles.resumenValor}>${subtotal.toLocaleString('es-CL')}</span>
           </div>
           {cobrarImpuesto && (
             <div className={styles.resumenRow}>
               <span className={styles.resumenLabel}>Impuesto (8%)</span>
-              <span className={styles.resumenValor}>${impuesto.toLocaleString()}</span>
+              <span className={styles.resumenValor}>${impuesto.toLocaleString('es-CL')}</span>
             </div>
           )}
           <div className={`${styles.resumenRow} ${styles.resumenTotal}`}>
             <span className={styles.resumenLabel}>Total</span>
-            <span className={styles.totalFinal}>${total.toLocaleString()}</span>
+            <span className={styles.totalFinal}>${total.toLocaleString('es-CL')}</span>
           </div>
         </div>
 
-        {/* Actions */}
         <div className={styles.actions}>
           <button className={styles.btnCancelar} onClick={onClose}>
             CANCELAR
@@ -254,9 +307,9 @@ function FacturaModal({ pedido, onClose, onConfirmar }: FacturaModalProps) {
           <button
             className={styles.btnGenerar}
             onClick={handleGenerar}
-            disabled={!puedeGenerar}
+            disabled={!puedeGenerar || crearFacturaMut.isPending}
           >
-            {puedeGenerar ? 'CONFIRMAR COBRO' : 'GENERAR FACTURA'}
+            {crearFacturaMut.isPending ? 'GENERANDO...' : puedeGenerar ? 'CONFIRMAR COBRO' : 'GENERAR FACTURA'}
           </button>
         </div>
       </div>

@@ -16,7 +16,7 @@ export const imprimirFacturaCocina = async (req, res, next) => {
 
 export const imprimirReciboPago = async (req, res, next) => {
   try {
-    const result = await impresionService.imprimirReciboPago(parseInt(req.params.facturaId));
+    const result = await impresionService.imprimirReciboPago(parseInt(req.params.id));
     const message = result.pdfUrl ? "Recibo de pago impreso (simulado)" : "Recibo de pago impreso";
     ok(res, result, message);
   } catch (err) {

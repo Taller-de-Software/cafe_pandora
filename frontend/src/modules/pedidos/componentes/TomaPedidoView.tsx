@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import type { Table } from '@/types/Table'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { MesaCompleta } from '../data/pos'
+import { crearPedido } from '../data/pedidos'
 import type { Categoria } from '../../menu/api/categorias'
 import type { Producto } from '../../menu/api/productos'
 import type { Subcategoria } from '../../menu/api/subcategorias'
@@ -7,7 +9,7 @@ import { listarCategorias } from '../../menu/api/categorias'
 import { listarProductos } from '../../menu/api/productos'
 import { listarSubcategorias } from '../../menu/api/subcategorias'
 import { formatearNumero } from '@/utils/formatear'
-import { useAuth } from '@modules/auth/context/useAuth'
+import { useError } from '@/context/ErrorContext'
 
 import TarjetaProductoPedido from './TarjetaProductoPedido'
 import styles from './TomaPedidoView.module.css'
@@ -21,13 +23,14 @@ interface ItemComanda {
 }
 
 interface TomaPedidoViewProps {
-  table: Table
+  mesa: MesaCompleta
   onBack: () => void
-  onConfirmarPedido: (mesa: string, items: { nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[], mesero: string) => void
+  onConfirmarPedido?: (mesa: string, items: { nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[], mesero: string) => void
 }
 
-function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProps) {
-  const { user } = useAuth()
+function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
+  const { showError } = useError()
+  const queryClient = useQueryClient()
   const [categoriaActivaId, setCategoriaActivaId] = useState<number | null>(null)
   const [subcategoriaActivaId, setSubcategoriaActivaId] = useState<number | null>(null)
   const [busqueda, setBusqueda] = useState('')
@@ -37,6 +40,15 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
   const [loading, setLoading] = useState(true)
   const [comanda, setComanda] = useState<ItemComanda[]>([])
   const [showVaciarConfirm, setShowVaciarConfirm] = useState(false)
+
+  const createPedidoMut = useMutation({
+    mutationFn: crearPedido,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      onBack()
+    },
+    onError: showError,
+  })
 
   useEffect(() => {
     listarCategorias()
@@ -126,6 +138,18 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
     setShowVaciarConfirm(false)
   }
 
+  async function confirmarPedido() {
+    if (comanda.length === 0) return
+    await createPedidoMut.mutateAsync({
+      mesaId: mesa.id,
+      turno: 1,
+      items: comanda.map((item) => ({
+        productoId: item.id,
+        cantidad: item.cantidad,
+      })),
+    })
+  }
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.container}>
@@ -134,7 +158,7 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
             <span className={styles.headerLabel}>CATEGORÍA PEDIDOS</span>
             <div className={styles.headerRow}>
               <span className={styles.headerTitle}>
-                MESA {table.name} ({table.type}) • CATÁLOGO DE PRODUCTOS
+                MESA {mesa.nombre} ({mesa.ubicacion}) • CATÁLOGO DE PRODUCTOS
               </span>
               <button className={styles.backLink} onClick={onBack}>
                 ← Cambiar Mesa
@@ -200,7 +224,7 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
 
         <div className={styles.rightColumn}>
           <div className={styles.summaryCard}>
-            <h3 className={styles.summaryTitle}>RESUMEN DE MESA {table.name} ({table.type})</h3>
+            <h3 className={styles.summaryTitle}>RESUMEN DE MESA {mesa.nombre} ({mesa.ubicacion})</h3>
             <div className={styles.summaryDivider} />
 
             {comanda.length === 0 ? (
@@ -252,20 +276,12 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
-              <button className={styles.confirmBtn} disabled={comanda.length === 0} onClick={() => {
-                onConfirmarPedido(
-                  `Mesa ${table.name} (${table.type})`,
-                  comanda.map((item) => ({
-                    nombre: item.nombre,
-                    cantidad: item.cantidad,
-                    precioUnitario: item.precio,
-                    subtotal: item.precio * item.cantidad
-                  })),
-                  user?.nombre ?? 'Mesero'
-                )
-                onBack()
-              }}>
-                Confirmar Pedido
+              <button
+                className={styles.confirmBtn}
+                disabled={comanda.length === 0 || createPedidoMut.isPending}
+                onClick={confirmarPedido}
+              >
+                {createPedidoMut.isPending ? 'Enviando...' : 'Confirmar Pedido'}
               </button>
             </div>
           </div>

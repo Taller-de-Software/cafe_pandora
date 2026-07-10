@@ -1,15 +1,25 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { usePedidosSocket } from '@/hooks/usePedidosSocket'
+import { listarPedidos } from '../data/pedidos'
 import NuevoPedidoView from '../componentes/NuevoPedidoView'
 import PedidosPendientesView from '../componentes/PedidosPendientesView'
-import { usePedidos } from '../context/PedidosContext'
 import styles from './pedidos.module.css'
 
 type Tab = 'nuevo' | 'pendientes'
 
 function Pedidos() {
   const [tab, setTab] = useState<Tab>('nuevo')
-  const { pedidosPendientes, agregarPedido, eliminarPedido, cambiarEstado } = usePedidos()
+  usePedidosSocket()
+
+  const { data: pedidos = [] } = useQuery({
+    queryKey: ['pedidos-activos'],
+    queryFn: () => listarPedidos(),
+    refetchInterval: 10_000,
+  })
+
+  const pedidosActivos = pedidos.filter((p) => p.estado !== 'finalizado' && p.estado !== 'cancelado')
 
   return (
     <div className={styles.page}>
@@ -47,23 +57,15 @@ function Pedidos() {
           onClick={() => setTab('pendientes')}
         >
           Pedidos Pendientes
-          {pedidosPendientes.length > 0 && (
-            <span className={styles.badge}>{pedidosPendientes.length}</span>
+          {pedidosActivos.length > 0 && (
+            <span className={styles.badge}>{pedidosActivos.length}</span>
           )}
         </button>
       </div>
 
-      {tab === 'nuevo' && (
-        <NuevoPedidoView onConfirmarPedido={agregarPedido} />
-      )}
+      {tab === 'nuevo' && <NuevoPedidoView />}
 
-      {tab === 'pendientes' && (
-        <PedidosPendientesView
-          pedidos={pedidosPendientes}
-          onCancelar={eliminarPedido}
-          onCambiarEstado={cambiarEstado}
-        />
-      )}
+      {tab === 'pendientes' && <PedidosPendientesView />}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 .layout {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .header {
@@ -11,39 +11,59 @@
 }
 
 .header h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2D2A26;
   margin: 0;
 }
 
 .sessionInfo {
+  font-family: "JetBrains Mono", monospace;
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: #9B9792;
 }
 
 .tableContainer {
   overflow-x: auto;
+  background: #FFFFFF;
+  border: 1px solid #E8E1D8;
+  border-radius: 0.875rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-family: Inter, sans-serif;
+  font-size: 0.8125rem;
 }
 
 .table th {
   text-align: left;
-  padding: 0.5rem 0.75rem;
-  color: #6b7280;
-  font-weight: 500;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0.625rem 0.75rem;
+  color: #6E6A65;
+  font-weight: 600;
+  border-bottom: 1px solid #E8E1D8;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .table td {
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #f3f4f6;
-  color: #374151;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid #F8F4EE;
+  color: #2D2A26;
+}
+
+.monoCell {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+}
+
+.dateCell {
+  color: #6E6A65;
+  font-size: 0.75rem;
 }
 
 .clickable {
@@ -52,49 +72,44 @@
 }
 
 .clickable:hover {
-  background: #f9fafb;
-}
-
-.badge {
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  background: #d1fae5;
-  color: #065f46;
+  background: #FAF7F2;
 }
 
 .empty {
-  color: #9ca3af;
+  color: #9B9792;
   text-align: center;
-  padding: 1.5rem 0;
+  padding: 2rem 0;
+  font-family: Inter, sans-serif;
   font-size: 0.875rem;
 }
 
 .loading {
   text-align: center;
   padding: 2rem 0;
-  color: #6b7280;
+  color: #6E6A65;
+  font-family: Inter, sans-serif;
   font-size: 0.875rem;
 }
 
 .printBtn {
-  font-size: 0.75rem;
-  padding: 0.2rem 0.5rem;
-  background: #b45309;
+  font-family: Inter, sans-serif;
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.625rem;
+  background: #7A3E1D;
   color: white;
   border: none;
-  border-radius: 0.25rem;
+  border-radius: 0.625rem;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
+  font-weight: 600;
 }
 
 .printBtn:hover {
-  background: #92400e;
+  background: #5E2F17;
 }
 
 .printBtn:disabled {
-  background: #9ca3af;
+  background: #9B9792;
   cursor: not-allowed;
 }

@@ -1,28 +1,74 @@
 import { useState } from 'react'
-import AddTableModal from '@/components/modals/AddTableModal'
-import ReserveTableModal from '@/components/modals/ReserveTableModal'
-import EditReservationModal from '@/components/modals/EditReservationModal'
-import TableCard from '@/components/TableCard'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { listarMesasCompletas, crearReserva, type MesaCompleta } from '../data/pos'
+import { useAuth } from '@modules/auth/context/useAuth'
+import { useError } from '@/context/ErrorContext'
+import NewTableModal from './NewTableModal'
+import ReservationModal from './ReservationModal'
 import TomaPedidoView from './TomaPedidoView'
-import { useTables } from '@/hooks/useTables'
-import type { Table } from '@/types/Table'
 import styles from './NuevoPedidoView.module.css'
 
+const STATUS_LABELS: Record<string, string> = {
+  vacia: 'VACÍA',
+  ocupada: 'OCUPADA',
+  por_pagar: 'POR PAGAR',
+  reservada: 'RESERVADA',
+  fuera_de_servicio: 'FUERA DE SERVICIO',
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  vacia: '#3D8B5F',
+  ocupada: '#C99835',
+  por_pagar: '#E07B39',
+  reservada: '#5E87B8',
+  fuera_de_servicio: '#9B9792',
+}
+
 interface NuevoPedidoViewProps {
-  onConfirmarPedido: (mesa: string, items: { nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[], mesero: string) => void
+  onConfirmarPedido?: (mesa: string, items: { nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[], mesero: string) => void
 }
 
 function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
-  const [isAddTableModalOpen, setIsAddTableModalOpen] = useState(false)
-  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
-  const [isEditReserveModalOpen, setIsEditReserveModalOpen] = useState(false)
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null)
-  const { tables, addTable, reserveTable, updateReservation, cancelReservation } = useTables()
+  const { showError } = useError()
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+  const isAdmin = user?.rol === 'administrador'
 
-  if (selectedTable) {
+  const [selectedMesa, setSelectedMesa] = useState<MesaCompleta | null>(null)
+  const [showNewTable, setShowNewTable] = useState(false)
+  const [reservaMesa, setReservaMesa] = useState<MesaCompleta | null>(null)
+
+  const { data: mesas = [], isLoading, isError } = useQuery({
+    queryKey: ['mesas-completas'],
+    queryFn: listarMesasCompletas,
+  })
+
+  const reservaMutation = useMutation({
+    mutationFn: crearReserva,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      setReservaMesa(null)
+    },
+    onError: showError,
+  })
+
+  if (selectedMesa) {
     return (
-      <TomaPedidoView table={selectedTable} onBack={() => setSelectedTable(null)} onConfirmarPedido={onConfirmarPedido} />
+      <TomaPedidoView
+        mesa={selectedMesa}
+        onBack={() => setSelectedMesa(null)}
+        onConfirmarPedido={onConfirmarPedido}
+      />
     )
+  }
+
+  function handleMesaClick(mesa: MesaCompleta) {
+    if (mesa.estado === 'reservada') {
+      setReservaMesa(mesa)
+      return
+    }
+    if (mesa.estado === 'fuera_de_servicio') return
+    setSelectedMesa(mesa)
   }
 
   return (
@@ -32,47 +78,64 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
         <p className={styles.subtitle}>Elija una mesa del salón o registre una mesa alterna.</p>
       </div>
 
-      <div className={`${styles.mesasContainer} ${tables.length > 0 ? styles.mesasContainerFilled : ''}`}>
-        {tables.map((t) => (
-          <TableCard key={t.id} table={t} onClick={() => setSelectedTable(t)} />
-        ))}
-      </div>
+      {isLoading && <p className={styles.subtitle}>Cargando mesas...</p>}
+      {isError && <p className={styles.subtitle}>Error al cargar mesas</p>}
+
+      {!isLoading && !isError && (
+        <div className={`${styles.mesasContainer} ${mesas.length > 0 ? styles.mesasContainerFilled : ''}`}>
+          {mesas.map((m) => {
+            const statusLabel = STATUS_LABELS[m.estado] ?? m.estado.toUpperCase()
+            const statusColor = STATUS_COLORS[m.estado] ?? '#9B9792'
+            return (
+              <div
+                key={m.id}
+                className={styles.mesaCard}
+                onClick={() => handleMesaClick(m)}
+              >
+                <span className={styles.mesaName}>{m.nombre}</span>
+                <span className={styles.mesaUbicacion}>{m.ubicacion}</span>
+                <span
+                  className={styles.mesaBadge}
+                  style={{ backgroundColor: statusColor + '18', color: statusColor, borderColor: statusColor + '30' }}
+                >
+                  {statusLabel}
+                </span>
+                {m.pedidoActivo && (
+                  <span className={styles.mesaPedido}>
+                    Pedido #{m.pedidoActivo.id} — ${m.pedidoActivo.total ?? 0}
+                  </span>
+                )}
+                {m.reserva && (
+                  <span className={styles.mesaReserva}>
+                    Reserva: {m.reserva.cliente} — {m.reserva.hora}
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       <div className={styles.footer}>
-        <p className={styles.footerText}>¿No encuentra la mesa? Crea una personalizada o reserva una mesa.</p>
+        <p className={styles.footerText}>¿No encuentra la mesa? Cree una nueva o reserve una existente.</p>
         <div className={styles.buttons}>
-          <button className={styles.btnPrimary} onClick={() => setIsAddTableModalOpen(true)}>
-            + Agregar Nueva Mesa
-          </button>
-          <button className={styles.btnSecondary} onClick={() => setIsReserveModalOpen(true)}>
-            Reservar una Mesa
-          </button>
-          <button className={styles.btnSecondary} onClick={() => setIsEditReserveModalOpen(true)}>
-            Editar Reserva
-          </button>
+          {isAdmin && (
+            <button className={styles.btnPrimary} onClick={() => setShowNewTable(true)}>
+              + Agregar Nueva Mesa
+            </button>
+          )}
         </div>
       </div>
 
-      <AddTableModal
-        open={isAddTableModalOpen}
-        onClose={() => setIsAddTableModalOpen(false)}
-        onConfirm={(name, type) => addTable(name, type)}
-      />
+      {showNewTable && <NewTableModal onClose={() => setShowNewTable(false)} />}
 
-      <ReserveTableModal
-        open={isReserveModalOpen}
-        onClose={() => setIsReserveModalOpen(false)}
-        tables={tables}
-        onReserve={reserveTable}
-      />
-
-      <EditReservationModal
-        open={isEditReserveModalOpen}
-        onClose={() => setIsEditReserveModalOpen(false)}
-        tables={tables}
-        onUpdateReservation={updateReservation}
-        onCancelReservation={cancelReservation}
-      />
+      {reservaMesa && (
+        <ReservationModal
+          mesa={reservaMesa}
+          onSave={async (data) => { await reservaMutation.mutateAsync(data) }}
+          onClose={() => setReservaMesa(null)}
+        />
+      )}
     </div>
   )
 }

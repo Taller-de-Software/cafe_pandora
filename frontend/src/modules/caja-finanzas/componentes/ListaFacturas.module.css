@@ -1,34 +1,53 @@
 .card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  background: #FFFFFF;
+  border: 1px solid #E8E1D8;
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .card h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.75rem;
+  font-family: Inter, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #2D2A26;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-family: Inter, sans-serif;
+  font-size: 0.8125rem;
 }
 
 .table th {
   text-align: left;
-  padding: 0.5rem 0.5rem 0.5rem 0;
-  color: #9ca3af;
-  font-weight: 500;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0.5rem 0.625rem 0.5rem 0;
+  color: #6E6A65;
+  font-weight: 600;
+  border-bottom: 1px solid #E8E1D8;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .table td {
-  padding: 0.5rem 0.5rem 0.5rem 0;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 0.5rem 0.625rem 0.5rem 0;
+  border-bottom: 1px solid #F8F4EE;
+  color: #2D2A26;
+}
+
+.monoCell {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+}
+
+.dateCell {
+  color: #6E6A65;
+  font-size: 0.75rem;
 }
 
 .clickable {
@@ -37,12 +56,13 @@
 }
 
 .clickable:hover {
-  background: #f9fafb;
+  background: #FAF7F2;
 }
 
 .empty {
-  color: #9ca3af;
-  font-size: 0.875rem;
+  color: #9B9792;
+  font-family: Inter, sans-serif;
+  font-size: 0.8125rem;
   text-align: center;
-  padding: 1rem;
+  padding: 1.5rem;
 }

@@ -1,8 +1,17 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { useError } from '@/context/ErrorContext'
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
+import {
+  DollarSign,
+  Wallet,
+  Clock,
+  TrendingDown,
+  CircleDot,
+  User,
+} from 'lucide-react'
 import EstadoCaja from '../componentes/EstadoCaja'
 import FormularioApertura from '../componentes/FormularioApertura'
 import ListaRetiros from '../componentes/ListaRetiros'
@@ -14,6 +23,7 @@ import FacturacionPanel from '../componentes/FacturacionPanel'
 import ResumenCierre from '../componentes/ResumenCierre'
 import { obtenerSesionActiva, apertura, cierre, listarRetiros, crearRetiro, obtenerResumenCaja } from '../data/caja'
 import type { ResumenFactura } from '../data/caja'
+import { formatearNumero } from '@/utils/formatear'
 
 import styles from './caja-finanzas.module.css'
 
@@ -84,6 +94,16 @@ function CajaFinanzas() {
     onError: showError,
   })
 
+  const metrics = useMemo(() => {
+    const ventasHoy = resumenCaja?.resumen?.sumaTotal ?? 0
+    const cajaActual = sesion?.totalEnCaja ?? 0
+    const pendientes = resumenCaja?.facturas?.length ?? 0
+    const egresosHoy = resumenCaja?.resumen?.totalSalidasRetiros ?? 0
+    const abierta = sesion ? !sesion.cierre : false
+    const responsable = user?.nombre ?? '—'
+    return { ventasHoy, cajaActual, pendientes, egresosHoy, abierta, responsable }
+  }, [resumenCaja, sesion, user])
+
   const tabs: { id: string; label: string }[] = isAdmin
     ? [
       { id: 'caja', label: 'Caja' },
@@ -99,8 +119,8 @@ function CajaFinanzas() {
       case 'caja':
         return (
           <>
-            {sesionCargando && <p>Cargando sesión de caja...</p>}
-            {sesionError && <p>Error al cargar sesión de caja</p>}
+            {sesionCargando && <p className={styles.loadingText}>Cargando sesión de caja...</p>}
+            {sesionError && <p className={styles.errorText}>Error al cargar sesión de caja</p>}
             {!sesionCargando && !sesionError && (
               <EstadoCaja
                 sesion={sesion}
@@ -111,8 +131,8 @@ function CajaFinanzas() {
 
             {sesion && !sesion.cierre && (
               <>
-                {retirosCargando && <p>Cargando movimientos...</p>}
-                {retirosError && <p>Error al cargar movimientos</p>}
+                {retirosCargando && <p className={styles.loadingText}>Cargando movimientos...</p>}
+                {retirosError && <p className={styles.errorText}>Error al cargar movimientos</p>}
                 {!retirosCargando && !retirosError && (
                   <ListaRetiros retiros={retiros} onAdd={() => setShowRetiro(true)} />
                 )}
@@ -190,6 +210,62 @@ function CajaFinanzas() {
 
   return (
     <div className={styles.layout}>
+      <div className={styles.header}>
+        <div>
+          <h2 className={styles.title}>Caja y Finanzas</h2>
+          <p className={styles.subtitle}>Gestión de caja, ventas y facturación</p>
+        </div>
+      </div>
+
+      {isAdmin && (
+        <div className={styles.kpiGrid}>
+          <div className={styles.kpiCard}>
+            <div className={`${styles.kpiIcon} ${styles.kpiIconExito}`}>
+              <DollarSign size={18} />
+            </div>
+            <span className={styles.kpiValueExito}>${formatearNumero(metrics.ventasHoy)}</span>
+            <span className={styles.kpiLabel}>Ventas Hoy</span>
+          </div>
+          <div className={styles.kpiCard}>
+            <div className={`${styles.kpiIcon} ${styles.kpiIconOro}`}>
+              <Wallet size={18} />
+            </div>
+            <span className={styles.kpiValueOro}>${formatearNumero(metrics.cajaActual)}</span>
+            <span className={styles.kpiLabel}>Caja Actual</span>
+          </div>
+          <div className={styles.kpiCard}>
+            <div className={`${styles.kpiIcon} ${styles.kpiIconOro}`}>
+              <Clock size={18} />
+            </div>
+            <span className={styles.kpiValueOro}>{metrics.pendientes}</span>
+            <span className={styles.kpiLabel}>Pendientes</span>
+          </div>
+          <div className={styles.kpiCard}>
+            <div className={`${styles.kpiIcon} ${styles.kpiIconPeligro}`}>
+              <TrendingDown size={18} />
+            </div>
+            <span className={styles.kpiValuePeligro}>${formatearNumero(metrics.egresosHoy)}</span>
+            <span className={styles.kpiLabel}>Egresos Hoy</span>
+          </div>
+          <div className={styles.kpiCard}>
+            <div className={`${styles.kpiIcon} ${styles.kpiIconNeutro}`}>
+              <CircleDot size={18} />
+            </div>
+            <span className={metrics.abierta ? styles.kpiValueExito : styles.kpiValuePeligro}>
+              {metrics.abierta ? 'Abierta' : 'Cerrada'}
+            </span>
+            <span className={styles.kpiLabel}>Caja Estado</span>
+          </div>
+          <div className={styles.kpiCard}>
+            <div className={`${styles.kpiIcon} ${styles.kpiIconNeutro}`}>
+              <User size={18} />
+            </div>
+            <span className={styles.kpiValueTitulo}>{metrics.responsable}</span>
+            <span className={styles.kpiLabel}>Responsable</span>
+          </div>
+        </div>
+      )}
+
       <div className={styles.tabs}>
         {tabs.map((t) => (
           <button
@@ -202,9 +278,18 @@ function CajaFinanzas() {
         ))}
       </div>
 
-      <div className={styles.content}>
-        {renderContent()}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+          className={styles.content}
+        >
+          {renderContent()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }
