@@ -21,7 +21,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[ErrorBoundary] Error no capturado:', error, errorInfo)
+    console.error('[ErrorBoundary] Error no capturado:', error.message, error.stack)
+    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack)
   }
 
   render() {

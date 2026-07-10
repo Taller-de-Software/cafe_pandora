@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
+import { PedidosProvider } from '../context/PedidosContext'
 import { listarPedidos } from '../data/pedidos'
 import NuevoPedidoView from '../componentes/NuevoPedidoView'
 import PedidosPendientesView from '../componentes/PedidosPendientesView'
@@ -9,17 +10,15 @@ import styles from './pedidos.module.css'
 
 type Tab = 'nuevo' | 'pendientes'
 
-function Pedidos() {
+function PedidosContent() {
   const [tab, setTab] = useState<Tab>('nuevo')
-  usePedidosSocket()
-
+  
   const { data: pedidos = [] } = useQuery({
     queryKey: ['pedidos-activos'],
     queryFn: () => listarPedidos(),
     refetchInterval: 10_000,
   })
-
-  const pedidosActivos = pedidos.filter((p) => p.estado !== 'finalizado' && p.estado !== 'cancelado')
+  const pedidosActivos = pedidos.filter((p) => p.estado !== 'cancelado' && !p.factura)
 
   return (
     <div className={styles.page}>
@@ -67,6 +66,15 @@ function Pedidos() {
 
       {tab === 'pendientes' && <PedidosPendientesView />}
     </div>
+  )
+}
+
+function Pedidos() {
+  usePedidosSocket()
+  return (
+    <PedidosProvider>
+      <PedidosContent />
+    </PedidosProvider>
   )
 }
 

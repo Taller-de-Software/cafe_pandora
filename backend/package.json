@@ -34,6 +34,9 @@
     "usb": "^2.14.0",
     "zod": "^4.4.3"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "devDependencies": {
     "prisma": "^6.19.3"
   }

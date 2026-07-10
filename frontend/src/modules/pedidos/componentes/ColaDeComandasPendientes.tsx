@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Pedido } from '../data/pedidos'
-import DetallePedidoSimple from './DetallePedidoSimple'
+import DetallePedidoModal from './DetallePedidoModal'
 import FacturaModal from './FacturaModal'
 import styles from './ColaDeComandasPendientes.module.css'
 
@@ -67,7 +67,7 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
               className={styles.btnCocina}
               onClick={(e) => { e.stopPropagation(); handleReciboCocina(String(pedido.id)) }}
             >
-              ENVIAR A COCINA
+              GENERAR RECIBO COCINA
             </button>
             <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(String(pedido.id)) }}>
               CANCELAR
@@ -81,7 +81,7 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
               className={styles.btnEstadoPendiente}
               onClick={(e) => { e.stopPropagation(); handleCambiarEstado(String(pedido.id)) }}
             >
-              MARCAR LISTO
+              CAMBIAR ESTADO PEDIDO
             </button>
             <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(String(pedido.id)) }}>
               CANCELAR
@@ -93,9 +93,9 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
           <div className={styles.cardActions}>
             <button
               className={styles.btnEstadoHecho}
-              onClick={(e) => { e.stopPropagation(); handleMarcarFinalizado(String(pedido.id)) }}
+              onClick={(e) => { e.stopPropagation(); setPedidoAFacturar(pedido) }}
             >
-              MARCAR FINALIZADO
+              GENERAR FACTURA PAGO
             </button>
             <button className={styles.btnCancelar} onClick={(e) => { e.stopPropagation(); setConfirmCancelId(String(pedido.id)) }}>
               CANCELAR
@@ -147,6 +147,8 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
               <div className={styles.headerLeft}>
                 <span className={styles.mesaName}>
                   {pedido.mesa?.nombre?.toUpperCase() ?? `MESA ${pedido.mesaId}`}
+                  {(pedido as any).esCuentaSeparada ? <span className={styles.separadaLabel}>SEPARADA</span> : null}
+                  {(pedido as any).esFusion ? <span className={styles.separadaLabel}>FUSIONADA</span> : null}
                 </span>
                 <span className={styles.hora}>&#x1F550; {new Date(pedido.creadoEn).toLocaleTimeString()}</span>
               </div>
@@ -193,7 +195,7 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
       )}
 
       {detailPedido && (
-        <DetallePedidoSimple pedido={detailPedido} onClose={() => setDetailPedido(null)} />
+        <DetallePedidoModal pedido={detailPedido} onClose={() => setDetailPedido(null)} />
       )}
 
       {pedidoAFacturar && (
