@@ -100,6 +100,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   if (!pedido) return null
 
   const mesaNum = pedido.mesa.replace(/\D/g, '')
+  const pedidoActual = pedidosPendientes.find((p) => p.id === pedido.id) ?? pedido
+  const itemsActuales = pedidoActual.items && pedidoActual.items.length > 0 ? pedidoActual.items : pedido.items
 
   const catalogoFiltrado = useMemo(() => {
     const filtrados = busqueda
@@ -108,17 +110,16 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     return filtrados.filter((p) => p.habilitado !== false)
   }, [catalogo, busqueda])
 
-  const originalItemsStr = JSON.stringify(pedido.items.map((i) => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnitario: i.precioUnitario })))
+  const originalItemsStr = JSON.stringify(itemsActuales.map((i) => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnitario: i.precioUnitario })))
   const draftItemsStr = JSON.stringify(draftItems.map((i) => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnitario: i.precioUnitario })))
   const hasChanges = originalItemsStr !== draftItemsStr
 
-  const hayMovimientos = pedido.items.some((item) => {
+  const hayMovimientos = itemsActuales.some((item) => {
     const a = asignaciones[item.nombre]
     return a && (a[1] > 0 || a[2] > 0)
   })
 
-  const pedidoActual = pedidosPendientes.find((p) => p.id === pedido.id) ?? pedido
-  const totalCuenta = pedido.items.reduce((sum, item) => sum + item.subtotal, 0)
+  const totalCuenta = itemsActuales.reduce((sum, item) => sum + item.subtotal, 0)
   const totalAbonado = pedidoActual.abonos?.reduce((sum, a) => sum + a.monto, 0) ?? 0
   const saldoPendiente = totalCuenta - totalAbonado
   const montoNum = parseFloat(montoAbono)
@@ -126,7 +127,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   const excedeSaldo = !isNaN(montoNum) && montoNum > saldoPendiente
 
   function entrarAgregarQuitar() {
-    setDraftItems(pedido.items.map((i) => ({ ...i })))
+    setDraftItems(itemsActuales.map((i) => ({ ...i })))
     setCategoriaActiva(null)
     setBusqueda('')
     setModo('agregar-quitar')
@@ -134,7 +135,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
   function entrarSepararCuenta() {
     const inicial: Record<string, Asignacion> = {}
-    pedido.items.forEach((item) => {
+    itemsActuales.forEach((item) => {
       inicial[item.nombre] = [0, 0, 0]
     })
     setAsignaciones(inicial)
@@ -173,7 +174,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
   function confirmarSeparar() {
     const itemsRestantes: ItemPedidoPendiente[] = []
-    pedido.items.forEach((item) => {
+    itemsActuales.forEach((item) => {
       const a = asignaciones[item.nombre] ?? [0, 0, 0]
       const enCuenta1 = item.cantidad - a[1] - a[2]
       if (enCuenta1 > 0) {
@@ -188,7 +189,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     actualizarPedido(pedido.id, itemsRestantes)
     for (let c = 1; c < 3; c++) {
       const itemsCuenta: ItemPedidoPendiente[] = []
-      pedido.items.forEach((item) => {
+      itemsActuales.forEach((item) => {
         const cantidad = asignaciones[item.nombre]?.[c] ?? 0
         if (cantidad > 0) {
           itemsCuenta.push({
@@ -200,7 +201,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
         }
       })
       if (itemsCuenta.length > 0) {
-        agregarPedido(pedido.mesa, itemsCuenta, pedido.mesero)
+        agregarPedido(pedido.mesa, itemsCuenta, pedido.mesero, true)
       }
     }
     setModo('acciones')
@@ -235,7 +236,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
   function asignarUnidad(nombre: string, cuenta: 0 | 1 | 2) {
     setAsignaciones((prev) => {
-      const item = pedido.items.find((i) => i.nombre === nombre)
+      const item = itemsActuales.find((i) => i.nombre === nombre)
       if (!item) return prev
       const actual = prev[nombre] ?? [0, 0, 0]
       const asignadas = actual[0] + actual[1] + actual[2]
@@ -252,17 +253,26 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     if (!target) return
     const sourcePedido = pedidoDeMesa(target.name, target.type)
     if (!sourcePedido) return
-    const itemsFusionados: ItemPedidoPendiente[] = [...pedido.items]
+    const itemsFusionados: ItemPedidoPendiente[] = [...itemsActuales]
     sourcePedido.items.forEach((srcItem) => {
       const idx = itemsFusionados.findIndex((i) => i.nombre === srcItem.nombre)
       if (idx >= 0) {
+        const precioUnitario = itemsFusionados[idx].precioUnitario || srcItem.precioUnitario || 0
+        if (!precioUnitario) throw new Error(`Producto "${srcItem.nombre}" sin precio al fusionar.`)
         const nuevaCant = itemsFusionados[idx].cantidad + srcItem.cantidad
-        itemsFusionados[idx] = { ...itemsFusionados[idx], cantidad: nuevaCant, subtotal: nuevaCant * itemsFusionados[idx].precioUnitario }
+        itemsFusionados[idx] = { ...itemsFusionados[idx], cantidad: nuevaCant, precioUnitario, subtotal: nuevaCant * precioUnitario }
       } else {
-        itemsFusionados.push({ ...srcItem })
+        if (!srcItem.precioUnitario) throw new Error(`Producto "${srcItem.nombre}" sin precio al fusionar.`)
+        itemsFusionados.push({
+          ...srcItem,
+          subtotal: srcItem.subtotal || srcItem.cantidad * srcItem.precioUnitario,
+        })
       }
     })
     actualizarPedido(pedido.id, itemsFusionados)
+    if (sourcePedido.abonos) {
+      sourcePedido.abonos.forEach((a) => registrarAbono(pedido.id, a))
+    }
     eliminarPedido(sourcePedido.id)
     if (target.reservation) {
       setTableStatus(target.id, 'RESERVADA')
@@ -477,7 +487,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
       <h3 className={styles.currentItemsTitle}>PRODUCTOS DEL PEDIDO</h3>
 
       <div className={styles.separarList}>
-        {pedido.items.map((item) => {
+        {itemsActuales.map((item) => {
           const a = asignaciones[item.nombre] ?? [0, 0, 0]
           const asignadas = a[0] + a[1] + a[2]
           const restantes = item.cantidad - asignadas
@@ -518,7 +528,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
       <div className={styles.separarResumen}>
         <div className={styles.separarResumenCuenta}>
           <span className={styles.separarResumenTitulo}>Cuenta 1 (no movidos)</span>
-          {pedido.items.map((item) => {
+          {itemsActuales.map((item) => {
             const a = asignaciones[item.nombre] ?? [0, 0, 0]
             const enCuenta1 = item.cantidad - a[1] - a[2]
             if (enCuenta1 <= 0) return null
@@ -532,7 +542,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
           <div className={styles.separarResumenTotal}>
             <span>Total:</span>
             <span>${formatPrecio(
-              pedido.items.reduce((sum, item) => {
+              itemsActuales.reduce((sum, item) => {
                 const a = asignaciones[item.nombre] ?? [0, 0, 0]
                 const enCuenta1 = item.cantidad - a[1] - a[2]
                 return sum + enCuenta1 * item.precioUnitario
@@ -541,7 +551,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
           </div>
         </div>
         {[1, 2].map((c) => {
-          const cuentaItems = pedido.items.filter((item) => (asignaciones[item.nombre]?.[c] ?? 0) > 0)
+          const cuentaItems = itemsActuales.filter((item) => (asignaciones[item.nombre]?.[c] ?? 0) > 0)
           if (cuentaItems.length === 0) return null
           const total = cuentaItems.reduce((sum, item) => sum + (asignaciones[item.nombre]?.[c] ?? 0) * item.precioUnitario, 0)
           return (
@@ -582,7 +592,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
         <h3 className={styles.currentItemsTitle}>PRODUCTOS DEL PEDIDO ACTUAL</h3>
         <div className={styles.productosScroll}>
-          {pedido.items.map((item, i) => (
+          {itemsActuales.map((item, i) => (
             <div key={i} className={styles.productoRow}>
               <div className={styles.productoInfo}>
                 <span className={styles.productoName}>{item.nombre}</span>
@@ -604,10 +614,9 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
         <div className={styles.unirGrid}>
           {tables.map((t) => {
             const esActual = mesaActual?.id === t.id
-            const disp = mesaDisponible(t)
-            const tienePedido = mesaTienePedido(t.name, t.type)
+            const disponible = mesaDisponible(t)
             const seleccionada = mesaSeleccionada === t.id
-            const deshabilitada = esActual || !disp || !tienePedido
+            const deshabilitada = esActual || (t.status === 'RESERVADA' && !disponible)
             return (
               <div
                 key={t.id}
@@ -621,10 +630,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
                 <div className={styles.unirCardInfo}>
                   {esActual ? (
                     <span className={styles.unirCardEstadoActual}>Mesa actual</span>
-                  ) : !tienePedido ? (
-                    <span className={styles.unirCardEstadoSin}>Sin pedido</span>
                   ) : (
-                    <span className={styles.unirCardEstado}>{getEstadoMesa(t)}</span>
+                    <span className={deshabilitada ? styles.unirCardEstadoSin : styles.unirCardEstado}>{getEstadoMesa(t)}</span>
                   )}
                   {t.status === 'RESERVADA' && t.reservation?.hora && !esActual && (
                     <span className={styles.unirCardReserva}>{formatearHora(t.reservation.hora)}</span>
@@ -639,11 +646,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   }
 
   const renderCambiarMesa = () => {
-    const mesasLibres = tables.filter(
-      (t) =>
-        t.status === 'VACÍA' &&
-        !t.reservation &&
-        `Mesa ${t.name} (${t.type})` !== pedido.mesa
+    const mesaActual = tables.find(
+      (t) => `Mesa ${t.name} (${t.type})` === pedido.mesa
     )
     return (
       <div className={styles.editPanel}>
@@ -658,25 +662,50 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
           Seleccione una mesa libre para mover el pedido de la {pedido.mesa}.
         </p>
 
-        {mesasLibres.length === 0 ? (
-          <p className={styles.emptyText}>No hay mesas libres disponibles</p>
-        ) : (
-          <div className={styles.unirGrid}>
-            {mesasLibres.map((t) => {
-              const seleccionada = mesaSeleccionada === t.id
-              return (
-                <div
-                  key={t.id}
-                  className={`${styles.unirCard} ${seleccionada ? styles.unirCardSel : ''}`}
-                  onClick={() => setMesaSeleccionada(seleccionada ? null : t.id)}
-                >
-                  <span className={styles.unirCardName}>Mesa {t.name} ({t.type})</span>
-                  <span className={styles.unirCardEstado}>Libre</span>
+        <div className={styles.unirGrid}>
+          {tables.map((t) => {
+            const esActual = mesaActual?.id === t.id
+            const esLibre = t.status === 'VACÍA' && !t.reservation
+            const seleccionada = mesaSeleccionada === t.id
+            const deshabilitada = esActual || !esLibre
+            let estadoLabel: string
+            let estadoClass: string
+            if (esActual) {
+              estadoLabel = 'Mesa actual'
+              estadoClass = styles.unirCardEstadoActual
+            } else if (esLibre) {
+              estadoLabel = 'Libre'
+              estadoClass = styles.unirCardEstado
+            } else if (t.status === 'OCUPADA') {
+              estadoLabel = 'Ocupada'
+              estadoClass = styles.unirCardEstadoSin
+            } else if (t.status === 'RESERVADA') {
+              estadoLabel = 'Reservada'
+              estadoClass = styles.unirCardEstadoSin
+            } else {
+              estadoLabel = t.status
+              estadoClass = styles.unirCardEstadoSin
+            }
+            return (
+              <div
+                key={t.id}
+                className={`${styles.unirCard} ${seleccionada ? styles.unirCardSel : ''} ${deshabilitada ? styles.unirCardDisabled : ''}`}
+                onClick={() => {
+                  if (deshabilitada) return
+                  setMesaSeleccionada(seleccionada ? null : t.id)
+                }}
+              >
+                <span className={styles.unirCardName}>Mesa {t.name} ({t.type})</span>
+                <div className={styles.unirCardInfo}>
+                  <span className={estadoClass}>{estadoLabel}</span>
+                  {t.status === 'RESERVADA' && t.reservation?.hora && !esActual && (
+                    <span className={styles.unirCardReserva}>{formatearHora(t.reservation.hora)}</span>
+                  )}
                 </div>
-              )
-            })}
-          </div>
-        )}
+              </div>
+            )
+          })}
+        </div>
       </div>
     )
   }
@@ -804,7 +833,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
               <div className={styles.divider} />
 
               <div className={styles.productosScroll}>
-                {pedido.items.map((item, i) => (
+                {itemsActuales.map((item, i) => (
                   <div key={i} className={styles.productoRow}>
                     <div className={styles.productoInfo}>
                       <span className={styles.productoName}>{item.nombre}</span>

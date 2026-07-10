@@ -17,6 +17,7 @@ interface ItemComanda {
   nombre: string
   precio: number
   cantidad: number
+  subtotal: number
 }
 
 interface TomaPedidoViewProps {
@@ -88,13 +89,13 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
           i.id === producto.id ? { ...i, cantidad: i.cantidad + 1 } : i
         )
       }
-      return [...prev, { id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1 }]
+      return [...prev, { id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1, subtotal: producto.precio }]
     })
   }
 
   function aumentarCantidad(id: number) {
     setComanda((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, cantidad: i.cantidad + 1 } : i))
+      prev.map((i) => (i.id === id ? { ...i, cantidad: i.cantidad + 1, subtotal: (i.cantidad + 1) * i.precio } : i))
     )
   }
 
@@ -104,7 +105,7 @@ function TomaPedidoView({ table, onBack, onConfirmarPedido }: TomaPedidoViewProp
       if (item && item.cantidad <= 1) {
         return prev.filter((i) => i.id !== id)
       }
-      return prev.map((i) => (i.id === id ? { ...i, cantidad: i.cantidad - 1 } : i))
+      return prev.map((i) => (i.id === id ? { ...i, cantidad: i.cantidad - 1, subtotal: (i.cantidad - 1) * i.precio } : i))
     })
   }
 

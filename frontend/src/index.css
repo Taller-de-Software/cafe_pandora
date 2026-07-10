@@ -2,113 +2,108 @@
 
 /* ===== LAYOUT ===== */
 .dashboard {
-  @apply flex h-screen bg-gray-100;
+  display: flex;
+  height: 100vh;
+  background: #f9fafb;
 }
-.dashboard__sidebar {
-  @apply flex flex-col transition-all duration-300 overflow-hidden;
-}
+
 .dashboard__body {
-  @apply flex flex-col flex-1 min-w-0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
+
 .dashboard__content {
-  @apply flex-1 overflow-auto p-6;
-}
-
-/* ===== SIDEBAR ===== */
-.sidebar {
-  @apply bg-amber-900 text-white;
-}
-.sidebar--expanded {
-  @apply w-56;
-}
-.sidebar--collapsed {
-  @apply w-16;
-}
-.sidebar__nav {
-  @apply flex-1 pt-4;
-}
-.sidebar__list {
-  @apply space-y-1 px-2;
-}
-.sidebar__link {
-  @apply flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-amber-100 hover:bg-amber-800 hover:text-white;
-}
-.sidebar__link--active {
-  @apply bg-amber-700 text-white font-semibold;
-}
-.sidebar--collapsed .sidebar__link {
-  @apply justify-center px-0;
-}
-.sidebar__icon {
-  @apply w-5 h-5 shrink-0;
-}
-.sidebar__label {
-  @apply truncate;
-}
-.sidebar--collapsed .sidebar__label {
-  @apply hidden;
-}
-/* ===== TOPBAR ===== */
-.topbar {
-  @apply flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3;
-}
-.topbar__toggle {
-  @apply text-gray-600 hover:text-amber-700 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer;
-}
-.topbar__title {
-  @apply text-lg font-bold text-amber-900;
-}
-.topbar__actions {
-  @apply flex items-center gap-2;
-}
-.topbar__btn {
-  @apply text-gray-600 hover:text-amber-700 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer;
-}
-.topbar__btn--logout {
-  @apply hover:text-red-600;
-}
-.topbar__icon {
-  @apply w-6 h-6;
-}
-
-/* ===== PAGE ===== */
-.page__title {
-  @apply text-2xl font-bold text-gray-800;
-}
-.page__desc {
-  @apply text-gray-500 mt-2;
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
 }
 
 /* ===== LOGIN ===== */
 .login {
-  @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-800 to-amber-950;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom right, #92400e, #451a03);
 }
+
 .login__card {
-  @apply bg-white rounded-xl shadow-2xl p-8 w-full max-w-md;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  width: 100%;
+  max-width: 28rem;
 }
+
 .login__title {
-  @apply text-3xl font-bold text-center text-amber-900 mb-6;
+  font-size: 1.875rem;
+  font-weight: 700;
+  text-align: center;
+  color: #7c2d12;
+  margin-bottom: 1.5rem;
 }
+
 .login__subtitle {
-  @apply text-gray-500 text-center mb-6;
+  color: #6b7280;
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
+
 .login__form {
-  @apply space-y-4;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
-.login__field {
-}
+
 .login__label {
-  @apply block text-sm font-medium text-gray-700 mb-1;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
 }
+
 .login__input {
-  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: ring 0.15s;
 }
+
+.login__input:focus {
+  ring: 2px solid #f59e0b;
+  border-color: #f59e0b;
+}
+
 .login__btn {
-  @apply w-full bg-amber-700 hover:bg-amber-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer;
+  width: 100%;
+  background: #b45309;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+
+.login__btn:hover {
+  background: #92400e;
+}
+
 .login__demo {
-  @apply text-center text-sm text-gray-400 mt-6;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-top: 1.5rem;
 }
+
 .login__demo-link {
-  @apply text-amber-600 hover:underline;
+  color: #d97706;
+  text-decoration: underline;
 }

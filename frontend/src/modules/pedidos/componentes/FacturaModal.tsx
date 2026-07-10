@@ -1,0 +1,267 @@
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import type { PedidoPendiente } from '@/types/PedidoPendiente'
+import styles from './FacturaModal.module.css'
+
+type MetodoPago = 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA'
+type EntidadTransferencia = 'NEQUI' | 'DAVIPLATA' | 'NU'
+
+interface FacturaModalProps {
+  pedido: PedidoPendiente
+  onClose: () => void
+  onConfirmar: (pedidoId: string) => void
+}
+
+const SVG_EFECTIVO = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="6" width="20" height="12" rx="2" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+)
+
+const SVG_TRANSFERENCIA = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="5" y="2" width="14" height="20" rx="2" />
+    <line x1="12" y1="18" x2="12.01" y2="18" />
+  </svg>
+)
+
+const SVG_TARJETA = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="4" width="22" height="16" rx="2" />
+    <line x1="1" y1="10" x2="23" y2="10" />
+  </svg>
+)
+
+const METODOS: { label: MetodoPago; svg: React.ReactNode }[] = [
+  { label: 'EFECTIVO', svg: SVG_EFECTIVO },
+  { label: 'TRANSFERENCIA', svg: SVG_TRANSFERENCIA },
+  { label: 'TARJETA', svg: SVG_TARJETA },
+]
+
+const ENTIDADES: EntidadTransferencia[] = ['NEQUI', 'DAVIPLATA', 'NU']
+
+function FacturaModal({ pedido, onClose, onConfirmar }: FacturaModalProps) {
+  const [metodoPago, setMetodoPago] = useState<MetodoPago | null>(null)
+  const [entidadTransferencia, setEntidadTransferencia] = useState<EntidadTransferencia>('NEQUI')
+  const [recibido, setRecibido] = useState('')
+  const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [onClose])
+
+  const handleMetodoChange = useCallback((m: MetodoPago) => {
+    setMetodoPago(m)
+    if (m === 'TRANSFERENCIA') {
+      setEntidadTransferencia('NEQUI')
+    }
+  }, [])
+
+  const subtotal = useMemo(() => pedido.total, [pedido.total])
+
+  const impuesto = useMemo(
+    () => (cobrarImpuesto ? subtotal * 0.08 : 0),
+    [cobrarImpuesto, subtotal]
+  )
+
+  const total = useMemo(() => subtotal + impuesto, [subtotal, impuesto])
+
+  const recibidoNum = useMemo(
+    () => {
+      const val = parseFloat(recibido.replace(/[^0-9.]/g, ''))
+      return isNaN(val) ? 0 : val
+    },
+    [recibido]
+  )
+
+  const cambio = useMemo(
+    () => (recibidoNum >= total ? recibidoNum - total : 0),
+    [recibidoNum, total]
+  )
+
+  const hoy = new Date()
+  const fechaStr = hoy.toLocaleDateString('es-MX', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+  })
+
+  const mesaNum = pedido.mesa.replace(/[^0-9]/g, '')
+
+  function handleRecibidoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value.replace(/[^0-9.]/g, '')
+    setRecibido(val)
+  }
+
+  function handleGenerar() {
+    console.log('Factura lista para generarse', {
+      pedidoId: pedido.id,
+      metodoPago,
+      entidadTransferencia: metodoPago === 'TRANSFERENCIA' ? entidadTransferencia : undefined,
+      total,
+      subtotal,
+      impuesto,
+      recibido: metodoPago === 'EFECTIVO' ? recibidoNum : undefined,
+      cambio: metodoPago === 'EFECTIVO' ? cambio : undefined,
+    })
+    onConfirmar(pedido.id)
+  }
+
+  const puedeGenerar = metodoPago !== null
+
+  return (
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <div className={styles.mesaBadge}>{mesaNum || '?'}</div>
+            <div className={styles.headerInfo}>
+              <h2 className={styles.headerTitle}>MESA {mesaNum}</h2>
+              <span className={styles.headerDate}>{fechaStr} - {pedido.horaCreacion}</span>
+            </div>
+          </div>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Cerrar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Mesa / Total row */}
+        <div className={styles.infoRow}>
+          <div className={styles.infoLeft}>
+            <span className={styles.infoLabel}>MESA</span>
+            <span className={styles.mesaNombre}>{pedido.mesa.toUpperCase()}</span>
+            <span className={styles.mesero}>Mesero: {pedido.mesero}</span>
+          </div>
+          <div className={styles.infoRight}>
+            <span className={styles.infoLabel}>TOTAL</span>
+            <span className={styles.totalGrande}>${(subtotal).toLocaleString()}</span>
+          </div>
+        </div>
+
+        {/* Payment method */}
+        <div className={styles.section}>
+          <span className={styles.sectionTitle}>MÉTODO DE PAGO</span>
+          <div className={styles.metodosGrid}>
+            {METODOS.map((m) => (
+              <button
+                key={m.label}
+                className={`${styles.metodoCard} ${metodoPago === m.label ? styles.metodoActivo : ''}`}
+                onClick={() => handleMetodoChange(m.label)}
+              >
+                <span className={`${styles.metodoIconCircle} ${metodoPago === m.label ? styles.metodoIconActivo : ''}`}>
+                  {m.svg}
+                </span>
+                <span className={styles.metodoLabel}>{m.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Entidad de Transferencia (only when TRANSFERENCIA selected) */}
+        {metodoPago === 'TRANSFERENCIA' && (
+          <div className={styles.section}>
+            <span className={styles.sectionTitle}>ENTIDAD DE TRANSFERENCIA</span>
+            <div className={styles.entidadGrid}>
+              {ENTIDADES.map((e) => (
+                <button
+                  key={e}
+                  className={`${styles.entidadCard} ${entidadTransferencia === e ? styles.entidadActiva : ''}`}
+                  onClick={() => setEntidadTransferencia(e)}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recibido / Cambio (only when EFECTIVO selected) */}
+        {metodoPago === 'EFECTIVO' && (
+          <div className={styles.montoRow}>
+            <div className={styles.montoField}>
+              <label className={styles.montoLabel}>RECIBIDO</label>
+              <input
+                className={styles.montoInput}
+                type="text"
+                inputMode="decimal"
+                placeholder="$0.00"
+                value={recibido}
+                onChange={handleRecibidoChange}
+              />
+            </div>
+            <div className={styles.montoField}>
+              <label className={styles.montoLabel}>CAMBIO</label>
+              <input
+                className={styles.montoInput}
+                type="text"
+                readOnly
+                value={`$${cambio.toLocaleString()}`}
+                tabIndex={-1}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Impuesto switch */}
+        <div className={styles.impuestoRow}>
+          <label className={styles.switch}>
+            <input
+              type="checkbox"
+              checked={cobrarImpuesto}
+              onChange={(e) => setCobrarImpuesto(e.target.checked)}
+            />
+            <span className={styles.switchSlider} />
+          </label>
+          <div className={styles.impuestoText}>
+            <span className={styles.impuestoTitle}>COBRAR IMPUESTO DE CONSUMO (8%)</span>
+            <span className={styles.impuestoDesc}>Calcula y suma el 8% al subtotal del pedido.</span>
+          </div>
+        </div>
+
+        {/* Summary */}
+        <div className={styles.resumen}>
+          <div className={styles.resumenRow}>
+            <span className={styles.resumenLabel}>Subtotal</span>
+            <span className={styles.resumenValor}>${subtotal.toLocaleString()}</span>
+          </div>
+          {cobrarImpuesto && (
+            <div className={styles.resumenRow}>
+              <span className={styles.resumenLabel}>Impuesto (8%)</span>
+              <span className={styles.resumenValor}>${impuesto.toLocaleString()}</span>
+            </div>
+          )}
+          <div className={`${styles.resumenRow} ${styles.resumenTotal}`}>
+            <span className={styles.resumenLabel}>Total</span>
+            <span className={styles.totalFinal}>${total.toLocaleString()}</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className={styles.actions}>
+          <button className={styles.btnCancelar} onClick={onClose}>
+            CANCELAR
+          </button>
+          <button
+            className={styles.btnGenerar}
+            onClick={handleGenerar}
+            disabled={!puedeGenerar}
+          >
+            {puedeGenerar ? 'CONFIRMAR COBRO' : 'GENERAR FACTURA'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default FacturaModal
