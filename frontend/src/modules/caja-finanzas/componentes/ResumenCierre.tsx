@@ -38,9 +38,9 @@ function ResumenCierre({ sesionId, onCerrar, onCancelar }: ResumenCierreProps) {
         >
           <div className={styles.headerGradient}>
             <div className={styles.header}>
-              <h3>Resumen del Día</h3>
+              <h3 className='uppercase'>Resumen del Día</h3>
               <span className={styles.date}>{new Date().toLocaleDateString()}</span>
-              <span className={styles.badgeActivo}>Caja abierta</span>
+              <span className={`${styles.badgeActivo} uppercase`}>Caja abierta</span>
             </div>
           </div>
 
@@ -170,8 +170,8 @@ function ResumenContent({ data, onCerrar, onCancelar }: { data: ResumenCaja; onC
       </div>
 
       <div className={styles.actions}>
-        <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
-        <button className={styles.confirmBtn} onClick={onCerrar}>
+        <button className={`${styles.cancelBtn} uppercase`} onClick={onCancelar}>Cancelar</button>
+        <button className={`${styles.confirmBtn} uppercase`} onClick={onCerrar}>
           Confirmar Cierre
         </button>
       </div>

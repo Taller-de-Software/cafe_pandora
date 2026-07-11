@@ -46,7 +46,7 @@ function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <div className={styles.modalHeader}>
-            <h3>Nuevo Movimiento</h3>
+            <h3 className='uppercase'>Nuevo Movimiento</h3>
           </div>
           <form onSubmit={handleSubmit}>
             <div className={styles.modalBody}>
@@ -63,8 +63,8 @@ function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
               </div>
             </div>
             <div className={styles.actions}>
-              <button type="button" className={styles.cancelBtn} onClick={onCancel}>Cancelar</button>
-              <button type="submit" className={styles.saveBtn} disabled={saving}>
+              <button type="button" className={`${styles.cancelBtn} uppercase`} onClick={onCancel}>Cancelar</button>
+              <button type="submit" className={`${styles.saveBtn} uppercase`} disabled={saving}>
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
