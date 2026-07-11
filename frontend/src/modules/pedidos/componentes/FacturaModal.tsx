@@ -4,6 +4,7 @@ import type { Pedido } from '../data/pedidos'
 import { listarMetodosPago, crearFactura, imprimirFactura, obtenerSesionCajaActiva } from '../data/facturas'
 import type { MetodoPago } from '../data/facturas'
 import { useError } from '@/context/ErrorContext'
+import { useFormattedInput } from '@/hooks/useFormattedInput'
 import styles from './FacturaModal.module.css'
 
 interface FacturaModalProps {
@@ -43,18 +44,20 @@ const TRANSFERENCIA_ENTIDADES = ['NEQUI', 'DAVIPLATA', 'NU'] as const
 function FacturaModal({ pedido, onClose }: FacturaModalProps) {
   const { showError } = useError()
   const [metodoSeleccionId, setMetodoSeleccionId] = useState<number | null>(null)
-  const [recibido, setRecibido] = useState('')
+  const recibido = useFormattedInput({ type: 'money' })
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
   const [entidadTransferencia, setEntidadTransferencia] = useState<typeof TRANSFERENCIA_ENTIDADES[number]>('NEQUI')
 
   const { data: metodosPago = [], isPending: metodosLoading } = useQuery({
     queryKey: ['metodos-pago'],
     queryFn: listarMetodosPago,
+    onError: showError,
   })
 
   const { data: sesionCaja } = useQuery({
     queryKey: ['sesion-caja-activa'],
     queryFn: obtenerSesionCajaActiva,
+    onError: showError,
   })
 
   useEffect(() => {
@@ -114,31 +117,18 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
 
   const total = useMemo(() => subtotal + impuesto, [subtotal, impuesto])
 
-  const recibidoNum = useMemo(
-    () => {
-      const val = parseFloat(recibido.replace(/[^0-9.]/g, ''))
-      return isNaN(val) ? 0 : val
-    },
-    [recibido]
-  )
-
   const cambio = useMemo(
-    () => (recibidoNum >= total ? recibidoNum - total : 0),
-    [recibidoNum, total]
+    () => (recibido.numericValue >= total ? recibido.numericValue - total : 0),
+    [recibido.numericValue, total]
   )
 
   const hoy = new Date()
-  const fechaStr = hoy.toLocaleDateString('es-CL', {
+  const fechaStr = hoy.toLocaleDateString('es-CO', {
     day: '2-digit', month: '2-digit', year: 'numeric',
   })
 
   const mesaNombre = pedido.mesa?.nombre ?? `Mesa ${pedido.mesaId}`
   const mesaNum = mesaNombre.replace(/\D/g, '')
-
-  function handleRecibidoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const val = e.target.value.replace(/[^0-9.]/g, '')
-    setRecibido(val)
-  }
 
   const crearFacturaMut = useMutation({
     mutationFn: crearFactura,
@@ -183,7 +173,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
             <div className={styles.mesaBadge}>{mesaNum || '?'}</div>
             <div className={styles.headerInfo}>
               <h2 className={styles.headerTitle}>MESA {mesaNum}</h2>
-              <span className={styles.headerDate}>{fechaStr} &middot; {new Date(pedido.creadoEn).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</span>
+              <span className={styles.headerDate}>{fechaStr} &middot; {new Date(pedido.creadoEn).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Cerrar">
@@ -202,7 +192,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
           </div>
           <div className={styles.infoRight}>
             <span className={styles.infoLabel}>TOTAL</span>
-            <span className={styles.totalGrande}>${subtotal.toLocaleString('es-CL')}</span>
+            <span className={styles.totalGrande}>${subtotal.toLocaleString('es-CO')}</span>
           </div>
         </div>
 
@@ -253,11 +243,8 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
               <label className={styles.montoLabel}>RECIBIDO</label>
               <input
                 className={styles.montoInput}
-                type="text"
-                inputMode="decimal"
-                placeholder="$0.00"
-                value={recibido}
-                onChange={handleRecibidoChange}
+                {...recibido.inputProps}
+                placeholder="$0"
               />
             </div>
             <div className={styles.montoField}>
@@ -266,7 +253,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
                 className={styles.montoInput}
                 type="text"
                 readOnly
-                value={`$${cambio.toLocaleString('es-CL')}`}
+                value={`$${cambio.toLocaleString('es-CO')}`}
                 tabIndex={-1}
               />
             </div>
@@ -291,17 +278,17 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
         <div className={styles.resumen}>
           <div className={styles.resumenRow}>
             <span className={styles.resumenLabel}>Subtotal</span>
-            <span className={styles.resumenValor}>${subtotal.toLocaleString('es-CL')}</span>
+            <span className={styles.resumenValor}>${subtotal.toLocaleString('es-CO')}</span>
           </div>
           {cobrarImpuesto && (
             <div className={styles.resumenRow}>
               <span className={styles.resumenLabel}>Impuesto (8%)</span>
-              <span className={styles.resumenValor}>${impuesto.toLocaleString('es-CL')}</span>
+              <span className={styles.resumenValor}>${impuesto.toLocaleString('es-CO')}</span>
             </div>
           )}
           <div className={`${styles.resumenRow} ${styles.resumenTotal}`}>
             <span className={styles.resumenLabel}>Total</span>
-            <span className={styles.totalFinal}>${total.toLocaleString('es-CL')}</span>
+            <span className={styles.totalFinal}>${total.toLocaleString('es-CO')}</span>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { connectSocket, disconnectSocket, getSocket } from '@/services/socket'
+import { connectSocket, getSocket } from '@/services/socket'
 
 export function usePedidosSocket() {
   const queryClient = useQueryClient()
@@ -66,7 +66,6 @@ export function usePedidosSocket() {
       socket.off('caja:apertura', onCajaApertura)
       socket.off('caja:cierre', onCajaCierre)
       socket.off('caja:retiro', onCajaRetiro)
-      disconnectSocket()
     }
   }, [queryClient])
 }

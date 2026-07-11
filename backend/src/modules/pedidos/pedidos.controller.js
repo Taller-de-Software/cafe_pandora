@@ -37,7 +37,7 @@ export const crear = async (req, res, next) => {
     const pedido = await pedidosService.crear(req.body, req.user.id);
 
     const io = getIO(req);
-    io.to("room:ADMIN").emit("pedido:nuevo", pedido);
+    io.to("room:all").emit("pedido:nuevo", pedido);
     io.to("room:all").emit("mesa:actualizada", { mesaId: req.body.mesaId });
 
     created(res, pedido, "Pedido creado");

@@ -19,6 +19,7 @@ function Inicio() {
     queryKey: ['pedidos-activos'],
     queryFn: () => listarPedidos(),
     refetchInterval: 10_000,
+    onError: showError,
   })
 
   const cambiarEstadoMut = useMutation({

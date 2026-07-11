@@ -136,8 +136,10 @@ function Usuarios() {
                   type="password"
                   className={styles.input}
                   value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  placeholder="••••••••"
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="••••••"
                 />
               </div>
               <div className={styles.modalActions}>

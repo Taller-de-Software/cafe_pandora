@@ -74,7 +74,7 @@ function FormularioPedido({ onSave, onCancel }: FormularioPedidoProps) {
           </div>
           <div className={styles.field}>
             <label>Turno</label>
-            <input className={styles.select} type="number" value={turno} onChange={(e) => setTurno(Number(e.target.value))} min={1} />
+            <input className={styles.select} type="text" inputMode="numeric" value={turno} onChange={(e) => setTurno(Math.max(1, parseInt(e.target.value.replace(/\D/g, ''), 10) || 1))} maxLength={2} />
           </div>
 
           <div className={styles.itemsHeader}>
@@ -91,10 +91,11 @@ function FormularioPedido({ onSave, onCancel }: FormularioPedidoProps) {
                 ))}
               </select>
               <input
-                type="number"
-                min={1}
+                type="text"
+                inputMode="numeric"
+                maxLength={3}
                 value={item.cantidad}
-                onChange={(e) => updateItem(i, 'cantidad', Number(e.target.value))}
+                onChange={(e) => updateItem(i, 'cantidad', Math.max(1, parseInt(e.target.value.replace(/\D/g, ''), 10) || 1))}
               />
               <button type="button" className={styles.removeBtn} onClick={() => removeItem(i)}>X</button>
             </div>

@@ -1,5 +1,6 @@
 import { storage } from './storage'
 import { getApiUrl } from './server-config'
+import { disconnectSocket } from './socket'
 
 export function getBaseUrl(): string {
   return getApiUrl()
@@ -69,6 +70,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     if (res.status === 401 && storage.getRefreshToken()) {
       const ok = await refreshTokens()
       if (ok) return request<T>(path, options)
+      disconnectSocket()
       storage.clear()
       window.location.href = '/'
       throw new Error('401 Sesión expirada')

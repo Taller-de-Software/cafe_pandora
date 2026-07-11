@@ -65,7 +65,7 @@ function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalPr
 
           <div className={styles.field}>
             <label>Teléfono (opcional)</label>
-            <input className={styles.input} value={telefono} onChange={(e) => setTelefono(e.target.value)} />
+            <input className={styles.input} value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))} inputMode="numeric" maxLength={10} placeholder="Opcional" />
           </div>
 
           <div className={localStyles.row}>

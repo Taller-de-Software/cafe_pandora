@@ -101,7 +101,9 @@ function Login() {
                         type="password"
                         className={styles.input}
                         value={pin}
-                        onChange={(e) => setPin(e.target.value)}
+                        onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        inputMode="numeric"
+                        maxLength={6}
                         placeholder="PIN Numérico"
                       />
                     </div>
@@ -125,7 +127,9 @@ function Login() {
                       type="password"
                       className={styles.input}
                       value={pin}
-                      onChange={(e) => setPin(e.target.value)}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      inputMode="numeric"
+                      maxLength={6}
                       placeholder="PIN Numérico"
                     />
                   </div>
