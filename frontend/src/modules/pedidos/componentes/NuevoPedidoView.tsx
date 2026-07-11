@@ -165,11 +165,11 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
         <div className={styles.buttons}>
           {isAdmin && (
             <button className={styles.btnPrimary} onClick={() => setShowNewTable(true)}>
-              + Agregar Nueva Mesa
+              + AGREGAR NUEVA MESA
             </button>
           )}
           <button className={styles.btnReservar} onClick={() => setShowReservarMesa(true)}>
-            📅 RESERVAR UNA MESA
+            RESERVAR UNA MESA
           </button>
           <button className={styles.btnEditarReservas} onClick={() => setShowEditarReservas(true)}>
             EDITAR RESERVAS

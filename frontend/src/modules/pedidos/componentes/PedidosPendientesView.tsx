@@ -39,7 +39,7 @@ function PedidosPendientesView() {
     <div>
       <div className={styles.header}>
         <div className={styles.headerTop}>
-          <h2 className={styles.headerTitle}>&#x1F550; COLA DE COMANDAS PENDIENTES</h2>
+          <h2 className={styles.headerTitle}>COLA DE COMANDAS PENDIENTES</h2>
           <span className={styles.orderCounter}>{pedidosActivos.length} Pedidos</span>
         </div>
         <p className={styles.headerDesc}>Control de despachos en cocina y barra ordenados por orden de llegada.</p>

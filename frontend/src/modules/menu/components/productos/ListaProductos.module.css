@@ -7,7 +7,7 @@
 .gestionBar {
   padding: 0.75rem 1rem;
   border-radius: 0.875rem;
-  background: #FFFFFF;
+  background: #fef9ef;
   border: 1px solid #E8E1D8;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
@@ -44,6 +44,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
+  text-transform: uppercase;
   transition: background-color 0.15s ease, transform 0.1s ease;
   white-space: nowrap;
 }

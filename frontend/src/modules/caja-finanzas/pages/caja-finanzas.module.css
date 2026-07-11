@@ -8,23 +8,49 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
+  background: #fef9ef;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.headerIcon {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fef3c7;
+  border-radius: 12px;
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
 }
 
 .title {
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: #2D2A26;
+  font-family: Inter, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1f2937;
   margin: 0;
-  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .subtitle {
   font-family: Inter, sans-serif;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #6E6A65;
-  margin: 0.25rem 0 0;
+  margin: 0;
+  line-height: 1.4;
   font-weight: 400;
 }
 
@@ -157,6 +183,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: #9B9792;
+  text-transform: uppercase;
   transition: all 0.2s;
 }
 
@@ -191,6 +218,7 @@
   font-weight: 600;
   color: #9B9792;
   cursor: pointer;
+  text-transform: uppercase;
   transition: all 0.2s;
 }
 

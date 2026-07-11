@@ -47,7 +47,10 @@ function SliderLateral({ isOpen }: SliderLateralProps) {
       </div>
 
       <div className={styles.navSection}>
-        <p className={styles.navTitle}>CATEGORÍAS</p>
+        <p className={styles.navTitle}>
+          CATEGORÍAS
+          <span className={styles.navTitleBadge}>{items.length}</span>
+        </p>
         <nav className={styles.navList}>
           {items.map((item) => (
             <NavLink
