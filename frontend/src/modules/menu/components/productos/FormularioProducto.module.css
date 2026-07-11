@@ -79,8 +79,8 @@
 }
 
 .input:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+  border-color: #7A3E1D;
+  box-shadow: 0 0 0 2px rgba(122, 62, 29, 0.15);
 }
 
 .select {
@@ -94,8 +94,8 @@
 }
 
 .select:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+  border-color: #7A3E1D;
+  box-shadow: 0 0 0 2px rgba(122, 62, 29, 0.15);
 }
 
 .textarea {
@@ -110,8 +110,8 @@
 }
 
 .textarea:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+  border-color: #7A3E1D;
+  box-shadow: 0 0 0 2px rgba(122, 62, 29, 0.15);
 }
 
 .row2 {
@@ -213,7 +213,7 @@
 
 .btnGuardar {
   padding: 0.5rem 1.25rem;
-  background: #d97706;
+  background: #7A3E1D;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -224,7 +224,7 @@
 }
 
 .btnGuardar:hover:not(:disabled) {
-  background: #b45309;
+  background: #5E2F17;
 }
 
 .btnGuardar:disabled {
