@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '@modules/auth/context/useAuth'
+import { useProfile } from '../context/ProfileContext'
 import Icono from './iconos'
 import { itemsFijos, type ItemNavegacion } from '../data/navegacion'
+import ProfileSettingsModal from './ProfileSettingsModal'
 import styles from './slider-lateral.module.css'
 
 const SUBTITLES: Record<string, string> = {
@@ -26,8 +29,10 @@ interface SliderLateralProps {
 
 function SliderLateral({ isOpen }: SliderLateralProps) {
   const { user, logout } = useAuth()
+  const { profile } = useProfile()
   const navigate = useNavigate()
   const items = filtrarPorRol(itemsFijos, user?.rol)
+  const [showProfileModal, setShowProfileModal] = useState(false)
 
   function handleLogout() {
     logout()
@@ -74,15 +79,16 @@ function SliderLateral({ isOpen }: SliderLateralProps) {
 
       <div className={styles.bottomSection}>
         <p className={styles.rolTitle}>ROL DE ACCESOS</p>
-        <div className={styles.userCard}>
+        <div className={styles.userCard} onClick={() => setShowProfileModal(true)}>
           <div className={styles.userAvatar}>
-            {user?.nombre?.charAt(0)?.toUpperCase() || (user?.rol ? user.rol.charAt(0).toUpperCase() : '?')}
+            {profile.nombre.charAt(0).toUpperCase() || (user?.rol ? user.rol.charAt(0).toUpperCase() : '?')}
           </div>
           <div className={styles.userInfo}>
-            <span className={styles.userName}>{user?.nombre || (user?.rol ? user.rol.charAt(0).toUpperCase() + user.rol.slice(1) : 'Usuario')}</span>
+            <span className={styles.userName}>{profile.nombre || (user?.rol ? user.rol.charAt(0).toUpperCase() + user.rol.slice(1) : 'Usuario')}</span>
             <span className={styles.userRole}>{(user?.rol || '').toUpperCase()}</span>
           </div>
         </div>
+        <ProfileSettingsModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
         <button className={styles.logoutBtn} onClick={handleLogout}>
           <Icono name="salir" className={styles.logoutIcon} />
           CERRAR SESIÓN
