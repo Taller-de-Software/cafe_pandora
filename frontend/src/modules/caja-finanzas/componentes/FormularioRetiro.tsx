@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useError } from '@/context/ErrorContext'
+import { useFormattedInput } from '@/hooks/useFormattedInput'
 import styles from './FormularioRetiro.module.css'
 
 interface FormularioRetiroProps {
@@ -11,16 +12,15 @@ interface FormularioRetiroProps {
 function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
   const { showError } = useError()
   const [tipo, setTipo] = useState<'entrada' | 'salida'>('entrada')
-  const [monto, setMonto] = useState('')
+  const monto = useFormattedInput({ type: 'money' })
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    const val = parseFloat(monto)
-    if (isNaN(val) || val <= 0) return
+    if (monto.numericValue <= 0) return
     setSaving(true)
     try {
-      await onSave({ tipo, monto: val })
+      await onSave({ tipo, monto: monto.numericValue })
     } catch (err) {
       showError(err)
     } finally {
@@ -59,7 +59,7 @@ function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
               </div>
               <div className={styles.field}>
                 <label>Monto</label>
-                <input className={styles.input} type="number" step="0.01" min="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} autoFocus />
+                <input className={styles.input} {...monto.inputProps} autoFocus />
               </div>
             </div>
             <div className={styles.actions}>

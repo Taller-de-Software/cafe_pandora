@@ -82,7 +82,7 @@ function ReservationModal({ mesa, onSave, onClose }: ReservationModalProps) {
             </div>
             <div className={styles.field}>
               <label>Teléfono</label>
-              <input className={styles.input} value={telefono} onChange={(e) => setTelefono(e.target.value)} />
+              <input className={styles.input} value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))} inputMode="numeric" maxLength={10} placeholder="Opcional" />
             </div>
             <div className={styles.field}>
               <label>Fecha</label>

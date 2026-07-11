@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useError } from '@/context/ErrorContext'
+import { useFormattedInput } from '@/hooks/useFormattedInput'
 import styles from './FormularioApertura.module.css'
 
 interface FormularioAperturaProps {
@@ -10,16 +11,15 @@ interface FormularioAperturaProps {
 
 function FormularioApertura({ onSave, onCancel }: FormularioAperturaProps) {
   const { showError } = useError()
-  const [monto, setMonto] = useState('')
+  const monto = useFormattedInput({ type: 'money' })
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    const val = parseFloat(monto)
-    if (isNaN(val) || val <= 0) return
+    if (monto.numericValue <= 0) return
     setSaving(true)
     try {
-      await onSave(val)
+      await onSave(monto.numericValue)
     } catch (err) {
       showError(err)
     } finally {
@@ -53,12 +53,8 @@ function FormularioApertura({ onSave, onCancel }: FormularioAperturaProps) {
                 <label>Base Inicial</label>
                 <input
                   className={styles.input}
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={monto}
-                  onChange={(e) => setMonto(e.target.value)}
-                  placeholder="0.00"
+                  {...monto.inputProps}
+                  placeholder="0"
                   autoFocus
                 />
               </div>

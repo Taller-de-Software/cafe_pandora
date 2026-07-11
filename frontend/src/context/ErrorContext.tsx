@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import ErrorModal from '@/componentes/ErrorModal'
 
 interface ErrorContextValue {
@@ -18,7 +19,10 @@ export function ErrorProvider({ children }: { children: ReactNode }) {
   return (
     <ErrorContext.Provider value={{ showError }}>
       {children}
-      {error && <ErrorModal error={error} onClose={() => setError(null)} />}
+      {error && createPortal(
+        <ErrorModal error={error} onClose={() => setError(null)} />,
+        document.body
+      )}
     </ErrorContext.Provider>
   )
 }

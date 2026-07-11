@@ -4,6 +4,7 @@ import type { Pedido } from '../data/pedidos'
 import { imprimirCocina } from '../data/pedidos'
 import DetallePedidoModal from './DetallePedidoModal'
 import FacturaModal from './FacturaModal'
+import { useError } from '@/context/ErrorContext'
 import styles from './ColaDeComandasPendientes.module.css'
 
 interface ColaDeComandasPendientesProps {
@@ -29,6 +30,7 @@ const BADGE_LABEL: Record<string, string> = {
 }
 
 function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyMessage, emptyHint }: ColaDeComandasPendientesProps) {
+  const { showError } = useError()
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
   const [detailPedido, setDetailPedido] = useState<Pedido | null>(null)
   const [pedidoAFacturar, setPedidoAFacturar] = useState<Pedido | null>(null)
@@ -50,6 +52,7 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
 
   const imprimirCocinaMut = useMutation({
     mutationFn: imprimirCocina,
+    onError: showError,
   })
 
   const handleReciboCocina = (id: string) => {

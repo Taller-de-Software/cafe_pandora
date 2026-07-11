@@ -46,7 +46,7 @@ function NewTableModal({ onClose }: NewTableModalProps) {
           </div>
           <div className={styles.field}>
             <label>Capacidad</label>
-            <input className={styles.input} type="number" min={1} value={capacidad} onChange={(e) => setCapacidad(Number(e.target.value))} />
+            <input className={styles.input} type="text" inputMode="numeric" maxLength={2} value={capacidad} onChange={(e) => setCapacidad(Math.max(1, parseInt(e.target.value.replace(/\D/g, ''), 10) || 1))} />
           </div>
           <div className={styles.actions}>
             <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancelar</button>

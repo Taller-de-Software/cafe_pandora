@@ -3,6 +3,7 @@ import type { Producto } from '../../api/productos'
 import type { Categoria } from '../../api/categorias'
 import type { Subcategoria } from '../../api/subcategorias'
 import { useError } from '@/context/ErrorContext'
+import { useFormattedInput } from '@/hooks/useFormattedInput'
 import styles from './FormularioProducto.module.css'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'
@@ -38,7 +39,7 @@ function FormularioProducto({
   const esEdicion = !!producto
 
   const [nombre, setNombre] = useState(producto?.nombre ?? '')
-  const [precio, setPrecio] = useState(producto ? String(producto.precio) : '')
+  const precio = useFormattedInput({ type: 'money', initialValue: producto ? String(producto.precio) : '' })
   const [categoriaId, setCategoriaId] = useState<number | ''>(producto?.categoriaId ?? '')
   const [subcategoriaId, setSubcategoriaId] = useState<number | ''>(producto?.subcategoriaId ?? '')
   const [descripcion, setDescripcion] = useState(producto?.descripcion ?? '')
@@ -48,12 +49,6 @@ function FormularioProducto({
   const [archivo, setArchivo] = useState<File | null>(null)
   const [archivoPreview, setArchivoPreview] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-
-  function handlePrecioChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const soloDigitos = e.target.value.replace(/\D/g, '')
-    const formateado = soloDigitos.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-    setPrecio(formateado)
-  }
 
   const subcategoriasFiltradas = subcategorias.filter(
     (s) => s.categoriaId === categoriaId
@@ -72,11 +67,11 @@ function FormularioProducto({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!nombre.trim() || !precio || categoriaId === '') return
+    if (!nombre.trim() || !precio.raw || categoriaId === '') return
 
     const fd = new FormData()
     fd.append('nombre', nombre.trim())
-    fd.append('precio', String(parseFloat(precio.replace(/\./g, ''))))
+    fd.append('precio', String(precio.numericValue))
     fd.append('categoriaId', String(categoriaId))
     if (descripcion.trim()) fd.append('descripcion', descripcion.trim())
     fd.append('requierePreparacion', String(requierePreparacion))
@@ -116,10 +111,7 @@ function FormularioProducto({
           <label className={styles.label}>Precio COP *</label>
           <input
             className={styles.input}
-            type="text"
-            inputMode="numeric"
-            value={precio}
-            onChange={handlePrecioChange}
+            {...precio.inputProps}
             placeholder="0"
           />
         </div>
@@ -249,7 +241,7 @@ function FormularioProducto({
         <button
           type="submit"
           className={styles.btnGuardar}
-          disabled={saving || !nombre.trim() || !precio || categoriaId === ''}
+          disabled={saving || !nombre.trim() || !precio.raw || categoriaId === ''}
         >
           {saving
             ? 'Guardando...'
