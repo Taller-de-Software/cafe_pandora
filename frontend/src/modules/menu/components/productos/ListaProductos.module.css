@@ -6,9 +6,10 @@
 
 .gestionBar {
   padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border-radius: 0.875rem;
+  background: #FFFFFF;
+  border: 1px solid #E8E1D8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .header {
@@ -24,6 +25,7 @@
   color: #1f2937;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  margin: 0;
 }
 
 .contador {
@@ -35,7 +37,7 @@
 .btnAgregar {
   margin-left: auto;
   padding: 0.5rem 1rem;
-  background: #d97706;
+  background: #7A3E1D;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -47,7 +49,7 @@
 }
 
 .btnAgregar:hover {
-  background: #b45309;
+  background: #5E2F17;
   transform: translateY(-1px);
 }
 
@@ -63,6 +65,23 @@
   padding: 2rem;
   color: #9ca3af;
   font-size: 0.875rem;
+}
+
+.grupos {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.75rem;
+}
+
+.grupoSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.grupoSection + .grupoSection {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
 }
 
 .noCategory {

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useError } from '@/context/ErrorContext'
 import ListaCategorias from '../components/categorias/ListaCategorias'
@@ -10,6 +11,12 @@ import { listarCategorias, crearCategoria, actualizarCategoria, eliminarCategori
 import { listarSubcategorias, crearSubcategoria, actualizarSubcategoria, eliminarSubcategoria } from '../api/subcategorias'
 import { listarProductos, crearProducto, actualizarProducto, eliminarProducto } from '../api/productos'
 import type { Producto } from '../api/productos'
+
+interface GrupoProductos {
+  subcategoriaId: number | null
+  nombre: string
+  productos: Producto[]
+}
 import styles from './menu.module.css'
 
 function Menu() {
@@ -44,6 +51,29 @@ function Menu() {
 
   const selectedCategoria = categorias.find((c) => c.id === categoriaActivaId)
   const categoriaNombre = selectedCategoria?.nombre ?? (categoriaActivaId === null ? 'Todos los productos' : null)
+
+  const grupos: GrupoProductos[] | null =
+    categoriaActivaId === null && subcategoriaActivaId === null
+      ? (() => {
+          const map = new Map<number | null, Producto[]>()
+          for (const p of productosFiltrados) {
+            const key = p.subcategoriaId ?? null
+            if (!map.has(key)) map.set(key, [])
+            map.get(key)!.push(p)
+          }
+          return Array.from(map.entries())
+            .map(([id, prods]) => ({
+              subcategoriaId: id,
+              nombre: prods[0]?.subcategoria?.nombre ?? 'OTROS',
+              productos: prods,
+            }))
+            .sort((a, b) => {
+              if (a.subcategoriaId === null) return 1
+              if (b.subcategoriaId === null) return -1
+              return a.nombre.localeCompare(b.nombre)
+            })
+        })()
+      : null
 
   function handleSelectCategoria(id: number | null) {
     setCategoriaActivaId(id)
@@ -155,6 +185,11 @@ function Menu() {
 
   return (
     <div className={styles.layout}>
+      <div className={styles.breadcrumb}>
+        <Link to="/dashboard" className={styles.breadcrumbLink}>← Volver al Inicio</Link>
+        <span className={styles.breadcrumbSep}>/</span>
+        <span className={styles.breadcrumbCurrent}>MENÚ</span>
+      </div>
       <div className={styles.banner}>
         <div className={styles.bannerIcono}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -166,26 +201,27 @@ function Menu() {
           <p>Accede a los servicios de menú de Cafe Pandora</p>
         </div>
       </div>
-      <div className={styles.seccion}>
-        <label className={styles.seccionLabel}>Categorías</label>
-        <ListaCategorias
-          categorias={categorias}
-          categoriaActivaId={categoriaActivaId}
-          onSeleccionar={handleSelectCategoria}
-        />
-      </div>
-
-      <div className={styles.seccion}>
-        <label className={styles.seccionLabel}>Subcategorías</label>
-        {subCargando && <p>Cargando...</p>}
-        {subError && <p>Error al cargar subcategorías</p>}
-        {!subCargando && !subError && (
-          <ListaSubcategorias
-            subcategorias={subcategorias}
-            subcategoriaActivaId={subcategoriaActivaId}
-            onSeleccionar={setSubcategoriaActivaId}
+      <div className={styles.tarjetaFiltros}>
+        <div className={styles.bloqueFiltro}>
+          <label className={styles.seccionLabel}>Categorías</label>
+          <ListaCategorias
+            categorias={categorias}
+            categoriaActivaId={categoriaActivaId}
+            onSeleccionar={handleSelectCategoria}
           />
-        )}
+        </div>
+        <div className={styles.bloqueFiltro}>
+          <label className={styles.seccionLabel}>Subcategorías</label>
+          {subCargando && <p>Cargando...</p>}
+          {subError && <p>Error al cargar subcategorías</p>}
+          {!subCargando && !subError && (
+            <ListaSubcategorias
+              subcategorias={subcategorias}
+              subcategoriaActivaId={subcategoriaActivaId}
+              onSeleccionar={setSubcategoriaActivaId}
+            />
+          )}
+        </div>
       </div>
 
       <div className={styles.seccionProductos}>
@@ -194,6 +230,7 @@ function Menu() {
         {!prodCargando && !prodError && (
           <ListaProductos
             productos={productosFiltrados}
+            grupos={grupos}
             categoriaNombre={categoriaNombre}
             onGestionar={() => setShowGestion(true)}
             onEditar={abrirFormProducto}

@@ -1,0 +1,22 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
+}
+
+.nombre {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #7A3E1D;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.contador {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  font-weight: 500;
+}

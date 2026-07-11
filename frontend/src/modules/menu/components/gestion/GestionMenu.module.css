@@ -92,8 +92,8 @@
 }
 
 .opcionCard:hover {
-  border-color: #d97706;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.1);
+  border-color: #7A3E1D;
+  box-shadow: 0 2px 8px rgba(122, 62, 29, 0.1);
   background: #fff;
 }
 
@@ -106,7 +106,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #d97706;
+  color: #7A3E1D;
 }
 
 .texto h4 {

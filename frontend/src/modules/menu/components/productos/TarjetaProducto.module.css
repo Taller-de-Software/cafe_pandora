@@ -12,7 +12,7 @@
 }
 
 .cardExpandido {
-  border-color: #d97706;
+  border-color: #7A3E1D;
 }
 
 .imagen {
@@ -116,7 +116,7 @@
 .precio {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #b45309;
+  color: #7A3E1D;
 }
 
 .linkAccion {
@@ -124,7 +124,7 @@
   border: none;
   padding: 0;
   font-size: 0.8125rem;
-  color: #d97706;
+  color: #7A3E1D;
   cursor: pointer;
   font-weight: 500;
   transition: color 0.15s ease, transform 0.1s ease;
@@ -148,7 +148,7 @@
   padding: 0.375rem 1rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  background: #d97706;
+  background: #7A3E1D;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -248,7 +248,7 @@
   border: none;
   padding: 0;
   font-size: 0.8125rem;
-  color: #d97706;
+  color: #7A3E1D;
   cursor: pointer;
   font-weight: 500;
   margin-left: auto;
