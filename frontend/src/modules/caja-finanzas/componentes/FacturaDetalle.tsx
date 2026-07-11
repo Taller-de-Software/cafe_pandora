@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import type { ResumenFactura } from '../data/caja'
-import { imprimirFactura } from '../data/caja'
+import { imprimirFactura } from '../../pedidos/data/facturas'
 import { formatearNumero } from '@/utils/formatear'
 import { useError } from '@/context/ErrorContext'
 import styles from './FacturaDetalle.module.css'

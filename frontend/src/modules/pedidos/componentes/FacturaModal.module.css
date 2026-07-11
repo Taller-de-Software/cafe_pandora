@@ -464,3 +464,69 @@
     transform: translateY(0);
   }
 }
+
+@media (max-width: 480px) {
+  .modal {
+    width: 95%;
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .header {
+    padding: 1rem;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .headerTitle {
+    font-size: 1rem;
+  }
+
+  .infoRow {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .infoRight {
+    align-items: flex-start;
+  }
+
+  .totalGrande {
+    font-size: 1.5rem;
+  }
+
+  .section {
+    padding: 0.75rem 1rem;
+  }
+
+  .metodosGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .entidadGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .montoRow {
+    grid-template-columns: 1fr;
+    padding: 0.75rem 1rem;
+  }
+
+  .impuestoRow {
+    padding: 0.75rem 1rem;
+  }
+
+  .resumen {
+    padding: 0.75rem 1rem;
+  }
+
+  .actions {
+    padding: 1rem;
+    flex-direction: column;
+  }
+
+  .btnCancelar,
+  .btnGenerar {
+    width: 100%;
+  }
+}

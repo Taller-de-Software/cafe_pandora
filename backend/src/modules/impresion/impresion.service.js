@@ -1,6 +1,7 @@
 import prisma from "../../config/db.config.js";
 import { connectPrinter, printCocina, printPago, disconnectPrinter } from "../../utils/printer.js";
 import { generarPDFComanda, generarPDFRecibo } from "../../utils/pdfGenerator.js";
+import { getPrintMode, setPrintMode } from "../../config/print-config.js";
 
 function crearError(statusCode, message) {
   const error = new Error(message);
@@ -20,6 +21,7 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     where: { id: pedidoId },
     include: {
       mesa: true,
+      usuario: true,
       detalles: { include: { producto: true } },
     },
   });
@@ -29,6 +31,7 @@ export const imprimirFacturaCocina = async (pedidoId) => {
   const data = {
     pedidoId: pedido.id,
     mesa: pedido.mesa.nombre,
+    mesero: pedido.usuario?.nombre || pedido.usuario?.rol || "Sin mesero",
     fecha: formatFecha(),
     items: pedido.detalles.map((d) => ({
       cantidad: d.cantidad,
@@ -37,7 +40,7 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     })),
   };
 
-  if (process.env.PRINT_MODE === "simulate") {
+  if (getPrintMode() === "simulate") {
     console.log("🖨️  [IMPRESIÓN SIMULADA]");
     console.log(JSON.stringify(data, null, 2));
     const pdfUrl = await generarPDFComanda(data);
@@ -75,13 +78,14 @@ export const imprimirReciboPago = async (facturaId) => {
 
   const data = {
     facturaId: factura.id,
+    facturaNumero: `#${factura.id}`,
     mesa,
     fecha: formatFecha(),
     items,
     total: factura.total,
   };
 
-  if (process.env.PRINT_MODE === "simulate") {
+  if (getPrintMode() === "simulate") {
     console.log("🖨️  [IMPRESIÓN SIMULADA]");
     console.log(JSON.stringify(data, null, 2));
     const pdfUrl = await generarPDFRecibo(data);
@@ -96,11 +100,20 @@ export const imprimirReciboPago = async (facturaId) => {
 };
 
 export const probarImpresora = async () => {
-  if (process.env.PRINT_MODE === "simulate") {
+  if (getPrintMode() === "simulate") {
     console.log("🖨️  [IMPRESIÓN SIMULADA]");
     return { message: "Modo simulación activo" };
   }
   await connectPrinter();
   disconnectPrinter();
   return { message: "Impresora conectada exitosamente" };
+};
+
+export const obtenerModoImpresion = () => {
+  return { mode: getPrintMode() };
+};
+
+export const cambiarModoImpresion = (mode) => {
+  setPrintMode(mode);
+  return { mode: getPrintMode() };
 };

@@ -90,7 +90,8 @@ function Usuarios() {
         <button className={styles.addBtn} onClick={openCreate}>Nuevo usuario</button>
       </div>
 
-      <table className={styles.table}>
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
         <thead>
           <tr>
             <th>ID</th>
@@ -113,6 +114,7 @@ function Usuarios() {
           ))}
         </tbody>
       </table>
+      </div>
 
       {modal && (
         <div className={styles.modalOverlay} onClick={closeModal}>

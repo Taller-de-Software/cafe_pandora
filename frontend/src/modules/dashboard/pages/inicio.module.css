@@ -175,3 +175,72 @@
   color: #6b7280;
   margin: 0;
 }
+
+@media (max-width: 768px) {
+  .page {
+    gap: 1rem;
+  }
+
+  .topCard {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .topRight {
+    width: 100%;
+  }
+
+  .resumenCard {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .saludo {
+    font-size: 1.15rem;
+  }
+
+  .quickAccess {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .nuevoPedidoBtn {
+    text-align: center;
+  }
+
+  .queueTitle {
+    font-size: 1.05rem;
+  }
+
+  .queueHeaderTop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .topCard {
+    padding: 0.75rem;
+    border-radius: 10px;
+  }
+
+  .saludo {
+    font-size: 1rem;
+  }
+
+  .descripcion {
+    font-size: 0.75rem;
+  }
+
+  .serviceBadge {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .fechaActual {
+    font-size: 0.7rem;
+  }
+}

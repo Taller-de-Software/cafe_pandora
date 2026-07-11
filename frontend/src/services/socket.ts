@@ -1,26 +1,48 @@
-import { io } from 'socket.io-client'
+import { io, type Socket } from 'socket.io-client'
 import { storage } from './storage'
+import { getSocketUrl } from './server-config'
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:3001'
+let socketInstance: Socket | null = null
 
-export const socket = io(SOCKET_URL, {
-  autoConnect: false,
-  reconnection: true,
-  reconnectionAttempts: 10,
-  reconnectionDelay: 2000,
-  auth: (cb) => {
-    cb({ token: storage.getAccessToken() })
-  },
-})
+function createSocket(): Socket {
+  const url = getSocketUrl()
+  return io(url, {
+    autoConnect: false,
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 2000,
+    auth: (cb: (auth: { token: string | null }) => void) => {
+      cb({ token: storage.getAccessToken() })
+    },
+  })
+}
+
+export function getSocket(): Socket {
+  if (!socketInstance) {
+    socketInstance = createSocket()
+  }
+  return socketInstance
+}
+
+export function reconnectSocket(): void {
+  if (socketInstance) {
+    socketInstance.disconnect()
+    socketInstance = null
+  }
+  socketInstance = createSocket()
+}
 
 export function connectSocket() {
   const token = storage.getAccessToken()
   if (!token) return
-  if (socket.connected) return
-  socket.auth = { token }
-  socket.connect()
+  const sock = getSocket()
+  if (sock.connected) return
+  sock.auth = { token }
+  sock.connect()
 }
 
 export function disconnectSocket() {
-  socket.disconnect()
+  if (socketInstance) {
+    socketInstance.disconnect()
+  }
 }
