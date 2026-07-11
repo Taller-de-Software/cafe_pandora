@@ -209,7 +209,10 @@ function CajaFinanzas() {
   return (
     <div className={styles.layout}>
       <div className={styles.header}>
-        <div>
+        <div className={styles.headerIcon}>
+          <DollarSign size={24} />
+        </div>
+        <div className={styles.headerInfo}>
           <h2 className={styles.title}>Caja y Finanzas</h2>
           <p className={styles.subtitle}>Gestión de caja, ventas y facturación</p>
         </div>

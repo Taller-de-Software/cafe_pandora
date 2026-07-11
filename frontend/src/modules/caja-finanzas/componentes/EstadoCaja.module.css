@@ -1,5 +1,5 @@
 .card {
-  background: #FFFFFF;
+  background: #fef9ef;
   border: 1px solid #E8E1D8;
   border-radius: 0.875rem;
   padding: 1.5rem;
@@ -29,6 +29,7 @@
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
+  text-transform: uppercase;
 }
 
 .badgeExito {
@@ -118,6 +119,7 @@
   background: #C7544A;
   color: white;
   font-size: 0.8125rem;
+  text-transform: uppercase;
   transition: background 0.15s;
 }
 
@@ -126,7 +128,7 @@
 }
 
 .openForm {
-  background: #FFFFFF;
+  background: #fef9ef;
   border: 1px solid #E8E1D8;
   border-radius: 0.875rem;
   padding: 2rem;

@@ -1,5 +1,5 @@
 .card {
-  background: #FFFFFF;
+  background: #fef9ef;
   border: 1px solid #E8E1D8;
   border-radius: 0.875rem;
   padding: 1.25rem;
@@ -29,6 +29,7 @@
   border-radius: 0.625rem;
   cursor: pointer;
   font-weight: 600;
+  text-transform: uppercase;
   transition: background 0.15s;
 }
 

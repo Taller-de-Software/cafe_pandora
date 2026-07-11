@@ -80,41 +80,37 @@ function Inicio() {
         </div>
       </div>
 
-      {/* Quick access row */}
-      <div className={styles.quickAccess}>
-        <span className={styles.quickTitle}>ACCESO RÁPIDO A PEDIDOS PENDIENTES</span>
-        <button className={styles.nuevoPedidoBtn} onClick={() => navigate('/dashboard/pedidos')}>
-          + NUEVO PEDIDO
-        </button>
-      </div>
-
-      {/* Order queue */}
-      <div className={styles.queueSection}>
-        <div className={styles.queueHeader}>
-          <div className={styles.queueHeaderTop}>
-            <h2 className={styles.queueTitle}>&#x1F550; COLA DE COMANDAS PENDIENTES</h2>
-            <span className={styles.queueCounter}>{total} Pedidos</span>
-          </div>
-          <p className={styles.queueDesc}>Control de despachos en cocina y barra ordenados por orden de llegada.</p>
+      {/* Orders panel */}
+      <div className={styles.ordersCard}>
+        <div className={styles.quickAccess}>
+          <span className={styles.quickTitle}>ACCESO RÁPIDO A PEDIDOS PENDIENTES</span>
+          <button className={styles.nuevoPedidoBtn} onClick={() => navigate('/dashboard/pedidos')}>
+            + NUEVO PEDIDO
+          </button>
         </div>
-        {isLoading && <p className={styles.queueDesc}>Cargando pedidos...</p>}
-        {isError && <p className={styles.queueDesc}>Error al cargar pedidos</p>}
-        {!isLoading && !isError && (
-          <ColaDeComandasPendientes
-            pedidos={pedidosActivos}
-            onCancelar={(id) => cancelarMut.mutate(Number(id))}
-            onCambiarEstado={(id, estado) => {
-              const apiEstado: Record<string, EstadoPedido> = {
-                RECIBIDO: 'recibido',
-                PENDIENTE: 'pendiente',
-                HECHO: 'hecho',
-                FINALIZADO: 'finalizado',
-              }
-              const mapped = apiEstado[estado] ?? estado.toLowerCase() as EstadoPedido
-              cambiarEstadoMut.mutate({ id: Number(id), estado: mapped })
-            }}
-          />
-        )}
+
+        <div className={styles.queueSection}>
+          <h2 className={styles.queueTitle}>COLA DE COMANDAS PENDIENTES</h2>
+          <p className={styles.queueDesc}>Control de despachos en cocina y barra ordenados por orden de llegada.</p>
+          {isLoading && <p className={styles.queueDesc}>Cargando pedidos...</p>}
+          {isError && <p className={styles.queueDesc}>Error al cargar pedidos</p>}
+          {!isLoading && !isError && (
+            <ColaDeComandasPendientes
+              pedidos={pedidosActivos}
+              onCancelar={(id) => cancelarMut.mutate(Number(id))}
+              onCambiarEstado={(id, estado) => {
+                const apiEstado: Record<string, EstadoPedido> = {
+                  RECIBIDO: 'recibido',
+                  PENDIENTE: 'pendiente',
+                  HECHO: 'hecho',
+                  FINALIZADO: 'finalizado',
+                }
+                const mapped = apiEstado[estado] ?? estado.toLowerCase() as EstadoPedido
+                cambiarEstadoMut.mutate({ id: Number(id), estado: mapped })
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

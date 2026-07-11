@@ -17,7 +17,7 @@ function ListaCategorias({
     <div className={styles.contenedor}>
       <div className={styles.scroll}>
         <TarjetaCategoria
-          categoria={{ id: 0, nombre: 'Todas' }}
+          categoria={{ id: 0, nombre: 'Todos' }}
           activa={categoriaActivaId === null}
           onSeleccionar={() => onSeleccionar(null)}
         />

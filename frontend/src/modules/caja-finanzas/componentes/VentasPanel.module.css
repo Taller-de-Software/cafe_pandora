@@ -7,7 +7,7 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .header h3 {
@@ -16,6 +16,7 @@
   font-weight: 700;
   color: #2D2A26;
   margin: 0;
+  text-transform: uppercase;
 }
 
 .date {

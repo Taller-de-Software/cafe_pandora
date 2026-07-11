@@ -7,16 +7,18 @@
   font-weight: 500;
   white-space: nowrap;
   border: 1px solid #d1d5db;
-  background: transparent;
+  background: white;
   color: #374151;
   cursor: pointer;
+  text-transform: uppercase;
   transition: background-color 0.15s ease, transform 0.1s ease;
   flex-shrink: 0;
 }
 
 .pill:hover {
+  background: #7A3E1D;
+  color: white;
   border-color: #7A3E1D;
-  color: #7A3E1D;
 }
 
 .pillActiva {

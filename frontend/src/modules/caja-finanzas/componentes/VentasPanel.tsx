@@ -93,7 +93,6 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
   return (
     <div className={styles.layout}>
       <div className={styles.header}>
-        <h3>{cfg.titulo}</h3>
         <span className={styles.date}>{subtitulo}</span>
       </div>
 

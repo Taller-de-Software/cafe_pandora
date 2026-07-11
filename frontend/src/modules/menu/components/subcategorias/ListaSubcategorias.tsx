@@ -20,7 +20,7 @@ function ListaSubcategorias({
           <span className={styles.vacio}>Sin subcategorías</span>
         )}
         <TarjetaSubcategoria
-          subcategoria={{ id: 0, nombre: 'Todas', categoriaId: 0 }}
+          subcategoria={{ id: 0, nombre: 'Todos', categoriaId: 0 }}
           activa={subcategoriaActivaId === null}
           onSeleccionar={() => onSeleccionar(null)}
         />

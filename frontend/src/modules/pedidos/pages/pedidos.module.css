@@ -93,21 +93,18 @@
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
+  text-transform: uppercase;
   transition: all 0.15s;
 }
 
-.tab:hover {
-  background: #f9fafb;
-}
-
 .tabActive {
-  background: #1f2937;
+  background: #7A3E1D;
   color: white;
-  border-color: #1f2937;
+  border-color: #7A3E1D;
 }
 
 .tabActive:hover {
-  background: #374151;
+  background: #7A3E1D;
 }
 
 .badge {
