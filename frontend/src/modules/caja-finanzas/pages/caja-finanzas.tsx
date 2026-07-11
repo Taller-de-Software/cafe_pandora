@@ -10,7 +10,6 @@ import {
   Clock,
   TrendingDown,
   CircleDot,
-  User,
 } from 'lucide-react'
 import EstadoCaja from '../componentes/EstadoCaja'
 import FormularioApertura from '../componentes/FormularioApertura'
@@ -100,9 +99,8 @@ function CajaFinanzas() {
     const pendientes = resumenCaja?.facturas?.length ?? 0
     const egresosHoy = resumenCaja?.resumen?.totalSalidasRetiros ?? 0
     const abierta = sesion ? !sesion.cierre : false
-    const responsable = user?.nombre ?? '—'
-    return { ventasHoy, cajaActual, pendientes, egresosHoy, abierta, responsable }
-  }, [resumenCaja, sesion, user])
+    return { ventasHoy, cajaActual, pendientes, egresosHoy, abierta }
+  }, [resumenCaja, sesion])
 
   const tabs: { id: string; label: string }[] = isAdmin
     ? [
@@ -259,13 +257,7 @@ function CajaFinanzas() {
             </span>
             <span className={styles.kpiLabel}>Caja Estado</span>
           </div>
-          <div className={styles.kpiCard}>
-            <div className={`${styles.kpiIcon} ${styles.kpiIconNeutro}`}>
-              <User size={18} />
-            </div>
-            <span className={styles.kpiValueTitulo}>{metrics.responsable}</span>
-            <span className={styles.kpiLabel}>Responsable</span>
-          </div>
+
         </div>
       )}
 

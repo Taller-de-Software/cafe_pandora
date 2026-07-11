@@ -275,3 +275,84 @@
   width: 1rem;
   height: 1rem;
 }
+
+/* ── Backdrop overlay ── */
+.backdrop {
+  display: none;
+}
+
+/* ── Responsive: Tablet & Mobile ── */
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 40;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .expanded {
+    width: 280px;
+  }
+
+  .collapsed {
+    width: 0;
+    border-right: none;
+    box-shadow: none;
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 39;
+    animation: fadeIn 0.2s ease;
+  }
+}
+
+@media (max-width: 480px) {
+  .expanded {
+    width: 260px;
+  }
+
+  .logoCircle {
+    width: 64px;
+    height: 64px;
+  }
+
+  .logoSection {
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .systemName {
+    font-size: 1.15rem;
+  }
+
+  .navCard {
+    height: 60px;
+    padding: 0 0.75rem;
+  }
+
+  .navIcon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .navLabel {
+    font-size: 0.75rem;
+  }
+
+  .navSub {
+    font-size: 0.625rem;
+  }
+
+  .bottomSection {
+    padding: 0.75rem 1rem 1rem;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

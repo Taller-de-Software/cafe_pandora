@@ -1,6 +1,9 @@
 import { storage } from './storage'
+import { getApiUrl } from './server-config'
 
-export const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'
+export function getBaseUrl(): string {
+  return getApiUrl()
+}
 
 interface ApiResponse<T> {
   success: boolean
@@ -23,7 +26,7 @@ async function refreshTokens(): Promise<boolean> {
 async function doRefreshTokens(): Promise<boolean> {
   const refresh = storage.getRefreshToken()
   if (!refresh) return false
-  const res = await fetch(`${BASE_URL}/auth/refresh`, {
+  const res = await fetch(`${getApiUrl()}/auth/refresh`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken: refresh }),
@@ -57,7 +60,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT)
 
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`${getApiUrl()}${path}`, {
       ...options,
       headers: { ...headers, ...(options.headers as Record<string, string>) },
       signal: controller.signal,

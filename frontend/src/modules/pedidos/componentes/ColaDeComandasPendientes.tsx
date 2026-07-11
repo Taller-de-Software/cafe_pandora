@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import type { Pedido } from '../data/pedidos'
+import { imprimirCocina } from '../data/pedidos'
 import DetallePedidoModal from './DetallePedidoModal'
 import FacturaModal from './FacturaModal'
 import styles from './ColaDeComandasPendientes.module.css'
@@ -46,8 +48,13 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
     return () => document.removeEventListener('keydown', handleKey)
   }, [confirmCancelId])
 
+  const imprimirCocinaMut = useMutation({
+    mutationFn: imprimirCocina,
+  })
+
   const handleReciboCocina = (id: string) => {
     onCambiarEstado(id, 'pendiente')
+    imprimirCocinaMut.mutate(Number(id))
   }
 
   const handleCambiarEstado = (id: string) => {

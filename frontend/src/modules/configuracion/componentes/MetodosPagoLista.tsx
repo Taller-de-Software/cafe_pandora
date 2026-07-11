@@ -84,7 +84,8 @@ function MetodosPagoLista() {
         <button className={styles.addBtn} onClick={abrirCrear}>Nuevo método</button>
       </div>
 
-      <table className={styles.table}>
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
         <thead>
           <tr>
             <th>ID</th>
@@ -119,6 +120,7 @@ function MetodosPagoLista() {
           )}
         </tbody>
       </table>
+      </div>
 
       {showForm && (
         <div className={styles.overlay} onClick={cerrarFormulario}>

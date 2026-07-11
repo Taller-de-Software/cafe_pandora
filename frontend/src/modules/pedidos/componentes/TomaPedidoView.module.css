@@ -446,3 +446,73 @@
 .confirmDelete:hover {
   background: #b91c1c;
 }
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 12px;
+  }
+
+  .container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .leftColumn,
+  .rightColumn {
+    flex: none;
+    width: 100%;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .categoriesRow {
+    overflow-x: auto;
+    flex: none;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .productGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headerTitle {
+    font-size: 0.95rem;
+  }
+
+  .summaryCard {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .headerTitle {
+    font-size: 0.85rem;
+  }
+
+  .categoryPill {
+    padding: 0.2rem 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .summaryTitle {
+    font-size: 0.75rem;
+  }
+}
