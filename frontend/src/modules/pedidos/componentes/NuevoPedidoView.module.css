@@ -143,3 +143,35 @@
 .btnSecondary:hover {
   background: #fff7ed;
 }
+
+.btnReservar {
+  background: #7A3E1D;
+  color: white;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s;
+}
+
+.btnReservar:hover {
+  background: #5E2F17;
+}
+
+.btnEditarReservas {
+  background: white;
+  color: #b45309;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #b45309;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.btnEditarReservas:hover {
+  background: #fff7ed;
+}

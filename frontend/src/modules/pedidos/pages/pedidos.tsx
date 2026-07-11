@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
 import { PedidosProvider } from '../context/PedidosContext'
+import { ReservasProvider } from '../context/ReservasContext'
 import { listarPedidos } from '../data/pedidos'
 import NuevoPedidoView from '../componentes/NuevoPedidoView'
 import PedidosPendientesView from '../componentes/PedidosPendientesView'
@@ -73,7 +74,9 @@ function Pedidos() {
   usePedidosSocket()
   return (
     <PedidosProvider>
-      <PedidosContent />
+      <ReservasProvider>
+        <PedidosContent />
+      </ReservasProvider>
     </PedidosProvider>
   )
 }

@@ -3,8 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarMesasCompletas, crearReserva, type MesaCompleta } from '../data/pos'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { useError } from '@/context/ErrorContext'
+import { useReservas } from '../context/ReservasContext'
 import NewTableModal from './NewTableModal'
 import ReservationModal from './ReservationModal'
+import ReservarMesaModal from './ReservarMesaModal'
+import EditarReservasModal from './EditarReservasModal'
 import TomaPedidoView from './TomaPedidoView'
 import styles from './NuevoPedidoView.module.css'
 
@@ -32,11 +35,14 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
   const { showError } = useError()
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { agregarReserva } = useReservas()
   const isAdmin = user?.rol === 'administrador'
 
   const [selectedMesa, setSelectedMesa] = useState<MesaCompleta | null>(null)
   const [showNewTable, setShowNewTable] = useState(false)
   const [reservaMesa, setReservaMesa] = useState<MesaCompleta | null>(null)
+  const [showReservarMesa, setShowReservarMesa] = useState(false)
+  const [showEditarReservas, setShowEditarReservas] = useState(false)
 
   const { data: mesas = [], isLoading, isError } = useQuery({
     queryKey: ['mesas-completas'],
@@ -45,9 +51,10 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
 
   const reservaMutation = useMutation({
     mutationFn: crearReserva,
-    onSuccess: () => {
+    onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
       setReservaMesa(null)
+      setShowReservarMesa(false)
     },
     onError: showError,
   })
@@ -62,6 +69,8 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
     )
   }
 
+  const mesasVacias = mesas.filter((m) => m.estado === 'vacia')
+
   function handleMesaClick(mesa: MesaCompleta) {
     if (mesa.estado === 'reservada') {
       setReservaMesa(mesa)
@@ -69,6 +78,41 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
     }
     if (mesa.estado === 'fuera_de_servicio') return
     setSelectedMesa(mesa)
+  }
+
+  async function handleReservarMesaSave(data: {
+    mesaId: number
+    cliente: string
+    telefono?: string
+    fecha: string
+    hora: string
+    personas: number
+    notas?: string
+  }) {
+    const mesa = mesas.find((m) => m.id === data.mesaId)
+    try {
+      const result = await reservaMutation.mutateAsync({
+        cliente: data.cliente,
+        telefono: data.telefono,
+        fecha: data.fecha,
+        hora: data.hora,
+        personas: data.personas,
+        mesaId: data.mesaId,
+      })
+      agregarReserva({
+        apiId: result.id,
+        mesaId: data.mesaId,
+        mesaNombre: mesa?.nombre ?? `Mesa #${data.mesaId}`,
+        nombreCliente: data.cliente,
+        telefono: data.telefono ?? '',
+        fecha: data.fecha,
+        hora: data.hora,
+        numeroPersonas: data.personas,
+        notas: data.notas ?? '',
+      })
+    } catch (err) {
+      showError(err)
+    }
   }
 
   return (
@@ -117,13 +161,19 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
       )}
 
       <div className={styles.footer}>
-        <p className={styles.footerText}>¿No encuentra la mesa? Cree una nueva o reserve una existente.</p>
+        <p className={styles.footerText}>¿No encuentra la mesa? Cree una personalizada o reserve una mesa.</p>
         <div className={styles.buttons}>
           {isAdmin && (
             <button className={styles.btnPrimary} onClick={() => setShowNewTable(true)}>
               + Agregar Nueva Mesa
             </button>
           )}
+          <button className={styles.btnReservar} onClick={() => setShowReservarMesa(true)}>
+            📅 RESERVAR UNA MESA
+          </button>
+          <button className={styles.btnEditarReservas} onClick={() => setShowEditarReservas(true)}>
+            EDITAR RESERVAS
+          </button>
         </div>
       </div>
 
@@ -134,6 +184,20 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
           mesa={reservaMesa}
           onSave={async (data) => { await reservaMutation.mutateAsync(data) }}
           onClose={() => setReservaMesa(null)}
+        />
+      )}
+
+      {showReservarMesa && (
+        <ReservarMesaModal
+          mesasVacias={mesasVacias}
+          onSave={handleReservarMesaSave}
+          onClose={() => setShowReservarMesa(false)}
+        />
+      )}
+
+      {showEditarReservas && (
+        <EditarReservasModal
+          onClose={() => setShowEditarReservas(false)}
         />
       )}
     </div>
