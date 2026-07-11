@@ -36,3 +36,25 @@ export const probarImpresora = async (req, res, next) => {
     error(res, err.message, 503);
   }
 };
+
+export const obtenerModoImpresion = async (req, res, next) => {
+  try {
+    const result = await impresionService.obtenerModoImpresion();
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const cambiarModoImpresion = async (req, res, next) => {
+  try {
+    const { mode } = req.body;
+    if (!mode || !["simulate", "real"].includes(mode)) {
+      return error(res, 'Modo inválido. Usa "simulate" o "real".', 400);
+    }
+    const result = await impresionService.cambiarModoImpresion(mode);
+    ok(res, result, `Modo de impresión: ${result.mode}`);
+  } catch (err) {
+    error(res, err.message, 400);
+  }
+};

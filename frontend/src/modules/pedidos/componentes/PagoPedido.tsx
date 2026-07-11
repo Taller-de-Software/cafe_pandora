@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { listarMetodosPago, crearFactura, obtenerSesionCajaActiva } from '../data/facturas'
+import { listarMetodosPago, crearFactura, imprimirFactura, obtenerSesionCajaActiva } from '../data/facturas'
 import type { Pedido } from '../data/pedidos'
 import { formatearNumero } from '@/utils/formatear'
 import { useError } from '@/context/ErrorContext'
@@ -16,7 +16,6 @@ function PagoPedido({ pedido, onClose, onPagoExitoso }: PagoPedidoProps) {
   const { showError } = useError()
   const queryClient = useQueryClient()
   const [metodoPagoId, setMetodoPagoId] = useState<number | null>(null)
-  const [cajaSesionId, setCajaSesionId] = useState<number | null>(null)
 
   const subtotal = pedido.total ?? 0
   const impuestoConsumo = Math.round(subtotal * 0.08 * 100) / 100
@@ -27,13 +26,13 @@ function PagoPedido({ pedido, onClose, onPagoExitoso }: PagoPedidoProps) {
     queryFn: listarMetodosPago,
   })
 
-  useEffect(() => {
-    obtenerSesionCajaActiva()
-      .then((sesion) => {
-        if (sesion) setCajaSesionId(sesion.id)
-      })
-      .catch(() => {})
-  }, [])
+  const { data: sesionCaja } = useQuery({
+    queryKey: ['caja', 'activa'],
+    queryFn: obtenerSesionCajaActiva,
+    refetchInterval: 5_000,
+  })
+
+  const cajaSesionId = sesionCaja?.id ?? null
 
   useEffect(() => {
     if (metodosPago.length > 0 && metodoPagoId === null) {
@@ -51,15 +50,18 @@ function PagoPedido({ pedido, onClose, onPagoExitoso }: PagoPedidoProps) {
         metodoPagoId: metodoPagoId!,
         cajaSesionId: cajaSesionId!,
       }),
-    onSuccess: () => {
+    onSuccess: async (factura) => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-pendientes'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-cocinando'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-listos'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-por-pagar'] })
-      queryClient.invalidateQueries({ queryKey: ['inicio-recibido'] })
-      queryClient.invalidateQueries({ queryKey: ['inicio-pendiente'] })
-      queryClient.invalidateQueries({ queryKey: ['inicio-hecho'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      try {
+        await imprimirFactura(factura.id)
+      } catch (err) {
+        showError('Pago registrado, pero hubo un error al imprimir el recibo')
+      }
       onPagoExitoso()
     },
     onError: showError,

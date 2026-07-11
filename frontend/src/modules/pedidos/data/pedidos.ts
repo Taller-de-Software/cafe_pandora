@@ -71,6 +71,4 @@ export async function listarProductos(): Promise<{ id: number; nombre: string; p
   return api.get('/menu/productos')
 }
 
-export async function imprimirReciboCocina(id: string): Promise<void> {
-  return api.post(`/pedidos/${id}/recibo-cocina`)
-}
+

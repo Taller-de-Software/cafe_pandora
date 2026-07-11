@@ -318,3 +318,49 @@
 .confirmBtn:hover {
   background: #A84440;
 }
+
+@media (max-width: 768px) {
+  .overlay {
+    padding: 1rem;
+  }
+
+  .body {
+    padding: 1rem 1.25rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .headerGradient {
+    padding: 1rem 1.25rem;
+  }
+
+  .header h3 {
+    font-size: 0.9rem;
+  }
+
+  .actions {
+    padding: 0.75rem 1.25rem;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .overlay {
+    padding: 0.5rem;
+  }
+
+  .modal {
+    border-radius: 0.75rem;
+  }
+
+  .body {
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .retiroGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import { listarPedidos, cambiarEstado, cancelarPedido } from '@modules/pedidos/data/pedidos'
 import type { EstadoPedido } from '@modules/pedidos/data/pedidos'
 import { useError } from '@/context/ErrorContext'
+import { usePedidosSocket } from '@/hooks/usePedidosSocket'
 import ColaDeComandasPendientes from '@modules/pedidos/componentes/ColaDeComandasPendientes'
 import styles from './inicio.module.css'
 
 function Inicio() {
+  usePedidosSocket()
   const { user } = useAuth()
   const navigate = useNavigate()
   const { showError } = useError()

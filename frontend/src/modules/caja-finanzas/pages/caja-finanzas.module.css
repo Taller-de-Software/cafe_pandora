@@ -218,3 +218,61 @@
   text-align: center;
   padding: 3rem 0;
 }
+
+@media (max-width: 768px) {
+  .layout {
+    gap: 1.25rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .title {
+    font-size: 1.15rem;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 1.25rem;
+  }
+
+  .tab {
+    white-space: nowrap;
+    font-size: 0.75rem;
+  }
+
+  .subtabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 1.25rem;
+  }
+
+  .subtab {
+    white-space: nowrap;
+    font-size: 0.6875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1rem;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  .kpiCard {
+    padding: 0.625rem 0.5rem;
+  }
+
+  .kpiValueExito,
+  .kpiValueOro,
+  .kpiValuePeligro {
+    font-size: 1rem;
+  }
+}

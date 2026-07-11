@@ -889,6 +889,55 @@
   background: #9a3412;
 }
 
+@media (max-width: 480px) {
+  .modal {
+    max-width: 100%;
+    max-height: 90vh;
+    margin: 0.5rem;
+  }
+
+  .accionesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .unirGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    padding: 0.75rem 1rem;
+  }
+
+  .headerTitle {
+    font-size: 0.9rem;
+  }
+
+  .infoRow {
+    padding: 0.5rem 1rem;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .sectionTitle,
+  .sectionTitleGray {
+    padding: 0.5rem 1rem 0.375rem;
+    font-size: 0.65rem;
+  }
+
+  .productosScroll {
+    padding: 0 1rem;
+  }
+
+  .accionesGrid {
+    padding: 0.5rem 1rem;
+  }
+
+  .footer {
+    padding: 0.5rem 1rem;
+    flex-wrap: wrap;
+  }
+}
+
 /* --- Abonar Dinero panel styles --- */
 
 .abonoTotalRow {
