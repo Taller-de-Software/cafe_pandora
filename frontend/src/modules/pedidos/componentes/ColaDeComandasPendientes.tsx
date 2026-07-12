@@ -56,9 +56,12 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
     onError: showError,
   })
 
-  const handleReciboCocina = (id: string) => {
-    onCambiarEstado(id, 'pendiente')
-    imprimirCocinaMut.mutate(Number(id))
+  const handleReciboCocina = (pedido: Pedido) => {
+    onCambiarEstado(String(pedido.id), 'pendiente')
+    const necesitaCocina = pedido.detalles.some((d) => d.producto.requierePreparacion === true)
+    if (necesitaCocina) {
+      imprimirCocinaMut.mutate(Number(pedido.id))
+    }
   }
 
   const handleCambiarEstado = (id: string) => {
@@ -77,7 +80,7 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
           <div className={styles.cardActions}>
             <button
               className={styles.btnCocina}
-              onClick={(e) => { e.stopPropagation(); handleReciboCocina(String(pedido.id)) }}
+              onClick={(e) => { e.stopPropagation(); handleReciboCocina(pedido) }}
             >
               GENERAR RECIBO COCINA
             </button>

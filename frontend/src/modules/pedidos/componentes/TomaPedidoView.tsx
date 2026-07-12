@@ -87,9 +87,10 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
     return () => document.removeEventListener('keydown', handleKey)
   }, [showVaciarConfirm])
 
-  const productosFiltrados = busqueda
+  const productosFiltrados = (busqueda
     ? productos.filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase()))
     : productos
+  ).filter((p) => p.habilitado !== false)
 
   const subtotal = comanda.reduce((acc, item) => acc + item.precio * item.cantidad, 0)
 

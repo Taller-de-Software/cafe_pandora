@@ -8,7 +8,7 @@ export interface DetallePedido {
   precioUnitario: number
   notas?: string
   productoId: number
-  producto: { id: number; nombre: string; precio: number }
+  producto: { id: number; nombre: string; precio: number; requierePreparacion?: boolean }
 }
 
 export interface Pedido {
