@@ -32,7 +32,7 @@ interface EditarReservasModalProps {
 }
 
 function EditarReservasModal({ onClose }: EditarReservasModalProps) {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
   const { reservas, actualizarReserva, cancelarReserva: cancelarLocal } = useReservas()
 
@@ -45,6 +45,7 @@ function EditarReservasModal({ onClose }: EditarReservasModalProps) {
     mutationFn: (apiId: number) => cancelarReserva(apiId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Reserva cancelada exitosamente')
     },
     onError: showError,
   })
@@ -135,6 +136,7 @@ function EditForm({
   onSave: (data: Partial<Omit<ReservaLocal, 'id' | 'apiId'>>) => void
   onCancel: () => void
 }) {
+  const { showWarning } = useError()
   const [cliente, setCliente] = useState(reserva.nombreCliente)
   const [telefono, setTelefono] = useState(reserva.telefono)
   const [fecha, setFecha] = useState(reserva.fecha)
@@ -144,7 +146,10 @@ function EditForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!cliente.trim()) return
+    if (!cliente.trim()) {
+      showWarning('El nombre del cliente es obligatorio.')
+      return
+    }
     onSave({
       nombreCliente: cliente.trim(),
       telefono: telefono.trim(),

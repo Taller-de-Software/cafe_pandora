@@ -14,7 +14,7 @@ interface MesaGridProps {
 }
 
 function MesaGrid({ onSelectMesa }: MesaGridProps) {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const isAdmin = user?.rol === 'administrador'
@@ -31,6 +31,7 @@ function MesaGrid({ onSelectMesa }: MesaGridProps) {
     mutationFn: crearReserva,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Reserva creada exitosamente')
       setReservaMesa(null)
     },
     onError: showError,

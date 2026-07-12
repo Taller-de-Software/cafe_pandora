@@ -8,6 +8,7 @@ import {
   testConnection,
 } from '@/services/server-config'
 import { reconnectSocket } from '@/services/socket'
+import { useError } from '@/context/ErrorContext'
 import styles from './ServerConfigModal.module.css'
 
 interface ServerConfigModalProps {
@@ -25,6 +26,7 @@ function parseUrl(url: string): { ip: string; port: string } {
 }
 
 function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
+  const { showError } = useError()
   const current = getServerConfig()
   const parsed = parseUrl(current.apiUrl)
   const [ip, setIp] = useState(parsed.ip)
@@ -44,10 +46,16 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
   async function handleTest() {
     setTesting(true)
     setTestResult(null)
-    const config = buildServerConfig(ip, port)
-    const result = await testConnection(config.apiUrl)
-    setTestResult(result)
-    setTesting(false)
+    try {
+      const config = buildServerConfig(ip, port)
+      const result = await testConnection(config.apiUrl)
+      setTestResult(result)
+    } catch (err) {
+      showError(err)
+      setTestResult({ ok: false, message: 'Error al probar la conexión.' })
+    } finally {
+      setTesting(false)
+    }
   }
 
   function handleSave() {

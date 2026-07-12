@@ -34,7 +34,7 @@ function CajaFinanzas() {
   const { user } = useAuth()
   const isAdmin = user?.rol === 'administrador'
   const [tab, setTab] = useState<'caja' | 'ventas' | 'facturacion'>('caja')
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
 
   const [periodo, setPeriodo] = useState<PeriodoVentas>('dia')
@@ -69,6 +69,7 @@ function CajaFinanzas() {
     onSuccess: () => {
       setShowApertura(false)
       queryClient.invalidateQueries({ queryKey: ['caja', 'activa'] })
+      showSuccess('Caja abierta exitosamente')
     },
     onError: showError,
   })
@@ -78,6 +79,7 @@ function CajaFinanzas() {
     onSuccess: () => {
       setShowResumen(false)
       queryClient.invalidateQueries({ queryKey: ['caja', 'activa'] })
+      showSuccess('Caja cerrada exitosamente')
     },
     onError: showError,
   })
@@ -89,6 +91,7 @@ function CajaFinanzas() {
       setShowRetiro(false)
       queryClient.invalidateQueries({ queryKey: ['caja', sesion?.id, 'retiros'] })
       queryClient.invalidateQueries({ queryKey: ['caja', 'activa'] })
+      showSuccess('Movimiento registrado exitosamente')
     },
     onError: showError,
   })

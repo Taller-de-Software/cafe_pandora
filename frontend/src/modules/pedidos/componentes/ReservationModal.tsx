@@ -12,7 +12,7 @@ interface ReservationModalProps {
 }
 
 function ReservationModal({ mesa, onSave, onClose }: ReservationModalProps) {
-  const { showError } = useError()
+  const { showError, showWarning, showSuccess } = useError()
   const queryClient = useQueryClient()
   const reserva = mesa.reserva
   const [cliente, setCliente] = useState(reserva?.cliente ?? '')
@@ -26,6 +26,7 @@ function ReservationModal({ mesa, onSave, onClose }: ReservationModalProps) {
     mutationFn: () => cancelarReserva(reserva!.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Reserva cancelada exitosamente')
       onClose()
     },
     onError: showError,
@@ -33,7 +34,10 @@ function ReservationModal({ mesa, onSave, onClose }: ReservationModalProps) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!cliente.trim()) return
+    if (!cliente.trim()) {
+      showWarning('El nombre del cliente es obligatorio.')
+      return
+    }
     setSaving(true)
     try {
       await onSave({

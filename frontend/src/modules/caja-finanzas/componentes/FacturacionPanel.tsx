@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Receipt, Printer } from 'lucide-react'
 import { obtenerResumenCaja } from '../data/caja'
 import { imprimirFactura } from '../../pedidos/data/facturas'
 import type { CajaSesion, ResumenFactura } from '../data/caja'
@@ -14,7 +13,7 @@ interface FacturacionPanelProps {
 }
 
 function FacturacionPanel({ sesion }: FacturacionPanelProps) {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const [selected, setSelected] = useState<ResumenFactura | null>(null)
   const [printingId, setPrintingId] = useState<number | null>(null)
 
@@ -31,7 +30,7 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
     try {
       const result = await imprimirFactura(facturaId)
       if (result.message) {
-        alert(result.message)
+        showSuccess(result.message)
       }
     } catch (err) {
       showError(err)

@@ -12,7 +12,7 @@ interface FacturaDetalleProps {
 }
 
 function FacturaDetalle({ factura, onClose }: FacturaDetalleProps) {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const [printing, setPrinting] = useState(false)
 
   async function handlePrint() {
@@ -20,7 +20,7 @@ function FacturaDetalle({ factura, onClose }: FacturaDetalleProps) {
     try {
       const result = await imprimirFactura(factura.id)
       if (result.message) {
-        alert(result.message)
+        showSuccess(result.message)
       }
     } catch (err) {
       showError(err)

@@ -27,7 +27,7 @@ function FormularioSubcategoria({
   onCerrar,
   embedded = false,
 }: FormularioSubcategoriaProps) {
-  const { showError } = useError()
+  const { showError, showWarning } = useError()
   const [tab, setTab] = useState<Tab>('crear')
   const [nombre, setNombre] = useState('')
   const [catIdCrear, setCatIdCrear] = useState<number | ''>('')
@@ -41,7 +41,10 @@ function FormularioSubcategoria({
 
   async function handleCrear(e: FormEvent) {
     e.preventDefault()
-    if (!nombre.trim() || catIdCrear === '') return
+    if (!nombre.trim() || catIdCrear === '') {
+      showWarning('Ingresa un nombre y selecciona una categoría.')
+      return
+    }
     setSaving(true)
     try {
       await onCrear(nombre.trim(), Number(catIdCrear))
@@ -55,7 +58,10 @@ function FormularioSubcategoria({
   }
 
   async function handleActualizar() {
-    if (!subId || !editNombre.trim()) return
+    if (!subId || !editNombre.trim()) {
+      showWarning('Selecciona una subcategoría y escribe un nombre válido.')
+      return
+    }
     setSaving(true)
     try {
       await onActualizar(subId, editNombre.trim())
@@ -82,7 +88,10 @@ function FormularioSubcategoria({
   }
 
   async function handleCambiar() {
-    if (!subId || nuevaCatId === '') return
+    if (!subId || nuevaCatId === '') {
+      showWarning('Selecciona una subcategoría y una categoría destino.')
+      return
+    }
     setSaving(true)
     try {
       await onCambiarCategoria(subId, Number(nuevaCatId))

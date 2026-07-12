@@ -9,7 +9,7 @@ interface NewTableModalProps {
 }
 
 function NewTableModal({ onClose }: NewTableModalProps) {
-  const { showError } = useError()
+  const { showError, showWarning, showSuccess } = useError()
   const queryClient = useQueryClient()
   const [nombre, setNombre] = useState('')
   const [ubicacion, setUbicacion] = useState('')
@@ -20,6 +20,7 @@ function NewTableModal({ onClose }: NewTableModalProps) {
       api.post('/mesas', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Mesa creada exitosamente')
       onClose()
     },
     onError: showError,
@@ -27,7 +28,10 @@ function NewTableModal({ onClose }: NewTableModalProps) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!nombre.trim() || !ubicacion.trim()) return
+    if (!nombre.trim() || !ubicacion.trim()) {
+      showWarning('Ingresa un nombre y una ubicación para la mesa.')
+      return
+    }
     await mutation.mutateAsync({ nombre: nombre.trim(), ubicacion: ubicacion.trim(), capacidad })
   }
 

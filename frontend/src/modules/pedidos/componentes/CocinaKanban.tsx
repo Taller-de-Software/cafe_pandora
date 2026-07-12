@@ -6,7 +6,7 @@ import CocinaCard from './CocinaCard'
 import styles from './CocinaKanban.module.css'
 
 function CocinaKanban() {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
 
   const { data: pedidos = [], isLoading, isError } = useQuery({
@@ -34,6 +34,7 @@ function CocinaKanban() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-cocinando'] })
       queryClient.invalidateQueries({ queryKey: ['pedidos-listos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Estado del pedido actualizado')
     },
     onError: showError,
   })

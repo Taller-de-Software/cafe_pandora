@@ -11,6 +11,7 @@ import { listarProductos } from '../../menu/api/productos'
 import type { Producto } from '../../menu/api/productos'
 import type { Abono } from '@/types/PedidoPendiente'
 import { formatearPesos } from '@/utils/formatear'
+import { useError } from '@/context/ErrorContext'
 import styles from './DetallePedidoModal.module.css'
 
 type Pedido = ApiPedido | PedidoPendiente
@@ -110,6 +111,7 @@ function obtenerColumnaDestinoEnUso(asignaciones: Record<string, number>): numbe
 
 function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   const pedidosCtx = useContext(PedidosContext)
+  const { showError, showWarning, showSuccess } = useError()
   const actualizarPedido = pedidosCtx?.actualizarPedido
   const pedidosPendientes = pedidosCtx?.pedidosPendientes ?? []
 
@@ -119,8 +121,9 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Estado del pedido actualizado')
     },
-    onError: (err) => console.error('Error al cambiar estado:', err),
+    onError: (err) => showError(err),
   })
   const [modo, setModo] = useState<Modo>('acciones')
   const [draftItems, setDraftItems] = useState<ItemPedidoPendiente[]>([])
@@ -315,6 +318,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
       if (debeRevertirAEstado && pedidosCtx?.cambiarEstado) {
         pedidosCtx.cambiarEstado(targetId, 'PENDIENTE')
       }
+    } else {
+      showWarning('Esta funcionalidad aún no está disponible.')
     }
 
     if (debeRevertirAEstado) {
@@ -345,7 +350,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     if (!hayMovimiento) return
     const columnaEnUsoActual = obtenerColumnaDestinoEnUso(asignaciones)
     if (columnaEnUsoActual === null && Object.values(asignaciones).some((v) => v !== 1)) {
-      console.error('Error: solo se puede dividir hacia una cuenta a la vez')
+      showWarning('Solo se puede dividir hacia una cuenta a la vez.')
       return
     }
     const cuentas = Object.keys(asignaciones)
@@ -369,7 +374,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     if (pedidoPendiente && pedidosCtx?.separarCuenta) {
       pedidosCtx.separarCuenta(pedidoPendiente.id, itemsPorCuenta)
     } else {
-      console.log('Separar cuenta (API pedido - no implementado):', itemsPorCuenta)
+      showWarning('Esta funcionalidad aún no está disponible.')
     }
     setModo('acciones')
   }
@@ -388,7 +393,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     if (pedidoPendiente && pedidosCtx?.unirPedidos) {
       pedidosCtx.unirPedidos(pedidoPendiente.id, mesaSeleccionada)
     } else {
-      console.log('Unir mesas (API pedido - no implementado):', mesaSeleccionada)
+      showWarning('Esta funcionalidad aún no está disponible.')
     }
     setModo('acciones')
   }
@@ -413,7 +418,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     if (pedidoPendiente && pedidosCtx?.registrarAbono) {
       pedidosCtx.registrarAbono(pedidoPendiente.id, abono)
     } else {
-      console.log('Abonar dinero (API pedido - no implementado):', abono)
+      showWarning('Esta funcionalidad aún no está disponible.')
     }
     setModo('acciones')
   }
@@ -438,7 +443,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     if (pedidoPendiente && pedidosCtx?.cambiarMesaPedido) {
       pedidosCtx.cambiarMesaPedido(pedidoPendiente.id, mesaSeleccionada)
     } else {
-      console.log('Cambiar mesa (API pedido - no implementado):', mesaSeleccionada)
+      showWarning('Esta funcionalidad aún no está disponible.')
     }
     setModo('acciones')
   }

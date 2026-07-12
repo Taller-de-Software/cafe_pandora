@@ -3,17 +3,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario } from '../data/usuarios'
 import type { Usuario } from '../data/usuarios'
 import { useError } from '@/context/ErrorContext'
+import ConfirmModal from '@/componentes/ConfirmModal'
 import styles from './usuarios.module.css'
 
 type ModalMode = 'create' | 'edit' | null
 
 function Usuarios() {
   const queryClient = useQueryClient()
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const [modal, setModal] = useState<ModalMode>(null)
   const [editUser, setEditUser] = useState<Usuario | null>(null)
   const [rol, setRol] = useState<'administrador' | 'mesero'>('mesero')
   const [pin, setPin] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<Usuario | null>(null)
 
   const { data: usuarios, isLoading, isError } = useQuery({
     queryKey: ['usuarios'],
@@ -24,6 +26,7 @@ function Usuarios() {
     mutationFn: crearUsuario,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] })
+      showSuccess('Usuario creado exitosamente')
       closeModal()
     },
     onError: showError,
@@ -34,6 +37,7 @@ function Usuarios() {
       actualizarUsuario(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] })
+      showSuccess('Usuario actualizado exitosamente')
       closeModal()
     },
     onError: showError,
@@ -41,7 +45,10 @@ function Usuarios() {
 
   const deleteMutation = useMutation({
     mutationFn: eliminarUsuario,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['usuarios'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] })
+      showSuccess('Usuario eliminado exitosamente')
+    },
     onError: showError,
   })
 
@@ -67,17 +74,19 @@ function Usuarios() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (modal === 'create') {
-      await createMutation.mutateAsync({ rol, pin: pin || undefined })
-    } else if (modal === 'edit' && editUser) {
-      await updateMutation.mutateAsync({ id: editUser.id, data: { pin: pin || undefined } })
+    try {
+      if (modal === 'create') {
+        await createMutation.mutateAsync({ rol, pin: pin || undefined })
+      } else if (modal === 'edit' && editUser) {
+        await updateMutation.mutateAsync({ id: editUser.id, data: { pin: pin || undefined } })
+      }
+    } catch {
+      // Error manejado por onError en useMutation
     }
   }
 
   function handleDelete(u: Usuario) {
-    if (window.confirm(`¿Eliminar usuario ${u.rol} (ID: ${u.id})?`)) {
-      deleteMutation.mutate(u.id)
-    }
+    setConfirmDelete(u)
   }
 
   if (isLoading) return <div className={styles.page}><div className={styles.loading}>Cargando usuarios...</div></div>
@@ -151,6 +160,20 @@ function Usuarios() {
             </form>
           </div>
         </div>
+      )}
+
+      {confirmDelete && (
+        <ConfirmModal
+          titulo="Eliminar usuario"
+          mensaje={`¿Estás seguro de eliminar el usuario ${confirmDelete.rol} (ID: ${confirmDelete.id})? Esta acción no se puede deshacer.`}
+          textoConfirmar="Eliminar"
+          variante="danger"
+          onConfirmar={() => {
+            deleteMutation.mutate(confirmDelete.id)
+            setConfirmDelete(null)
+          }}
+          onCancelar={() => setConfirmDelete(null)}
+        />
       )}
     </div>
   )
