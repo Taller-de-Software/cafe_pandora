@@ -5,6 +5,8 @@ import { listarMesas, cambiarEstado } from '../data/pedidos'
 import type { PedidoPendiente, ItemPedidoPendiente } from '@/types/PedidoPendiente'
 import { PedidosContext } from '../context/PedidosContext'
 import { listarCategorias } from '../../menu/api/categorias'
+import { listarSubcategorias } from '../../menu/api/subcategorias'
+import type { Subcategoria } from '../../menu/api/subcategorias'
 import { listarProductos } from '../../menu/api/productos'
 import type { Producto } from '../../menu/api/productos'
 import type { Abono } from '@/types/PedidoPendiente'
@@ -123,6 +125,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   const [modo, setModo] = useState<Modo>('acciones')
   const [draftItems, setDraftItems] = useState<ItemPedidoPendiente[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState<number | null>(null)
+  const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([])
+  const [subcategoriaActiva, setSubcategoriaActiva] = useState<number | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [asignaciones, setAsignaciones] = useState<Record<string, number>>({})
   const [maxCuenta, setMaxCuenta] = useState(1)
@@ -153,9 +157,25 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     staleTime: 1000 * 60 * 5,
   })
 
+  useEffect(() => {
+    if (categoriaActiva === null) {
+      setSubcategorias([])
+      setSubcategoriaActiva(null)
+      return
+    }
+    listarSubcategorias(categoriaActiva)
+      .then(setSubcategorias)
+      .catch(() => setSubcategorias([]))
+  }, [categoriaActiva])
+
   const { data: catalogo = [] } = useQuery({
-    queryKey: ['productos-catalogo', categoriaActiva],
-    queryFn: () => listarProductos(categoriaActiva ? { categoriaId: categoriaActiva } : undefined),
+    queryKey: ['productos-catalogo', categoriaActiva, subcategoriaActiva],
+    queryFn: () => {
+      const params: { categoriaId?: number; subcategoriaId?: number } = {}
+      if (categoriaActiva) params.categoriaId = categoriaActiva
+      if (subcategoriaActiva) params.subcategoriaId = subcategoriaActiva
+      return listarProductos(Object.keys(params).length > 0 ? params : undefined)
+    },
     staleTime: 1000 * 60 * 5,
   })
 
@@ -207,6 +227,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   function entrarAgregarQuitar() {
     setDraftItems((itemsOriginales ?? []).map((i) => ({ ...i })))
     setCategoriaActiva(null)
+    setSubcategoriaActiva(null)
+    setSubcategorias([])
     setBusqueda('')
     setModo('agregar-quitar')
   }
@@ -240,6 +262,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
         cantidad: 1,
         precioUnitario: producto.precio ?? 0,
         subtotal: producto.precio ?? 0,
+        requierePreparacion: producto.requierePreparacion,
       }]
     })
   }
@@ -266,26 +289,32 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
   function confirmarCambios() {
     const itemsNorm = Array.isArray(draftItems) ? draftItems : []
-    const catalogoArr = Array.isArray(catalogo) ? catalogo : []
 
     const huboProductoNuevoConPreparacion = itemsNorm.some(draftItem => {
       const original = (itemsOriginales ?? []).find(i => i.nombre === draftItem.nombre)
       const cantidadAgregada = (draftItem.cantidad ?? 0) - (original?.cantidad ?? 0)
       if (cantidadAgregada <= 0) return false
-      const prod = catalogoArr.find(p => p?.nombre === draftItem.nombre)
-      return prod?.requierePreparacion === true
+      return draftItem.requierePreparacion === true
     })
 
     const pedidoEstado = String((pedido as any).estado ?? '').toLowerCase()
     const debeRevertirAEstado = pedidoEstado === 'hecho' && huboProductoNuevoConPreparacion
 
-    if (pedidoPendiente && actualizarPedido) {
-      actualizarPedido(pedidoPendiente.id, itemsNorm)
+    if (actualizarPedido) {
+      const targetId = pedidoPendiente ? pedidoPendiente.id : String(pedido.id)
+      const pedidoEstadoActual = String((pedido as any).estado ?? '').toUpperCase()
+      const estadoValido = ['RECIBIDO', 'PENDIENTE', 'HECHO', 'FINALIZADO'].includes(pedidoEstadoActual)
+        ? pedidoEstadoActual as PedidoPendiente['estado']
+        : 'PENDIENTE'
+      actualizarPedido(targetId, itemsNorm, {
+        mesa: mesaNombre,
+        mesero: mesero,
+        horaCreacion: horaComanda,
+        estado: estadoValido,
+      })
       if (debeRevertirAEstado && pedidosCtx?.cambiarEstado) {
-        pedidosCtx.cambiarEstado(pedidoPendiente.id, 'PENDIENTE')
+        pedidosCtx.cambiarEstado(targetId, 'PENDIENTE')
       }
-    } else {
-      console.log('Confirmar cambios (API pedido - no implementado):', draftItems)
     }
 
     if (debeRevertirAEstado) {
@@ -550,27 +579,15 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
                   >
                     TODOS
                   </button>
-                  {categorias.filter((c) => c?.nombre?.toUpperCase() === 'PLATILLOS' || c?.nombre?.toUpperCase() === 'BEBIDAS').length > 0
-                    ? categorias
-                        .filter((c) => c?.nombre?.toUpperCase() === 'PLATILLOS' || c?.nombre?.toUpperCase() === 'BEBIDAS')
-                        .map((cat) => (
-                          <button
-                            key={cat.id}
-                            className={`${styles.filterPill} ${categoriaActiva === cat.id ? styles.filterPillActive : ''}`}
-                            onClick={() => setCategoriaActiva(categoriaActiva === cat.id ? null : cat.id)}
-                          >
-                            {cat.nombre.toUpperCase()}
-                          </button>
-                        ))
-                    : categorias.map((cat) => (
-                        <button
-                          key={cat.id}
-                          className={`${styles.filterPill} ${categoriaActiva === cat.id ? styles.filterPillActive : ''}`}
-                          onClick={() => setCategoriaActiva(categoriaActiva === cat.id ? null : cat.id)}
-                        >
-                          {cat.nombre.toUpperCase()}
-                        </button>
-                      ))}
+                  {categorias.map((cat) => (
+                    <button
+                      key={cat.id}
+                      className={`${styles.filterPill} ${categoriaActiva === cat.id ? styles.filterPillActive : ''}`}
+                      onClick={() => setCategoriaActiva(categoriaActiva === cat.id ? null : cat.id)}
+                    >
+                      {cat.nombre.toUpperCase()}
+                    </button>
+                  ))}
                   <input
                     className={styles.editSearchInput}
                     type="text"
@@ -579,6 +596,20 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
                     onChange={(e) => setBusqueda(e.target.value)}
                   />
                 </div>
+
+                {categoriaActiva !== null && subcategorias.length > 0 && (
+                  <div className={styles.subcategoriasRow}>
+                    {subcategorias.map((sub) => (
+                      <button
+                        key={sub.id}
+                        className={`${styles.filterPill} ${subcategoriaActiva === sub.id ? styles.filterPillActive : ''}`}
+                        onClick={() => setSubcategoriaActiva(subcategoriaActiva === sub.id ? null : sub.id)}
+                      >
+                        {sub.nombre.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 <div className={styles.catalogoList}>
                   {(catalogoFiltrado ?? []).map((producto) => (
