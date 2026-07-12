@@ -2,10 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarPedidos, cambiarEstado, cancelarPedido } from '../data/pedidos'
 import type { Pedido, EstadoPedido } from '../data/pedidos'
 import { useError } from '@/context/ErrorContext'
+import { useAuth } from '@modules/auth/context/useAuth'
 import ColaDeComandasPendientes from './ColaDeComandasPendientes'
 import styles from './PedidosPendientesView.module.css'
 
 function PedidosPendientesView() {
+  const { user } = useAuth()
   const { showError } = useError()
   const queryClient = useQueryClient()
 
@@ -49,6 +51,7 @@ function PedidosPendientesView() {
       {!isLoading && !isError && (
         <ColaDeComandasPendientes
           pedidos={pedidosActivos}
+          isAdmin={user?.rol === 'administrador'}
           onCancelar={(id) => cancelarMut.mutate(Number(id))}
           onCambiarEstado={(id, estado) => {
             const apiEstado: Record<string, EstadoPedido> = {

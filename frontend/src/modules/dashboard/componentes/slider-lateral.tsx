@@ -18,7 +18,7 @@ const ORDER = ['/dashboard/inicio', '/dashboard/pedidos', '/dashboard/menu', '/d
 
 function filtrarPorRol(items: ItemNavegacion[], rol?: string): ItemNavegacion[] {
   const filtrados = rol === 'mesero'
-    ? items.filter(i => i.path === '/dashboard/inicio' || i.path === '/dashboard/pedidos' || i.path === '/dashboard/caja-finanzas')
+    ? items.filter(i => i.path === '/dashboard/pedidos')
     : items
   return [...filtrados].sort((a, b) => ORDER.indexOf(a.path) - ORDER.indexOf(b.path))
 }

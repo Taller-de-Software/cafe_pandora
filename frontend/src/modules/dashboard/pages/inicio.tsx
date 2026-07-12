@@ -98,6 +98,7 @@ function Inicio() {
           {!isLoading && !isError && (
             <ColaDeComandasPendientes
               pedidos={pedidosActivos}
+              isAdmin={user?.rol === 'administrador'}
               onCancelar={(id) => cancelarMut.mutate(Number(id))}
               onCambiarEstado={(id, estado) => {
                 const apiEstado: Record<string, EstadoPedido> = {

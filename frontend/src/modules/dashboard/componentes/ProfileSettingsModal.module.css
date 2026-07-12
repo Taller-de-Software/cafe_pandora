@@ -122,6 +122,49 @@
   cursor: not-allowed;
 }
 
+.createRoleBtn {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.875rem;
+  background: #FAF7F2;
+  color: #7A3E1D;
+  border: 1px dashed #C99835;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.createRoleBtn:hover {
+  background: #F0EBE3;
+  border-color: #7A3E1D;
+}
+
+.createRoleForm {
+  overflow: hidden;
+  padding: 1rem;
+  margin-bottom: 0.875rem;
+  background: #FAF7F2;
+  border-radius: 0.625rem;
+  border: 1px solid #E8E1D8;
+}
+
+.createRoleActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.createRoleActions .cancelBtn,
+.createRoleActions .saveBtn {
+  padding: 0.375rem 0.875rem;
+  font-size: 0.75rem;
+}
+
 .passwordSection {
   margin-top: 1rem;
   padding: 1rem;
