@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
 import { PedidosProvider } from '../context/PedidosContext'
@@ -23,11 +22,6 @@ function PedidosContent() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.breadcrumb}>
-        <Link to="/dashboard" className={styles.breadcrumbLink}>← Volver al Inicio</Link>
-        <span className={styles.breadcrumbSep}>/</span>
-        <span className={styles.breadcrumbCurrent}>PEDIDOS</span>
-      </div>
 
       <div className={styles.moduleCard}>
         <div className={styles.moduleIcon}>

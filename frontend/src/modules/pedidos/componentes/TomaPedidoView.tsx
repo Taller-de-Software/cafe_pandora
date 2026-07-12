@@ -235,10 +235,12 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
         </div>
 
         <div className={styles.rightColumn}>
-          <div className={styles.summaryCard}>
+          <div className={styles.summaryCardHeader}>
             <h3 className={styles.summaryTitle}>RESUMEN DE MESA {mesa.nombre} ({mesa.ubicacion})</h3>
             <div className={styles.summaryDivider} />
+          </div>
 
+          <div className={styles.summaryCardItems}>
             {comanda.length === 0 ? (
               <div className={styles.summaryBody}>
                 <svg className={styles.cartIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,31 +250,31 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
                 <p className={styles.emptyCartHint}>Toque los productos de la izquierda para agregarlos a la comanda.</p>
               </div>
             ) : (
-              <div className={styles.comandaScroll}>
-                {comanda.map((item) => (
-                  <div key={item.id} className={styles.comandaItem}>
-                    <div className={styles.comandaItemRow}>
-                      <span className={styles.comandaName}>{item.nombre}</span>
-                      <button className={styles.deleteBtn} onClick={() => eliminarProducto(item.id)}>
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className={styles.comandaItemRow}>
-                      <span className={styles.comandaUnitPrice}>${formatearNumero(item.precio)} c/u</span>
-                      <span className={styles.comandaLineTotal}>${formatearNumero(item.precio * item.cantidad)}</span>
-                    </div>
-                    <div className={styles.comandaControls}>
-                      <button className={styles.qtyBtn} onClick={() => disminuirCantidad(item.id)}>−</button>
-                      <span className={styles.qtyValue}>{item.cantidad}</span>
-                      <button className={styles.qtyBtn} onClick={() => aumentarCantidad(item.id)}>+</button>
-                    </div>
+              comanda.map((item) => (
+                <div key={item.id} className={styles.comandaItem}>
+                  <div className={styles.comandaItemRow}>
+                    <span className={styles.comandaName}>{item.nombre}</span>
+                    <button className={styles.deleteBtn} onClick={() => eliminarProducto(item.id)}>
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
-                ))}
-              </div>
+                  <div className={styles.comandaItemRow}>
+                    <span className={styles.comandaUnitPrice}>${formatearNumero(item.precio)} c/u</span>
+                    <span className={styles.comandaLineTotal}>${formatearNumero(item.precio * item.cantidad)}</span>
+                  </div>
+                  <div className={styles.comandaControls}>
+                    <button className={styles.qtyBtn} onClick={() => disminuirCantidad(item.id)}>−</button>
+                    <span className={styles.qtyValue}>{item.cantidad}</span>
+                    <button className={styles.qtyBtn} onClick={() => aumentarCantidad(item.id)}>+</button>
+                  </div>
+                </div>
+              ))
             )}
+          </div>
 
+          <div className={styles.summaryCardFooter}>
             <div className={styles.summaryDivider} />
             <div className={styles.summaryRow}>
               <span>Subtotal:</span>
