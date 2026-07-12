@@ -33,8 +33,9 @@
   width: 95px;
   height: 95px;
   border-radius: 50%;
-  border: 2px solid #6b7280;
-  background: transparent;
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
   flex-shrink: 0;
 }
 
@@ -189,99 +190,6 @@
   line-height: 1.2;
 }
 
-/* ── Bottom section ── */
-.bottomSection {
-  flex-shrink: 0;
-  padding: 1rem 1.25rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-
-.rolTitle {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: #9ca3af;
-  margin: 0;
-  letter-spacing: 0.1em;
-}
-
-.userCard {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: white;
-  border-radius: 12px;
-  padding: 0.625rem 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  cursor: pointer;
-  transition: box-shadow 0.15s;
-}
-
-.userCard:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.userAvatar {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: #b45309;
-  color: white;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.userInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  min-width: 0;
-}
-
-.userName {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #1f2937;
-  line-height: 1.2;
-}
-
-.userRole {
-  font-size: 0.6875rem;
-  color: #9ca3af;
-  line-height: 1.2;
-}
-
-.logoutBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 10px;
-  background: #C7544A;
-  color: white;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.logoutBtn:hover {
-  background: #A84440;
-}
-
-.logoutIcon {
-  width: 1rem;
-  height: 1rem;
-}
-
 /* ── Backdrop overlay ── */
 .backdrop {
   display: none;
@@ -351,10 +259,6 @@
 
   .navSub {
     font-size: 0.625rem;
-  }
-
-  .bottomSection {
-    padding: 0.75rem 1rem 1rem;
   }
 }
 

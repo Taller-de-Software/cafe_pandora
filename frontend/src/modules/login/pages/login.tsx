@@ -5,6 +5,10 @@ import { useError } from '@/context/ErrorContext'
 import ServerConfigModal from '@modules/configuracion/componentes/ServerConfigModal'
 import styles from './login.module.css'
 
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'
+const BASE = API_URL.replace('/api', '')
+const LOGO_URL = `${BASE}/uploads/productos/logo%20cafepandora%20sin%20fondo.png`
+
 type Tab = 'login' | 'register'
 
 function Login() {
@@ -53,7 +57,9 @@ function Login() {
       </button>
 
       <div className={styles.card}>
-        <div className={styles.leftCol} />
+        <div className={styles.leftCol}>
+          <img className={styles.logoImage} src={LOGO_URL} alt="Café Pandora" />
+        </div>
 
         <div className={styles.rightCol}>
           <div className={styles.formContainer}>

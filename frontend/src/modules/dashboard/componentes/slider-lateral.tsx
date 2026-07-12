@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { useAuth } from '@modules/auth/context/useAuth'
-import { useProfile } from '../context/ProfileContext'
 import Icono from './iconos'
 import { itemsFijos, type ItemNavegacion } from '../data/navegacion'
-import ProfileSettingsModal from './ProfileSettingsModal'
 import styles from './slider-lateral.module.css'
+
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'
+const BASE = API_URL.replace('/api', '')
+const LOGO_URL = `${BASE}/uploads/productos/logo%20cafepandora.png`
 
 const SUBTITLES: Record<string, string> = {
   '/dashboard/inicio': 'Panel principal',
@@ -28,21 +29,13 @@ interface SliderLateralProps {
 }
 
 function SliderLateral({ isOpen }: SliderLateralProps) {
-  const { user, logout } = useAuth()
-  const { profile } = useProfile()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   const items = filtrarPorRol(itemsFijos, user?.rol)
-  const [showProfileModal, setShowProfileModal] = useState(false)
-
-  function handleLogout() {
-    logout()
-    navigate('/')
-  }
 
   return (
     <aside className={`${styles.sidebar} ${isOpen ? styles.expanded : styles.collapsed}`}>
       <div className={styles.logoSection}>
-        <div className={styles.logoCircle} />
+        <img className={styles.logoCircle} src={LOGO_URL} alt="Café Pandora" />
         <h1 className={styles.systemName}>CAFÉ PANDORA</h1>
         <p className={styles.systemSub}>POS SISTEMA ADMINISTRATIVO</p>
       </div>
@@ -75,24 +68,6 @@ function SliderLateral({ isOpen }: SliderLateralProps) {
             </NavLink>
           ))}
         </nav>
-      </div>
-
-      <div className={styles.bottomSection}>
-        <p className={styles.rolTitle}>ROL DE ACCESOS</p>
-        <div className={styles.userCard} onClick={() => setShowProfileModal(true)}>
-          <div className={styles.userAvatar}>
-            {profile.nombre.charAt(0).toUpperCase() || (user?.rol ? user.rol.charAt(0).toUpperCase() : '?')}
-          </div>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>{profile.nombre || (user?.rol ? user.rol.charAt(0).toUpperCase() + user.rol.slice(1) : 'Usuario')}</span>
-            <span className={styles.userRole}>{(user?.rol || '').toUpperCase()}</span>
-          </div>
-        </div>
-        <ProfileSettingsModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
-        <button className={styles.logoutBtn} onClick={handleLogout}>
-          <Icono name="salir" className={styles.logoutIcon} />
-          CERRAR SESIÓN
-        </button>
       </div>
     </aside>
   )
