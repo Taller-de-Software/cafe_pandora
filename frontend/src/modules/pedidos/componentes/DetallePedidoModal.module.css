@@ -386,8 +386,10 @@
 }
 
 .editSearchInput {
-  flex: 1;
+  flex: 0 1 auto;
+  width: 180px;
   min-width: 0;
+  margin-left: auto;
   font-size: 0.7rem;
   padding: 0.3rem 0.6rem;
   border: 1px solid #d1d5db;
@@ -404,6 +406,16 @@
 .editSearchInput:focus {
   border-color: #c2410c;
   box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.1);
+}
+
+.subcategoriasRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1.25rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  overflow-x: auto;
 }
 
 .catalogoList {

@@ -28,6 +28,7 @@
 .rightColumn {
   flex: 28;
   display: flex;
+  min-height: 0;
 }
 
 .header {
@@ -167,12 +168,14 @@
 }
 
 .summaryCard {
-  flex: 1;
+  height: 440px;
+  align-self: flex-start;
   border: 1.5px solid #e5e7eb;
   border-radius: 12px;
   padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .summaryTitle {

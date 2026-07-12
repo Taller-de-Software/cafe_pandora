@@ -20,7 +20,7 @@ interface PedidosContextValue {
   pedidosPendientes: PedidoPendiente[]
   agregarPedido: (mesa: string, items: ItemPedidoPendiente[], mesero: string, esCuentaSeparada?: boolean) => void
   eliminarPedido: (id: string) => void
-  actualizarPedido: (id: string, items: ItemPedidoPendiente[]) => void
+  actualizarPedido: (id: string, items: ItemPedidoPendiente[], extra?: { mesa?: string; mesero?: string; horaCreacion?: string; estado?: PedidoPendiente['estado'] }) => void
   separarCuenta: (id: string, itemsPorCuenta: ItemPedidoPendiente[][]) => void
   cambiarMesaPedido: (id: string, newMesa: string) => void
   unirPedidos: (id: string, targetMesa: string) => void
@@ -73,12 +73,29 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
     setPedidosPendientes((prev) => prev.filter((p) => p.id !== id))
   }, [])
 
-  const actualizarPedido = useCallback((id: string, items: ItemPedidoPendiente[]) => {
+  const actualizarPedido = useCallback((id: string, items: ItemPedidoPendiente[], extra?: { mesa?: string; mesero?: string; horaCreacion?: string; estado?: PedidoPendiente['estado'] }) => {
     const itemsNorm = normalizarItems(items)
     const total = calcularTotal(itemsNorm)
-    setPedidosPendientes((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, items: itemsNorm, total } : p))
-    )
+    setPedidosPendientes((prev) => {
+      const exists = prev.find((p) => p.id === id)
+      if (exists) {
+        return prev.map((p) => (p.id === id ? { ...p, items: itemsNorm, total } : p))
+      }
+      const ahora = new Date()
+      const hh = String(ahora.getHours()).padStart(2, '0')
+      const mm = String(ahora.getMinutes()).padStart(2, '0')
+      return [...prev, {
+        id,
+        mesa: extra?.mesa ?? '',
+        turno: prev.length + 1,
+        horaCreacion: extra?.horaCreacion ?? `${hh}:${mm}`,
+        estado: extra?.estado ?? 'PENDIENTE',
+        items: itemsNorm,
+        mesero: extra?.mesero ?? '',
+        total,
+        totalAbonado: 0,
+      }]
+    })
   }, [])
 
   const separarCuenta = useCallback((id: string, itemsPorCuenta: ItemPedidoPendiente[][]) => {

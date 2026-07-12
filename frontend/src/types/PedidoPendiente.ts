@@ -3,6 +3,7 @@ export interface ItemPedidoPendiente {
   cantidad: number
   precioUnitario: number
   subtotal: number
+  requierePreparacion?: boolean
 }
 
 export interface CuentaSeparada {
