@@ -161,6 +161,7 @@ model Pedido {
   hechoEn      DateTime?
   finalizadoEn DateTime?
   canceladoEn  DateTime?
+  fechaPago    DateTime?
 
   detalles   DetallePedido[]
   factura    Factura?

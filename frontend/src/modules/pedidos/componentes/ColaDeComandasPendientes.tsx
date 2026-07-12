@@ -13,6 +13,7 @@ interface ColaDeComandasPendientesProps {
   onCambiarEstado: (id: string, estado: string) => void
   emptyMessage?: string
   emptyHint?: string
+  isAdmin?: boolean
 }
 
 const BADGE_CLASS: Record<string, string> = {
@@ -29,7 +30,7 @@ const BADGE_LABEL: Record<string, string> = {
   finalizado: 'FINALIZADO',
 }
 
-function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyMessage, emptyHint }: ColaDeComandasPendientesProps) {
+function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyMessage, emptyHint, isAdmin = true }: ColaDeComandasPendientesProps) {
   const { showError } = useError()
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
   const [detailPedido, setDetailPedido] = useState<Pedido | null>(null)
@@ -69,6 +70,7 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
   }
 
   const renderActions = (pedido: Pedido) => {
+    if (!isAdmin) return null
     switch (pedido.estado) {
       case 'recibido':
         return (

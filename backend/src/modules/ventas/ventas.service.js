@@ -31,7 +31,7 @@ function finDelDia(fecha = new Date()) {
 async function obtenerVentas(desde, hasta) {
   const facturas = await prisma.factura.findMany({
     where: {
-      creadoEn: { gte: desde, lte: hasta },
+      pedido: { fechaPago: { gte: desde, lte: hasta } },
     },
     include: {
       metodoPago: true,
@@ -46,7 +46,7 @@ async function obtenerVentas(desde, hasta) {
         },
       },
     },
-    orderBy: { creadoEn: "desc" },
+    orderBy: { pedido: { fechaPago: "desc" } },
   });
 
   const resumen = facturas.reduce(
@@ -107,7 +107,7 @@ async function obtenerVentas(desde, hasta) {
     mesa: f.pedido.mesa?.nombre ?? "Sin mesa",
     metodoPago: f.metodoPago?.nombre ?? "Desconocido",
     estado: f.pedido.estado,
-    creadoEn: f.creadoEn,
+    fechaPago: f.pedido.fechaPago,
     detalles: f.pedido.detalles.map((d) => ({
       producto: d.producto.nombre,
       cantidad: d.cantidad,

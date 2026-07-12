@@ -25,7 +25,7 @@ export interface VentaDetalle {
   mesa: string
   metodoPago: string
   estado: string
-  creadoEn: string
+  fechaPago: string | null
   detalles: {
     producto: string
     cantidad: number

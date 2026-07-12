@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useContext } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import type { Pedido as ApiPedido, Mesa } from '../data/pedidos'
-import { listarMesas } from '../data/pedidos'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import type { Pedido as ApiPedido, Mesa, EstadoPedido } from '../data/pedidos'
+import { listarMesas, cambiarEstado } from '../data/pedidos'
 import type { PedidoPendiente, ItemPedidoPendiente } from '@/types/PedidoPendiente'
 import { PedidosContext } from '../context/PedidosContext'
 import { listarCategorias } from '../../menu/api/categorias'
@@ -111,6 +111,15 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   const actualizarPedido = pedidosCtx?.actualizarPedido
   const pedidosPendientes = pedidosCtx?.pedidosPendientes ?? []
 
+  const queryClient = useQueryClient()
+  const cambiarEstadoApi = useMutation({
+    mutationFn: ({ id, estado }: { id: number; estado: EstadoPedido }) => cambiarEstado(id, estado),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+    },
+    onError: (err) => console.error('Error al cambiar estado:', err),
+  })
   const [modo, setModo] = useState<Modo>('acciones')
   const [draftItems, setDraftItems] = useState<ItemPedidoPendiente[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState<number | null>(null)
@@ -256,11 +265,33 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   }
 
   function confirmarCambios() {
+    const itemsNorm = Array.isArray(draftItems) ? draftItems : []
+    const catalogoArr = Array.isArray(catalogo) ? catalogo : []
+
+    const huboProductoNuevoConPreparacion = itemsNorm.some(draftItem => {
+      const original = (itemsOriginales ?? []).find(i => i.nombre === draftItem.nombre)
+      const cantidadAgregada = (draftItem.cantidad ?? 0) - (original?.cantidad ?? 0)
+      if (cantidadAgregada <= 0) return false
+      const prod = catalogoArr.find(p => p?.nombre === draftItem.nombre)
+      return prod?.requierePreparacion === true
+    })
+
+    const pedidoEstado = String((pedido as any).estado ?? '').toLowerCase()
+    const debeRevertirAEstado = pedidoEstado === 'hecho' && huboProductoNuevoConPreparacion
+
     if (pedidoPendiente && actualizarPedido) {
-      actualizarPedido(pedidoPendiente.id, Array.isArray(draftItems) ? draftItems : [])
+      actualizarPedido(pedidoPendiente.id, itemsNorm)
+      if (debeRevertirAEstado && pedidosCtx?.cambiarEstado) {
+        pedidosCtx.cambiarEstado(pedidoPendiente.id, 'PENDIENTE')
+      }
     } else {
       console.log('Confirmar cambios (API pedido - no implementado):', draftItems)
     }
+
+    if (debeRevertirAEstado) {
+      cambiarEstadoApi.mutate({ id: Number(pedido.id), estado: 'pendiente' })
+    }
+
     setModo('acciones')
   }
 

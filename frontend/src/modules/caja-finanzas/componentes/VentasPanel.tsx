@@ -79,7 +79,7 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
       total: p.total,
       subtotal,
       impuestoConsumo: p.total - subtotal,
-      creadoEn: p.creadoEn,
+      creadoEn: p.fechaPago ?? '',
       metodoPago: p.metodoPago,
       pedido: {
         id: p.id,
@@ -228,8 +228,8 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
                     <td>{p.metodoPago}</td>
                     <td className={styles.dateCell}>
                       {periodo === 'dia'
-                        ? new Date(p.creadoEn).toLocaleTimeString()
-                        : new Date(p.creadoEn).toLocaleDateString()}
+                        ? new Date(p.fechaPago!).toLocaleTimeString()
+                        : new Date(p.fechaPago!).toLocaleDateString()}
                     </td>
                     <td><span className={styles.badge}>{p.estado}</span></td>
                   </tr>

@@ -75,7 +75,7 @@ export const crear = async (data) => {
 
     await tx.pedido.update({
       where: { id: data.pedidoId },
-      data: { estado: ESTADOS_PEDIDO.FINALIZADO, finalizadoEn: new Date(), total: data.total },
+      data: { estado: ESTADOS_PEDIDO.FINALIZADO, finalizadoEn: new Date(), total: data.total, fechaPago: new Date() },
     });
 
     await tx.cajaSesion.update({
