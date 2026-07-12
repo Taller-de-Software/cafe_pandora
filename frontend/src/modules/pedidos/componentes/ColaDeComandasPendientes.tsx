@@ -31,7 +31,7 @@ const BADGE_LABEL: Record<string, string> = {
 }
 
 function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyMessage, emptyHint, isAdmin = true }: ColaDeComandasPendientesProps) {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
   const [detailPedido, setDetailPedido] = useState<Pedido | null>(null)
   const [pedidoAFacturar, setPedidoAFacturar] = useState<Pedido | null>(null)
@@ -53,6 +53,9 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
 
   const imprimirCocinaMut = useMutation({
     mutationFn: imprimirCocina,
+    onSuccess: () => {
+      showSuccess('Comanda enviada a cocina exitosamente')
+    },
     onError: showError,
   })
 

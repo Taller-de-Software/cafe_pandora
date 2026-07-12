@@ -12,7 +12,7 @@ function Inicio() {
   usePedidosSocket()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
 
   const { data: pedidos = [], isLoading, isError } = useQuery({
@@ -27,6 +27,7 @@ function Inicio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Estado del pedido actualizado')
     },
     onError: showError,
   })
@@ -36,6 +37,7 @@ function Inicio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Pedido cancelado exitosamente')
     },
     onError: showError,
   })

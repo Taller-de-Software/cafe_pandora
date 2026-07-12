@@ -34,7 +34,7 @@ function FormularioProducto({
   onCerrar,
   embedded = false,
 }: FormularioProductoProps) {
-  const { showError } = useError()
+  const { showError, showWarning } = useError()
   const fileRef = useRef<HTMLInputElement>(null)
   const esEdicion = !!producto
 
@@ -67,7 +67,10 @@ function FormularioProducto({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!nombre.trim() || !precio.raw || categoriaId === '') return
+    if (!nombre.trim() || !precio.raw || categoriaId === '') {
+      showWarning('Completa todos los campos obligatorios: nombre, precio y categoría.')
+      return
+    }
 
     const fd = new FormData()
     fd.append('nombre', nombre.trim())

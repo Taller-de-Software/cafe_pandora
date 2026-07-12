@@ -17,7 +17,7 @@ interface ItemForm {
 }
 
 function FormularioPedido({ onSave, onCancel }: FormularioPedidoProps) {
-  const { showError } = useError()
+  const { showError, showWarning } = useError()
   const [mesas, setMesas] = useState<Mesa[]>([])
   const [productos, setProductos] = useState<{ id: number; nombre: string; precio: number }[]>([])
   const [mesaId, setMesaId] = useState<number | ''>('')
@@ -44,7 +44,14 @@ function FormularioPedido({ onSave, onCancel }: FormularioPedidoProps) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!mesaId || items.some((i) => !i.productoId)) return
+    if (!mesaId) {
+      showWarning('Selecciona una mesa para continuar.')
+      return
+    }
+    if (items.some((i) => !i.productoId)) {
+      showWarning('Selecciona un producto en cada item del pedido.')
+      return
+    }
     setSaving(true)
     try {
       await crearPedido({

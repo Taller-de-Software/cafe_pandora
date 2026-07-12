@@ -10,14 +10,17 @@ interface FormularioRetiroProps {
 }
 
 function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
-  const { showError } = useError()
+  const { showError, showWarning } = useError()
   const [tipo, setTipo] = useState<'entrada' | 'salida'>('entrada')
   const monto = useFormattedInput({ type: 'money' })
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (monto.numericValue <= 0) return
+    if (monto.numericValue <= 0) {
+      showWarning('Ingresa un monto mayor a $0 para registrar el movimiento.')
+      return
+    }
     setSaving(true)
     try {
       await onSave({ tipo, monto: monto.numericValue })

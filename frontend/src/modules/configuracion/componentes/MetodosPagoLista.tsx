@@ -3,15 +3,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarMetodosPago, crearMetodoPago, actualizarMetodoPago, eliminarMetodoPago } from '../data/metodos-pago'
 import type { MetodoPago } from '../data/metodos-pago'
 import { useError } from '@/context/ErrorContext'
+import ConfirmModal from '@/componentes/ConfirmModal'
 import styles from './MetodosPagoLista.module.css'
 
 function MetodosPagoLista() {
   const queryClient = useQueryClient()
-  const { showError } = useError()
+  const { showError, showWarning, showSuccess } = useError()
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<MetodoPago | null>(null)
   const [nombre, setNombre] = useState('')
   const [entidad, setEntidad] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<MetodoPago | null>(null)
 
   const { data: metodos = [], isLoading, isError } = useQuery({
     queryKey: ['metodos-pago'],
@@ -22,6 +24,7 @@ function MetodosPagoLista() {
     mutationFn: crearMetodoPago,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['metodos-pago'] })
+      showSuccess('Método de pago creado exitosamente')
       cerrarFormulario()
     },
     onError: showError,
@@ -32,6 +35,7 @@ function MetodosPagoLista() {
       actualizarMetodoPago(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['metodos-pago'] })
+      showSuccess('Método de pago actualizado exitosamente')
       cerrarFormulario()
     },
     onError: showError,
@@ -39,7 +43,10 @@ function MetodosPagoLista() {
 
   const deleteMut = useMutation({
     mutationFn: eliminarMetodoPago,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['metodos-pago'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['metodos-pago'] })
+      showSuccess('Método de pago eliminado exitosamente')
+    },
     onError: showError,
   })
 
@@ -66,7 +73,10 @@ function MetodosPagoLista() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!nombre.trim()) return
+    if (!nombre.trim()) {
+      showWarning('Ingresa un nombre para el método de pago.')
+      return
+    }
     if (editItem) {
       await updateMut.mutateAsync({ id: editItem.id, data: { nombre: nombre.trim(), entidad: entidad.trim() || undefined } })
     } else {
@@ -108,11 +118,7 @@ function MetodosPagoLista() {
                 <td>
                   <div className={styles.actions}>
                     <button className={styles.editBtn} onClick={() => abrirEditar(m)}>Editar</button>
-                    <button className={styles.deleteBtn} onClick={() => {
-                      if (window.confirm(`¿Eliminar método de pago "${m.nombre}"?`)) {
-                        deleteMut.mutate(m.id)
-                      }
-                    }}>Eliminar</button>
+                    <button className={styles.deleteBtn} onClick={() => setConfirmDelete(m)}>Eliminar</button>
                   </div>
                 </td>
               </tr>
@@ -144,6 +150,20 @@ function MetodosPagoLista() {
             </form>
           </div>
         </div>
+      )}
+
+      {confirmDelete && (
+        <ConfirmModal
+          titulo="Eliminar método de pago"
+          mensaje={`¿Estás seguro de eliminar el método de pago "${confirmDelete.nombre}"? Esta acción no se puede deshacer.`}
+          textoConfirmar="Eliminar"
+          variante="danger"
+          onConfirmar={() => {
+            deleteMut.mutate(confirmDelete.id)
+            setConfirmDelete(null)
+          }}
+          onCancelar={() => setConfirmDelete(null)}
+        />
       )}
     </div>
   )

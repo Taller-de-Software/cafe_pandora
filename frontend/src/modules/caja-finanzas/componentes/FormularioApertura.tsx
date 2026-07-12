@@ -10,13 +10,16 @@ interface FormularioAperturaProps {
 }
 
 function FormularioApertura({ onSave, onCancel }: FormularioAperturaProps) {
-  const { showError } = useError()
+  const { showError, showWarning } = useError()
   const monto = useFormattedInput({ type: 'money' })
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (monto.numericValue <= 0) return
+    if (monto.numericValue <= 0) {
+      showWarning('Ingresa un monto mayor a $0 para abrir la caja.')
+      return
+    }
     setSaving(true)
     try {
       await onSave(monto.numericValue)

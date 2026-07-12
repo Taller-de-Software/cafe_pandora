@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { MesaCompleta } from '../data/pos'
+import { useError } from '@/context/ErrorContext'
 import styles from './modal.module.css'
 import localStyles from './ReservarMesaModal.module.css'
 
@@ -10,6 +11,7 @@ interface ReservarMesaModalProps {
 }
 
 function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalProps) {
+  const { showError, showWarning } = useError()
   const [mesaId, setMesaId] = useState(mesasVacias[0]?.id ?? 0)
   const [cliente, setCliente] = useState('')
   const [telefono, setTelefono] = useState('')
@@ -21,7 +23,10 @@ function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalPr
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!cliente.trim() || !mesaId) return
+    if (!cliente.trim() || !mesaId) {
+      showWarning('Ingresa el nombre del cliente y selecciona una mesa.')
+      return
+    }
     setSaving(true)
     try {
       await onSave({
@@ -33,7 +38,9 @@ function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalPr
         personas,
         notas: notas.trim() || undefined,
       })
-    } catch {
+    } catch (err) {
+      showError(err)
+    } finally {
       setSaving(false)
     }
   }

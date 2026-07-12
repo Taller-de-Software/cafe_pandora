@@ -12,7 +12,7 @@ import { useError } from '@/context/ErrorContext'
 import styles from './PosScreen.module.css'
 
 function PosScreen() {
-  const { showError } = useError()
+  const { showError, showWarning, showSuccess } = useError()
   const queryClient = useQueryClient()
   const [selectedMesa, setSelectedMesa] = useState<MesaCompleta | null>(null)
   const [items, setItems] = useState<ItemCarrito[]>([])
@@ -33,6 +33,7 @@ function PosScreen() {
     mutationFn: crearPedido,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Pedido creado exitosamente')
       setItems([])
       setSelectedMesa(null)
     },
@@ -76,13 +77,20 @@ function PosScreen() {
   }
 
   async function confirmarPedido() {
-    if (!selectedMesa || items.length === 0) return
-    const turno = 1
-    await createPedidoMut.mutateAsync({
-      mesaId: selectedMesa.id,
-      turno,
-      items: items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad, notas: i.notas || undefined })),
-    })
+    if (!selectedMesa || items.length === 0) {
+      showWarning('Selecciona una mesa y agrega productos al pedido.')
+      return
+    }
+    try {
+      const turno = 1
+      await createPedidoMut.mutateAsync({
+        mesaId: selectedMesa.id,
+        turno,
+        items: items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad, notas: i.notas || undefined })),
+      })
+    } catch {
+      // Error manejado por onError en useMutation
+    }
   }
 
   function cambiarMesa() {

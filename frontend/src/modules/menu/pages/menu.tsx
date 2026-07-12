@@ -20,7 +20,7 @@ interface GrupoProductos {
 import styles from './menu.module.css'
 
 function Menu() {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
 
   const [categoriaActivaId, setCategoriaActivaId] = useState<number | null>(null)
@@ -84,6 +84,7 @@ function Menu() {
     mutationFn: crearCategoria,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorias'] })
+      showSuccess('Categoría creada exitosamente')
     },
     onError: showError,
   })
@@ -93,6 +94,7 @@ function Menu() {
       actualizarCategoria(id, { nombre }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorias'] })
+      showSuccess('Categoría actualizada exitosamente')
     },
     onError: showError,
   })
@@ -101,6 +103,7 @@ function Menu() {
     mutationFn: eliminarCategoria,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorias'] })
+      showSuccess('Categoría eliminada exitosamente')
     },
     onError: showError,
   })
@@ -110,6 +113,7 @@ function Menu() {
       crearSubcategoria({ nombre, categoriaId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcategorias', categoriaActivaId] })
+      showSuccess('Subcategoría creada exitosamente')
     },
     onError: showError,
   })
@@ -119,6 +123,7 @@ function Menu() {
       actualizarSubcategoria(id, { nombre }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcategorias', categoriaActivaId] })
+      showSuccess('Subcategoría actualizada exitosamente')
     },
     onError: showError,
   })
@@ -128,6 +133,7 @@ function Menu() {
       actualizarSubcategoria(id, { categoriaId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcategorias', categoriaActivaId] })
+      showSuccess('Subcategoría reasignada exitosamente')
     },
     onError: showError,
   })
@@ -136,6 +142,7 @@ function Menu() {
     mutationFn: eliminarSubcategoria,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcategorias', categoriaActivaId] })
+      showSuccess('Subcategoría eliminada exitosamente')
     },
     onError: showError,
   })
@@ -144,6 +151,7 @@ function Menu() {
     mutationFn: crearProducto,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['productos', categoriaActivaId] })
+      showSuccess('Producto creado exitosamente')
     },
     onError: showError,
   })
@@ -155,6 +163,7 @@ function Menu() {
       setShowProdForm(false)
       setProductoEditando(null)
       queryClient.invalidateQueries({ queryKey: ['productos', categoriaActivaId] })
+      showSuccess('Producto actualizado exitosamente')
     },
     onError: showError,
   })
@@ -163,6 +172,7 @@ function Menu() {
     mutationFn: eliminarProducto,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['productos', categoriaActivaId] })
+      showSuccess('Producto eliminado exitosamente')
     },
     onError: showError,
   })

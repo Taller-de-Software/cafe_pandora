@@ -32,7 +32,7 @@ interface NuevoPedidoViewProps {
 }
 
 function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const { agregarReserva } = useReservas()
@@ -53,6 +53,7 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
     mutationFn: crearReserva,
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Reserva creada exitosamente')
       setReservaMesa(null)
       setShowReservarMesa(false)
     },

@@ -17,7 +17,7 @@ function setPrintMode(mode: 'simulate' | 'real'): Promise<PrintModeResponse> {
 }
 
 function PrintModeSection() {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -31,6 +31,7 @@ function PrintModeSection() {
     mutationFn: setPrintMode,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['print-mode'] })
+      showSuccess('Modo de impresión actualizado')
     },
     onError: showError,
   })

@@ -8,7 +8,7 @@ import styles from './PedidosPendientesView.module.css'
 
 function PedidosPendientesView() {
   const { user } = useAuth()
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
 
   const { data: pedidos = [], isLoading, isError } = useQuery({
@@ -22,6 +22,7 @@ function PedidosPendientesView() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Estado del pedido actualizado')
     },
     onError: showError,
   })
@@ -31,6 +32,7 @@ function PedidosPendientesView() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Pedido cancelado exitosamente')
     },
     onError: showError,
   })

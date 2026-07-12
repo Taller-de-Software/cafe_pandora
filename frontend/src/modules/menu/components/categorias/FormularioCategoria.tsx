@@ -22,7 +22,7 @@ function FormularioCategoria({
   onCerrar,
   embedded = false,
 }: FormularioCategoriaProps) {
-  const { showError } = useError()
+  const { showError, showWarning } = useError()
   const [tab, setTab] = useState<Tab>('crear')
   const [nombre, setNombre] = useState('')
   const [catId, setCatId] = useState<number | null>(null)
@@ -34,7 +34,10 @@ function FormularioCategoria({
 
   async function handleCrear(e: FormEvent) {
     e.preventDefault()
-    if (!nombre.trim()) return
+    if (!nombre.trim()) {
+      showWarning('Ingresa un nombre para la categoría.')
+      return
+    }
     setSaving(true)
     try {
       await onCrear(nombre.trim())
@@ -47,7 +50,10 @@ function FormularioCategoria({
   }
 
   async function handleActualizar() {
-    if (!catId || !editNombre.trim()) return
+    if (!catId || !editNombre.trim()) {
+      showWarning('Selecciona una categoría y escribe un nombre válido.')
+      return
+    }
     setSaving(true)
     try {
       await onActualizar(catId, editNombre.trim())

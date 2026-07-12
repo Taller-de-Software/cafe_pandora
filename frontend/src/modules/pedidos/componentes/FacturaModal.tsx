@@ -42,7 +42,7 @@ const ICONOS: Record<string, React.ReactNode> = {
 const TRANSFERENCIA_ENTIDADES = ['NEQUI', 'DAVIPLATA', 'NU'] as const
 
 function FacturaModal({ pedido, onClose }: FacturaModalProps) {
-  const { showError } = useError()
+  const { showError, showSuccess } = useError()
   const [metodoSeleccionId, setMetodoSeleccionId] = useState<number | null>(null)
   const recibido = useFormattedInput({ type: 'money' })
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
@@ -157,6 +157,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
       })
 
       await imprimirFacturaMut.mutateAsync(factura.id)
+      showSuccess('Factura generada y enviada a impresión exitosamente')
       onClose()
     } catch {
       // error handled by mutation onError

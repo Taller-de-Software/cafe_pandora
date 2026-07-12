@@ -29,7 +29,7 @@ interface TomaPedidoViewProps {
 }
 
 function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
-  const { showError } = useError()
+  const { showError, showWarning, showSuccess } = useError()
   const queryClient = useQueryClient()
   const [categoriaActivaId, setCategoriaActivaId] = useState<number | null>(null)
   const [subcategoriaActivaId, setSubcategoriaActivaId] = useState<number | null>(null)
@@ -45,6 +45,7 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
     mutationFn: crearPedido,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Pedido creado exitosamente')
       onBack()
     },
     onError: showError,
@@ -53,8 +54,8 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
   useEffect(() => {
     listarCategorias()
       .then(setCategorias)
-      .catch(() => {})
-  }, [])
+      .catch(() => showError('No se pudieron cargar las categorías.'))
+  }, [showError])
 
   useEffect(() => {
     if (!categoriaActivaId) {
@@ -64,8 +65,11 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
     }
     listarSubcategorias(categoriaActivaId)
       .then(setSubcategorias)
-      .catch(() => setSubcategorias([]))
-  }, [categoriaActivaId])
+      .catch(() => {
+        setSubcategorias([])
+        showError('No se pudieron cargar las subcategorías.')
+      })
+  }, [categoriaActivaId, showError])
 
   useEffect(() => {
     setLoading(true)
@@ -74,9 +78,9 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
     if (subcategoriaActivaId) params.subcategoriaId = subcategoriaActivaId
     listarProductos(Object.keys(params).length > 0 ? params : undefined)
       .then(setProductos)
-      .catch(() => {})
+      .catch(() => showError('No se pudieron cargar los productos.'))
       .finally(() => setLoading(false))
-  }, [categoriaActivaId, subcategoriaActivaId])
+  }, [categoriaActivaId, subcategoriaActivaId, showError])
 
   useEffect(() => {
     if (!showVaciarConfirm) return
@@ -140,15 +144,22 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
   }
 
   async function confirmarPedido() {
-    if (comanda.length === 0) return
-    await createPedidoMut.mutateAsync({
-      mesaId: mesa.id,
-      turno: 1,
-      items: comanda.map((item) => ({
-        productoId: item.id,
-        cantidad: item.cantidad,
-      })),
-    })
+    if (comanda.length === 0) {
+      showWarning('Agrega al menos un producto al pedido.')
+      return
+    }
+    try {
+      await createPedidoMut.mutateAsync({
+        mesaId: mesa.id,
+        turno: 1,
+        items: comanda.map((item) => ({
+          productoId: item.id,
+          cantidad: item.cantidad,
+        })),
+      })
+    } catch {
+      // Error manejado por onError en useMutation
+    }
   }
 
   return (
