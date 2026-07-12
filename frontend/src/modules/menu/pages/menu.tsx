@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useError } from '@/context/ErrorContext'
 import ListaCategorias from '../components/categorias/ListaCategorias'
@@ -195,11 +194,6 @@ function Menu() {
 
   return (
     <div className={styles.layout}>
-      <div className={styles.breadcrumb}>
-        <Link to="/dashboard" className={styles.breadcrumbLink}>← Volver al Inicio</Link>
-        <span className={styles.breadcrumbSep}>/</span>
-        <span className={styles.breadcrumbCurrent}>MENÚ</span>
-      </div>
       <div className={styles.banner}>
         <div className={styles.bannerIcono}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
