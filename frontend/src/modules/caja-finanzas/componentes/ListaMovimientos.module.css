@@ -1,0 +1,226 @@
+.card {
+  background: #fef9ef;
+  border: 1px solid #E8E1D8;
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card h3 {
+  font-family: Inter, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #2D2A26;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.addBtn {
+  font-family: Inter, sans-serif;
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.625rem;
+  background: #7A3E1D;
+  color: white;
+  border: none;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: background 0.15s;
+}
+
+.addBtn:hover {
+  background: #5E2F17;
+}
+
+.scrollContainer {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Inter, sans-serif;
+  font-size: 0.8125rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.5rem 0.625rem 0.5rem 0;
+  color: #6E6A65;
+  font-weight: 600;
+  border-bottom: 1px solid #E8E1D8;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table td {
+  padding: 0.5rem 0.625rem 0.5rem 0;
+  border-bottom: 1px solid #F8F4EE;
+  color: #2D2A26;
+}
+
+.monto {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+}
+
+.montoEntrada {
+  color: #3D8B5F;
+}
+
+.montoSalida {
+  color: #C7544A;
+}
+
+.fecha {
+  color: #6E6A65;
+  font-size: 0.75rem;
+}
+
+.filaEntrada {
+  background: rgba(61, 139, 95, 0.03);
+}
+
+.filaSalida {
+  background: rgba(199, 84, 74, 0.03);
+}
+
+.badge {
+  font-family: Inter, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.badgeVenta {
+  background: #EDF9F1;
+  color: #3D8B5F;
+}
+
+.badgeEntrada {
+  background: #EDF9F1;
+  color: #3D8B5F;
+}
+
+.badgeSalida {
+  background: #FDEEE8;
+  color: #C7544A;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.clickable:hover {
+  background: #FAF7F2;
+}
+
+.empty {
+  color: #9B9792;
+  font-family: Inter, sans-serif;
+  font-size: 0.8125rem;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal {
+  background: #FFFFFF;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 24rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.headerGradient {
+  background: linear-gradient(135deg, #7A3E1D 0%, #A0633D 100%);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #E8E1D8;
+}
+
+.headerGradient h3 {
+  font-family: Inter, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.modalBody {
+  padding: 1.5rem;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid #F8F4EE;
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.detailLabel {
+  font-family: Inter, sans-serif;
+  font-size: 0.75rem;
+  color: #9B9792;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.detailValue {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2D2A26;
+}
+
+.entrada { color: #3D8B5F; }
+.salida { color: #C7544A; }
+
+.modalActions {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #E8E1D8;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.closeBtn {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid #E8E1D8;
+  border-radius: 0.625rem;
+  background: #FFFFFF;
+  font-family: Inter, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #6E6A65;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.closeBtn:hover {
+  background: #FAF7F2;
+}

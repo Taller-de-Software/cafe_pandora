@@ -11,19 +11,18 @@ interface FormularioRetiroProps {
 
 function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
   const { showError, showWarning } = useError()
-  const [tipo, setTipo] = useState<'entrada' | 'salida'>('entrada')
   const monto = useFormattedInput({ type: 'money' })
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (monto.numericValue <= 0) {
-      showWarning('Ingresa un monto mayor a $0 para registrar el movimiento.')
+      showWarning('Ingresa un monto mayor a $0 para registrar el retiro.')
       return
     }
     setSaving(true)
     try {
-      await onSave({ tipo, monto: monto.numericValue })
+      await onSave({ tipo: 'salida', monto: monto.numericValue })
     } catch (err) {
       showError(err)
     } finally {
@@ -49,17 +48,10 @@ function FormularioRetiro({ onSave, onCancel }: FormularioRetiroProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <div className={styles.modalHeader}>
-            <h3 className='uppercase'>Nuevo Movimiento</h3>
+            <h3 className='uppercase'>Nuevo Retiro</h3>
           </div>
           <form onSubmit={handleSubmit}>
             <div className={styles.modalBody}>
-              <div className={styles.field}>
-                <label>Tipo</label>
-                <select className={styles.select} value={tipo} onChange={(e) => setTipo(e.target.value as 'entrada' | 'salida')}>
-                  <option value="entrada">Entrada</option>
-                  <option value="salida">Salida</option>
-                </select>
-              </div>
               <div className={styles.field}>
                 <label>Monto</label>
                 <input className={styles.input} {...monto.inputProps} autoFocus />
