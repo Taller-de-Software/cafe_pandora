@@ -12,10 +12,3 @@ node_modules/
 # SQLite
 prisma/dev.db
 prisma/dev.db-journal
-
-# Uploads
-uploads/productos/*
-!uploads/productos/.gitkeep
-
-uploads/facturas/*
-!uploads/facturas/.gitkeep

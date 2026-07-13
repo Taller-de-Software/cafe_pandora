@@ -17,13 +17,14 @@ import ventasRoutes from "./modules/ventas/ventas.routes.js";
 import cajaRoutes from "./modules/caja/caja.routes.js";
 import metodosPagoRoutes from "./modules/metodos_pago/metodos_pago.routes.js";
 import reservasRoutes from "./modules/reservas/reservas.routes.js";
+import configuracionRoutes from "./modules/configuracion/configuracion.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "API Pandora Cafe Bar funcionando" });
@@ -39,6 +40,7 @@ app.use("/api/impresion", impresionRoutes);
 app.use("/api/ventas", ventasRoutes);
 app.use("/api/caja", cajaRoutes);
 app.use("/api/metodos-pago", metodosPagoRoutes);
+app.use("/api/configuracion", configuracionRoutes);
 app.use("/api/reservas", reservasRoutes);
 
 app.use((req, res) => {

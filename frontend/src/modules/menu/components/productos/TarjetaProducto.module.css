@@ -36,9 +36,6 @@
 }
 
 .encabezado {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
@@ -46,12 +43,15 @@
   font-size: 0.9375rem;
   font-weight: 600;
   color: #1f2937;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   overflow-wrap: break-word;
   word-break: break-word;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .badgeInhabilitado {

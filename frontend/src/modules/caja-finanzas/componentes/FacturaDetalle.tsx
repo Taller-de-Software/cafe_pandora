@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import type { ResumenFactura } from '../data/caja'
-import { imprimirFactura } from '../../pedidos/data/facturas'
+import { obtenerComprobante, comprobanteDisponible } from '../../pedidos/data/facturas'
 import { formatearNumero } from '@/utils/formatear'
 import { useError } from '@/context/ErrorContext'
 import styles from './FacturaDetalle.module.css'
@@ -14,12 +14,21 @@ interface FacturaDetalleProps {
 function FacturaDetalle({ factura, onClose }: FacturaDetalleProps) {
   const { showError, showSuccess } = useError()
   const [printing, setPrinting] = useState(false)
+  const [disponible, setDisponible] = useState(true)
+
+  useEffect(() => {
+    comprobanteDisponible(factura.id).then((res) => {
+      setDisponible(res.disponible)
+    }).catch(() => setDisponible(false))
+  }, [factura.id])
 
   async function handlePrint() {
     setPrinting(true)
     try {
-      const result = await imprimirFactura(factura.id)
-      if (result.message) {
+      const result = await obtenerComprobante(factura.id)
+      if (result.pdfUrl) {
+        window.open(result.pdfUrl, '_blank')
+      } else if (result.message) {
         showSuccess(result.message)
       }
     } catch (err) {
@@ -97,8 +106,8 @@ function FacturaDetalle({ factura, onClose }: FacturaDetalleProps) {
 
           <div className={styles.actions}>
             <button className={styles.closeBtn} onClick={onClose}>Cerrar</button>
-            <button className={styles.printBtn} onClick={handlePrint} disabled={printing}>
-              {printing ? 'Imprimiendo...' : 'Imprimir'}
+            <button className={styles.printBtn} onClick={handlePrint} disabled={printing || !disponible} title={!disponible ? 'Comprobante no disponible' : 'Imprimir'}>
+              {printing ? 'Imprimiendo...' : !disponible ? 'N/D' : 'Imprimir'}
             </button>
           </div>
         </motion.div>

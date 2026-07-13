@@ -39,6 +39,14 @@ export async function obtenerSesionCajaActiva(): Promise<{ id: number } | null> 
   return api.get<{ id: number } | null>('/caja/activa')
 }
 
-export async function imprimirFactura(facturaId: number): Promise<{ message: string }> {
-  return api.post<{ message: string }>(`/impresion/pago/${facturaId}`)
+export async function imprimirFactura(facturaId: number): Promise<{ pdfUrl?: string; message: string }> {
+  return api.post<{ pdfUrl?: string; message: string }>(`/impresion/pago/${facturaId}`)
+}
+
+export async function obtenerComprobante(facturaId: number): Promise<{ pdfUrl?: string; message?: string }> {
+  return api.get<{ pdfUrl?: string; message?: string }>(`/facturas/${facturaId}/comprobante`)
+}
+
+export async function comprobanteDisponible(facturaId: number): Promise<{ disponible: boolean; modo: 'simulacion' | 'real' }> {
+  return api.get<{ disponible: boolean; modo: 'simulacion' | 'real' }>(`/facturas/${facturaId}/comprobante-disponible`)
 }

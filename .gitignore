@@ -1,0 +1,8 @@
+uploads/productos/*
+!uploads/productos/.gitkeep
+
+uploads/facturas/*
+!uploads/facturas/.gitkeep
+
+uploads/cocina/*
+!uploads/cocina/.gitkeep

@@ -1,19 +1,18 @@
-import { useState, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/services/api'
 import { useError } from '@/context/ErrorContext'
 import styles from './PrintModeSection.module.css'
 
-interface PrintModeResponse {
-  mode: 'simulate' | 'real'
+interface ConfiguracionResponse {
+  modoImpresion: 'simulacion' | 'real'
 }
 
-function getPrintMode(): Promise<PrintModeResponse> {
-  return api.get<PrintModeResponse>('/impresion/mode')
+function getPrintMode(): Promise<ConfiguracionResponse> {
+  return api.get<ConfiguracionResponse>('/configuracion/impresion')
 }
 
-function setPrintMode(mode: 'simulate' | 'real'): Promise<PrintModeResponse> {
-  return api.put<PrintModeResponse>('/impresion/mode', { mode })
+function setPrintMode(mode: 'simulacion' | 'real'): Promise<ConfiguracionResponse> {
+  return api.put<ConfiguracionResponse>('/configuracion/impresion', { modoImpresion: mode })
 }
 
 function PrintModeSection() {
@@ -25,7 +24,7 @@ function PrintModeSection() {
     queryFn: getPrintMode,
   })
 
-  const mode = data?.mode ?? 'simulate'
+  const mode = data?.modoImpresion ?? 'simulacion'
 
   const mutation = useMutation({
     mutationFn: setPrintMode,
@@ -37,7 +36,7 @@ function PrintModeSection() {
   })
 
   function handleToggle() {
-    const next = mode === 'simulate' ? 'real' : 'simulate'
+    const next = mode === 'simulacion' ? 'real' : 'simulacion'
     mutation.mutate(next)
   }
 
@@ -51,23 +50,23 @@ function PrintModeSection() {
         <div className={styles.statusRow}>
           <div className={styles.statusInfo}>
             <span className={styles.statusLabel}>Modo actual</span>
-            <span className={`${styles.statusValue} ${mode === 'simulate' ? styles.statusSimulate : styles.statusReal}`}>
-              {mode === 'simulate' ? 'Simulación (PDF)' : 'Impresora Real (USB)'}
+            <span className={`${styles.statusValue} ${mode === 'simulacion' ? styles.statusSimulate : styles.statusReal}`}>
+              {mode === 'simulacion' ? 'Simulación (PDF)' : 'Impresora Real (USB)'}
             </span>
           </div>
-          <div className={`${styles.indicator} ${mode === 'simulate' ? styles.indicatorSimulate : styles.indicatorReal}`} />
+          <div className={`${styles.indicator} ${mode === 'simulacion' ? styles.indicatorSimulate : styles.indicatorReal}`} />
         </div>
 
-        <button
-          className={`${styles.toggleBtn} ${mode === 'simulate' ? styles.toggleToReal : styles.toggleToSimulate}`}
-          onClick={handleToggle}
-          disabled={mutation.isPending || isLoading}
-        >
-          {mutation.isPending
-            ? 'Cambiando...'
-            : mode === 'simulate'
-              ? 'Cambiar a Impresora Real'
-              : 'Cambiar a Simulación'}
+          <button
+            className={`${styles.toggleBtn} ${mode === 'simulacion' ? styles.toggleToReal : styles.toggleToSimulate}`}
+            onClick={handleToggle}
+            disabled={mutation.isPending || isLoading}
+          >
+            {mutation.isPending
+              ? 'Cambiando...'
+              : mode === 'simulacion'
+                ? 'Cambiar a Impresora Real'
+                : 'Cambiar a Simulación'}
         </button>
       </div>
 
