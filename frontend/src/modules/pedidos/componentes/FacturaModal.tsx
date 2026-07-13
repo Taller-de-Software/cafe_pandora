@@ -146,6 +146,11 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
       return
     }
 
+    if (esEfectivo && recibido.numericValue < total) {
+      showWarning(`El monto recibido ($${recibido.numericValue.toLocaleString('es-CO')}) es menor al total ($${total.toLocaleString('es-CO')}). Falta $${(total - recibido.numericValue).toLocaleString('es-CO')}.`)
+      return
+    }
+
     try {
       const factura = await crearFacturaMut.mutateAsync({
         pedidoId: pedido.id,
@@ -164,7 +169,9 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
     }
   }
 
-  const puedeGenerar = metodoSeleccionId !== null && sesionCaja?.id
+  const esEfectivo = metodoSeleccionado?.nombre.toUpperCase() === 'EFECTIVO'
+  const montoInsuficiente = esEfectivo && recibido.numericValue < total
+  const puedeGenerar = metodoSeleccionId !== null && sesionCaja?.id && !montoInsuficiente
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -243,10 +250,15 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
             <div className={styles.montoField}>
               <label className={styles.montoLabel}>RECIBIDO</label>
               <input
-                className={styles.montoInput}
+                className={`${styles.montoInput} ${recibido.numericValue > 0 && recibido.numericValue < total ? styles.montoInputError : ''}`}
                 {...recibido.inputProps}
                 placeholder="$0"
               />
+              {recibido.numericValue > 0 && recibido.numericValue < total && (
+                <span className={styles.montoWarning}>
+                  Falta ${(total - recibido.numericValue).toLocaleString('es-CO')} para cubrir el total
+                </span>
+              )}
             </div>
             <div className={styles.montoField}>
               <label className={styles.montoLabel}>CAMBIO</label>
