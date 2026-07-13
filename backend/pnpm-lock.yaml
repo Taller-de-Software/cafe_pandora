@@ -240,6 +240,9 @@ importers:
       pdfkit:
         specifier: ^0.19.1
         version: 0.19.1
+      pngjs:
+        specifier: ^7.0.0
+        version: 7.0.0
       socket.io:
         specifier: ^4.8.1
         version: 4.8.3
@@ -987,6 +990,10 @@ packages:
   pngjs@3.4.0:
     resolution: {integrity: sha512-NCrCHhWmnQklfH4MtJMRjZ2a8c80qXeMlQMv2uVp9ISJMTt562SbGd6n2oq0PaPgKm7Z6pL9E2UlLIhC+SHL3w==}
     engines: {node: '>=4.0.0'}
+
+  pngjs@7.0.0:
+    resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
+    engines: {node: '>=14.19.0'}
 
   prisma@6.19.3:
     resolution: {integrity: sha512-++ZJ0ijLrDJF6hNB4t4uxg2br3fC4H9Yc9tcbjr2fcNFP3rh/SBNrAgjhsqBU4Ght8JPrVofG/ZkXfnSfnYsFg==}
@@ -2025,6 +2032,8 @@ snapshots:
 
   pngjs@3.4.0:
     optional: true
+
+  pngjs@7.0.0: {}
 
   prisma@6.19.3:
     dependencies:

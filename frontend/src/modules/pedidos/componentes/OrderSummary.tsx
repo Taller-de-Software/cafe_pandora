@@ -8,12 +8,13 @@ interface OrderSummaryProps {
   items: ItemCarrito[]
   onCambiarCantidad: (productoId: number, delta: number) => void
   onEliminar: (productoId: number) => void
+  onNotasClick?: () => void
   onConfirmar: () => void
   onChangeMesa: () => void
   saving: boolean
 }
 
-function OrderSummary({ mesa, items, onCambiarCantidad, onEliminar, onConfirmar, onChangeMesa, saving }: OrderSummaryProps) {
+function OrderSummary({ mesa, items, onCambiarCantidad, onEliminar, onNotasClick, onConfirmar, onChangeMesa, saving }: OrderSummaryProps) {
   const subtotal = items.reduce((sum, i) => sum + i.producto.precio * i.cantidad, 0)
   const total = subtotal
 
@@ -53,6 +54,15 @@ function OrderSummary({ mesa, items, onCambiarCantidad, onEliminar, onConfirmar,
         </div>
       </div>
 
+      {onNotasClick && (
+        <button
+          className={styles.notasBtn}
+          onClick={onNotasClick}
+          disabled={items.length === 0}
+        >
+          📝 Añadir Notas
+        </button>
+      )}
       <button
         className={styles.confirmBtn}
         onClick={onConfirmar}

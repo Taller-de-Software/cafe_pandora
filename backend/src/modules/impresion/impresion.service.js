@@ -35,7 +35,7 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     pedidoId: pedido.id,
     mesa: pedido.mesa?.nombre,
     mesero: pedido.usuario?.nombre || pedido.usuario?.rol || "Sin mesero",
-    fecha: formatFecha(),
+    fecha: new Date(),
     items: pedido.detalles.map((d) => ({
       cantidad: d.cantidad,
       nombre: d.producto.nombre,
@@ -92,7 +92,7 @@ export const imprimirReciboPago = async (facturaId) => {
     facturaNumero: `#${factura.id}`,
     mesa,
     cajero: factura.pedido.usuario?.nombre || factura.pedido.usuario?.rol,
-    fecha: formatFecha(),
+    fecha: new Date(),
     items,
     subtotal,
     impuestoConsumo,

@@ -52,6 +52,16 @@ function alignRight(printer, text, totalWidth) {
   return " ".repeat(padding) + text;
 }
 
+function formatFechaThermal(fecha) {
+  const d = fecha ? new Date(fecha) : new Date();
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+}
+
 function printCocina(data) {
   return new Promise((resolve, reject) => {
     if (!device) {
@@ -61,53 +71,39 @@ function printCocina(data) {
     const printer = new escpos.Printer(device);
 
     try {
+      const fechaStr = formatFechaThermal(data.fecha);
+
       printer
-        .font("a")
-        .align("ct")
-        .style("b")
-        .size(1, 1)
-        .text("PANDORA BISTRO")
-        .text("CAFE BAR")
-        .style("normal")
-        .size(0, 0)
-        .text("NIT: 1053784676")
-        .text("Medellín")
-        .text("")
-        .align("lt")
-        .text("────────────────────────────────")
         .align("ct")
         .style("b")
         .size(0, 1)
-        .text("COMANDO DE COCINA")
+        .text("COMANDA DE COCINA")
         .size(0, 0)
         .style("normal")
         .text("")
         .align("lt")
-        .text(`Pedido #: ${data.pedidoId}`)
         .text(`Mesa: ${data.mesa || "-"}`)
         .text(`Mesero: ${data.mesero || "-"}`)
-        .text(`Fecha: ${data.fecha}`)
+        .text(`Pedido #${data.pedidoId}`)
+        .text(`Fecha: ${fechaStr}`)
         .text("")
-        .text("────────────────────────────────")
+        .text("--------------------------------")
         .style("b")
         .text("Cant  Producto")
         .style("normal")
-        .text("────────────────────────────────");
+        .text("--------------------------------");
 
       for (const item of data.items) {
         const cantStr = `${item.cantidad}x`;
         printer.text(`${cantStr.padEnd(5)}${item.nombre}`);
         if (item.nota) {
-          printer.fontSize(0).text(`      Nota: ${item.nota}`).fontSize(0);
+          printer.text(`      ${item.nota}`);
         }
       }
 
       printer
         .text("")
-        .text("────────────────────────────────")
-        .align("ct")
-        .text("")
-        .text("¡Gracias por su preferencia!")
+        .text("--------------------------------")
         .text("")
         .cut()
         .close();
@@ -152,12 +148,8 @@ function printPago(data) {
         .align("lt");
 
       if (data.fecha) {
-        const [fechaPart, horaPart] = data.fecha.split(" ");
-        if (horaPart) {
-          printer.text(`Fecha: ${fechaPart}   Hora: ${horaPart}`);
-        } else {
-          printer.text(`Fecha: ${data.fecha}`);
-        }
+        const fechaStr = formatFechaThermal(data.fecha);
+        printer.text(`Fecha: ${fechaStr}`);
       }
       if (data.mesa) printer.text(`Mesa: ${data.mesa}`);
       if (data.cajero) printer.text(`Cajero: ${data.cajero}`);

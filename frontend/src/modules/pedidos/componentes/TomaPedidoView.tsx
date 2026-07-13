@@ -12,6 +12,7 @@ import { formatearNumero } from '@/utils/formatear'
 import { useError } from '@/context/ErrorContext'
 
 import TarjetaProductoPedido from './TarjetaProductoPedido'
+import ModalNotasPedido from './ModalNotasPedido'
 import styles from './TomaPedidoView.module.css'
 
 interface ItemComanda {
@@ -20,6 +21,7 @@ interface ItemComanda {
   precio: number
   cantidad: number
   subtotal: number
+  notas: string
 }
 
 interface TomaPedidoViewProps {
@@ -40,6 +42,7 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
   const [loading, setLoading] = useState(true)
   const [comanda, setComanda] = useState<ItemComanda[]>([])
   const [showVaciarConfirm, setShowVaciarConfirm] = useState(false)
+  const [showNotasModal, setShowNotasModal] = useState(false)
 
   const createPedidoMut = useMutation({
     mutationFn: crearPedido,
@@ -106,7 +109,7 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
           i.id === producto.id ? { ...i, cantidad: i.cantidad + 1 } : i
         )
       }
-      return [...prev, { id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1, subtotal: producto.precio }]
+      return [...prev, { id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1, subtotal: producto.precio, notas: '' }]
     })
   }
 
@@ -154,6 +157,7 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
         items: comanda.map((item) => ({
           productoId: item.id,
           cantidad: item.cantidad,
+          notas: item.notas || undefined,
         })),
       })
     } catch {
@@ -252,7 +256,10 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
               comanda.map((item) => (
                 <div key={item.id} className={styles.comandaItem}>
                   <div className={styles.comandaItemRow}>
-                    <span className={styles.comandaName}>{item.nombre}</span>
+                    <span className={styles.comandaName}>
+                      {item.nombre}
+                      {item.notas && <span className={styles.notaBadge} title={item.notas}>📝</span>}
+                    </span>
                     <button className={styles.deleteBtn} onClick={() => eliminarProducto(item.id)}>
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -282,6 +289,15 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
             <div className={`${styles.summaryRow} ${styles.totalRow}`}>
               <span>TOTAL PEDIDO:</span>
               <span>${formatearNumero(subtotal)}</span>
+            </div>
+            <div className={styles.notasRow}>
+              <button
+                className={styles.notasBtn}
+                onClick={() => setShowNotasModal(true)}
+                disabled={comanda.length === 0}
+              >
+                📝 Añadir Notas
+              </button>
             </div>
             <div className={styles.actionsRow}>
               <button className={styles.vaciarBtn} disabled={comanda.length === 0} onClick={vaciarComanda}>
@@ -313,6 +329,21 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
             </div>
           </div>
         </div>
+      )}
+      {showNotasModal && (
+        <ModalNotasPedido
+          items={comanda.map((i) => ({ productoId: i.id, nombre: i.nombre, notas: i.notas }))}
+          onSave={(items) => {
+            setComanda((prev) =>
+              prev.map((ci) => ({
+                ...ci,
+                notas: items.find((u) => u.productoId === ci.id)?.notas ?? ci.notas,
+              })),
+            )
+            setShowNotasModal(false)
+          }}
+          onClose={() => setShowNotasModal(false)}
+        />
       )}
     </div>
   )
