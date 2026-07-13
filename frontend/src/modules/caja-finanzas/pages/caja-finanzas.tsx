@@ -13,9 +13,8 @@ import {
 } from 'lucide-react'
 import EstadoCaja from '../componentes/EstadoCaja'
 import FormularioApertura from '../componentes/FormularioApertura'
-import ListaRetiros from '../componentes/ListaRetiros'
+import ListaMovimientos from '../componentes/ListaMovimientos'
 import FormularioRetiro from '../componentes/FormularioRetiro'
-import ListaFacturas from '../componentes/ListaFacturas'
 import FacturaDetalle from '../componentes/FacturaDetalle'
 import VentasPanel from '../componentes/VentasPanel'
 import FacturacionPanel from '../componentes/FacturacionPanel'
@@ -135,13 +134,11 @@ function CajaFinanzas() {
                 {retirosCargando && <p className={styles.loadingText}>Cargando movimientos...</p>}
                 {retirosError && <p className={styles.errorText}>Error al cargar movimientos</p>}
                 {!retirosCargando && !retirosError && (
-                  <ListaRetiros retiros={retiros} onAdd={() => setShowRetiro(true)} />
-                )}
-
-                {resumenCaja && resumenCaja.facturas.length > 0 && (
-                  <ListaFacturas
-                    facturas={resumenCaja.facturas}
-                    onSelect={(f) => setSelectedFactura(f)}
+                  <ListaMovimientos
+                    facturas={resumenCaja?.facturas ?? []}
+                    retiros={retiros}
+                    onAdd={() => setShowRetiro(true)}
+                    onSelectFactura={(f) => setSelectedFactura(f)}
                   />
                 )}
               </>

@@ -140,7 +140,7 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
             <p className={styles.empty}>No hay datos de categorías en este período</p>
           ) : (
             <div className={styles.categoryBars}>
-              {porCategoria.map((cat) => {
+              {porCategoria.slice(0, 3).map((cat) => {
                 const pct = (cat.total / maxCatTotal) * 100
                 const color = CATEGORY_COLORS[cat.categoria] || '#9B9792'
                 return (
@@ -171,7 +171,7 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
             <p className={styles.empty}>No hay datos de productos en este período</p>
           ) : (
             <div className={styles.topProducts}>
-              {productosMasVendidos.slice(0, 5).map((p, i) => (
+              {productosMasVendidos.slice(0, 3).map((p, i) => (
                 <div key={p.producto} className={styles.productRow}>
                   <span className={`${styles.rankBadge} ${i === 0 ? styles.rankGold : i === 1 ? styles.rankSilver : styles.rankDefault}`}>
                     {i + 1}
@@ -192,12 +192,14 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
           {!hayVentas || Object.keys(ventasPorMetodoPago).length === 0 ? (
             <p className={styles.empty}>Sin ventas en este período</p>
           ) : (
-            Object.entries(ventasPorMetodoPago).map(([metodo, total]) => (
-              <div key={metodo} className={styles.metodoCard}>
-                <span className={styles.metodoNombre}>{metodo}</span>
-                <span className={styles.metodoMonto}>${formatearNumero(total)}</span>
-              </div>
-            ))
+            <div className={styles.metodoList}>
+              {Object.entries(ventasPorMetodoPago).slice(0, 3).map(([metodo, total]) => (
+                <div key={metodo} className={styles.metodoCard}>
+                  <span className={styles.metodoNombre}>{metodo}</span>
+                  <span className={styles.metodoMonto}>${formatearNumero(total)}</span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -220,7 +222,7 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
                 </tr>
               </thead>
               <tbody>
-                {pedidos.map((p) => (
+                {pedidos.slice(0, 15).map((p) => (
                   <tr key={p.id} className={styles.clickable} onClick={() => setSelectedDetalle(facturaDesdeVenta(p))}>
                     <td className={styles.monoCell}>#{p.id}</td>
                     <td>{p.mesa}</td>

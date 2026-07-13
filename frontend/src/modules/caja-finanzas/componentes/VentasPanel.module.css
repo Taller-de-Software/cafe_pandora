@@ -148,6 +148,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .categoryRow {
@@ -192,6 +194,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .productRow {
@@ -262,6 +266,11 @@
   flex-shrink: 0;
 }
 
+.metodoList {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 .metodoCard {
   display: flex;
   justify-content: space-between;
@@ -292,6 +301,8 @@
 
 .tableContainer {
   overflow-x: auto;
+  max-height: 520px;
+  overflow-y: auto;
 }
 
 .table {
