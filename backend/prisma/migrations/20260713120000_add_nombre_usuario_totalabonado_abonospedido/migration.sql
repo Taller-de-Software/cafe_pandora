@@ -1,9 +1,3 @@
--- AlterTable: Add nombre to usuarios
-ALTER TABLE "usuarios" ADD COLUMN "nombre" TEXT NOT NULL DEFAULT '';
-
--- CreateIndex: Unique index for nombre
-CREATE UNIQUE INDEX "usuarios_nombre_key" ON "usuarios"("nombre");
-
 -- AlterTable: Add totalAbonado to pedidos
 ALTER TABLE "pedidos" ADD COLUMN "totalAbonado" REAL NOT NULL DEFAULT 0;
 
