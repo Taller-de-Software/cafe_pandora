@@ -35,7 +35,7 @@ function SliderLateral({ isOpen }: SliderLateralProps) {
   return (
     <aside className={`${styles.sidebar} ${isOpen ? styles.expanded : styles.collapsed}`}>
       <div className={styles.logoSection}>
-        <img className={styles.logoCircle} src={LOGO_URL} alt="Café Pandora" />
+        <img className={styles.logoCircle} src="/logo-cafepandora.png" alt="Café Pandora" />
         <h1 className={styles.systemName}>CAFÉ PANDORA</h1>
         <p className={styles.systemSub}>POS SISTEMA ADMINISTRATIVO</p>
       </div>

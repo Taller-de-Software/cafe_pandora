@@ -67,7 +67,7 @@ function Login() {
 
       <div className={styles.card}>
         <div className={styles.leftCol}>
-          <img className={styles.logoImage} src={LOGO_URL} alt="Café Pandora" />
+          <img className={styles.logoImage} src="/logo-cafepandora-sin-fondo.png" alt="Café Pandora" />
         </div>
 
         <div className={styles.rightCol}>
