@@ -9,19 +9,7 @@ function crearError(statusCode, message) {
 }
 
 function formatFecha() {
-  return new Date().toLocaleDateString("es-CO", {
-    year: "numeric", month: "2-digit", day: "2-digit",
-  });
-}
-
-function formatHora() {
-  return new Date().toLocaleTimeString("es-CO", {
-    hour: "2-digit", minute: "2-digit",
-  });
-}
-
-function formatFechaHora() {
-  return new Date().toLocaleString("es-CO", {
+  return new Date().toLocaleString("es-MX", {
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit",
   });
@@ -49,7 +37,6 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     mesa: pedido.mesa.nombre,
     mesero: pedido.usuario?.nombre || pedido.usuario?.rol || "Sin mesero",
     fecha: formatFecha(),
-    hora: formatHora(),
     items: pedido.detalles.map((d) => ({
       cantidad: d.cantidad,
       nombre: d.producto.nombre,
@@ -77,7 +64,6 @@ export const imprimirReciboPago = async (facturaId) => {
   const factura = await prisma.factura.findUnique({
     where: { id: facturaId },
     include: {
-      metodoPago: true,
       pedido: {
         include: {
           mesa: true,
@@ -94,17 +80,14 @@ export const imprimirReciboPago = async (facturaId) => {
     cantidad: d.cantidad,
     nombre: d.producto.nombre,
     precio: d.precioUnitario,
-    nota: d.notas,
   }));
 
   const data = {
     facturaId: factura.id,
+    facturaNumero: `#${factura.id}`,
     mesa,
-    fecha: formatFechaHora(),
-    metodoPago: factura.metodoPago.nombre,
+    fecha: formatFecha(),
     items,
-    subtotal: factura.subtotal,
-    impuesto: factura.impuestoConsumo,
     total: factura.total,
   };
 
