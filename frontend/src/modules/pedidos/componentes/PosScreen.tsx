@@ -6,6 +6,7 @@ import CategoryTabs from './CategoryTabs'
 import ProductSearch from './ProductSearch'
 import ProductCard from './ProductCard'
 import OrderSummary from './OrderSummary'
+import ModalNotasPedido from './ModalNotasPedido'
 import MesaGrid from './MesaGrid'
 import type { Producto } from '@modules/menu/api/productos'
 import { useError } from '@/context/ErrorContext'
@@ -18,6 +19,7 @@ function PosScreen() {
   const [items, setItems] = useState<ItemCarrito[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState<number | null>(null)
   const [search, setSearch] = useState('')
+  const [showNotasModal, setShowNotasModal] = useState(false)
 
   const { data: productos = [] } = useQuery({
     queryKey: ['productos-habilitados'],
@@ -126,11 +128,28 @@ function PosScreen() {
           items={items}
           onCambiarCantidad={cambiarCantidad}
           onEliminar={eliminarItem}
+          onNotasClick={() => setShowNotasModal(true)}
           onConfirmar={confirmarPedido}
           onChangeMesa={cambiarMesa}
           saving={createPedidoMut.isPending}
         />
       </div>
+
+      {showNotasModal && (
+        <ModalNotasPedido
+          items={items.map((i) => ({ productoId: i.productoId, nombre: i.producto.nombre, notas: i.notas }))}
+          onSave={(updated) => {
+            setItems((prev) =>
+              prev.map((pi) => ({
+                ...pi,
+                notas: updated.find((u) => u.productoId === pi.productoId)?.notas ?? pi.notas,
+              })),
+            )
+            setShowNotasModal(false)
+          }}
+          onClose={() => setShowNotasModal(false)}
+        />
+      )}
     </div>
   )
 }

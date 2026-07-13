@@ -63,6 +63,12 @@
   color: #4b5563;
 }
 
+.notaIcon {
+  margin-left: 4px;
+  font-size: 0.7rem;
+  cursor: help;
+}
+
 .notas {
   display: block;
   font-size: 0.75rem;

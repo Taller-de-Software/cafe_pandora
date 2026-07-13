@@ -14,7 +14,10 @@ function OrderItem({ item, onCambiarCantidad, onEliminar }: OrderItemProps) {
   return (
     <div className={styles.item}>
       <div className={styles.header}>
-        <span className={styles.nombre}>{item.producto.nombre}</span>
+        <span className={styles.nombre}>
+          {item.producto.nombre}
+          {item.notas && <span className={styles.notaIcon} title={item.notas}>📝</span>}
+        </span>
         <button className={styles.removeBtn} onClick={() => onEliminar(item.productoId)}>×</button>
       </div>
       <div className={styles.controls}>

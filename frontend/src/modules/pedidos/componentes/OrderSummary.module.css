@@ -74,6 +74,30 @@
   margin-bottom: 0;
 }
 
+.notasBtn {
+  width: 100%;
+  padding: 0.5rem;
+  background: white;
+  color: #b45309;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border: 1.5px dashed #d1d5db;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.notasBtn:hover:not(:disabled) {
+  border-color: #b45309;
+  background: #fff7ed;
+}
+
+.notasBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .confirmBtn {
   width: 100%;
   background: #b45309;
