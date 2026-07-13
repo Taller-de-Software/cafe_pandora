@@ -31,6 +31,7 @@ export const obtenerComprobante = async (id) => {
   const factura = await prisma.factura.findUnique({
     where: { id },
     include: {
+      metodoPago: true,
       pedido: {
         include: {
           mesa: true,
@@ -46,14 +47,20 @@ export const obtenerComprobante = async (id) => {
   if (modo === "real") {
     const data = {
       facturaId: factura.id,
-      facturaNumero: `#${factura.id}`,
       mesa: factura.pedido.mesa.nombre,
-      fecha: new Date().toLocaleString("es-MX"),
+      fecha: new Date().toLocaleString("es-CO", {
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit",
+      }),
+      metodoPago: factura.metodoPago.nombre,
       items: factura.pedido.detalles.map((d) => ({
         cantidad: d.cantidad,
         nombre: d.producto.nombre,
         precio: d.precioUnitario,
+        nota: d.notas,
       })),
+      subtotal: factura.subtotal,
+      impuesto: factura.impuestoConsumo,
       total: factura.total,
     };
     await connectPrinter();

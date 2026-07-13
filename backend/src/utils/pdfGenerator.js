@@ -2,22 +2,30 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import sharp from "sharp";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const FACTURAS_DIR = path.join(__dirname, "../../../uploads/facturas");
 const COMANDAS_DIR = path.join(__dirname, "../../../uploads/cocina");
+const LOGO_PATH = path.join(__dirname, "../../../images/logo cafepandora sin fondo.png");
 
-function formatFecha(fecha) {
-  const d = fecha ? new Date(fecha) : new Date();
+const PAGE_WIDTH = 226.8;
+const LEFT_MARGIN = 10;
+const RIGHT_MARGIN = PAGE_WIDTH - 10;
+const CONTENT_WIDTH = RIGHT_MARGIN - LEFT_MARGIN;
+const LINE_HEIGHT = 20;
+const FRASE_MARCA = 'Más que un lugar, una experiencia para tus sentidos.';
+
+function formatFecha() {
+  const d = new Date();
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const yyyy = d.getFullYear();
   const hh = String(d.getHours()).padStart(2, "0");
   const min = String(d.getMinutes()).padStart(2, "0");
-  const ss = String(d.getSeconds()).padStart(2, "0");
-  return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+  return `${dd}/${mm}/${yyyy}  ${hh}:${min}`;
 }
 
 function formatTimestamp() {
@@ -32,58 +40,24 @@ function formatTimestamp() {
 }
 
 function formatearMonto(monto) {
-  return `$${Number(monto).toFixed(2)} MXN`;
+  return `$${Math.round(monto).toLocaleString("es-CO")}`;
 }
 
-function dibujarEncabezado(doc) {
-  doc.fontSize(20).font("Helvetica-Bold").text("PANDORA CAFÉ BAR", { align: "center" });
-  doc.moveDown(0.3);
-  doc.fontSize(10).font("Helvetica").text("Calle Principal #123, Col. Centro", { align: "center" });
-  doc.text("Tel: (123) 456-7890", { align: "center" });
-  doc.moveDown(0.5);
-
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown(0.5);
+function calcComandaHeight(data) {
+  let h = 60;
+  for (const item of data.items) {
+    h += LINE_HEIGHT;
+    if (item.nota) h += 14;
+  }
+  return h + 30;
 }
 
-function dibujarTabla(doc, headers, rows, startY) {
-  const colWidths = [40, 280, 80, 100];
-  const rowHeight = 20;
-  let y = startY;
-
-  doc.fontSize(9).font("Helvetica-Bold");
-  doc.rect(50, y, 500, rowHeight).fill("#2c3e50");
-  doc.fill("#ffffff");
-
-  let x = 55;
-  headers.forEach((h, i) => {
-    doc.text(h, x, y + 5, { width: colWidths[i], align: i === 0 || i === 2 ? "center" : "left" });
-    x += colWidths[i];
-  });
-
-  y += rowHeight;
-  doc.fill("#000000").font("Helvetica").fontSize(9);
-
-  rows.forEach((row, ri) => {
-    if (ri % 2 === 0) {
-      doc.rect(50, y, 500, rowHeight).fill("#f5f5f5");
-      doc.fill("#000000");
-    }
-
-    x = 55;
-    row.forEach((cell, ci) => {
-      doc.text(String(cell), x, y + 5, {
-        width: colWidths[ci],
-        align: ci === 0 || ci === 2 ? "center" : "left",
-      });
-      x += colWidths[ci];
-    });
-
-    y += rowHeight;
-  });
-
-  doc.moveTo(50, y).lineTo(550, y).stroke();
-  return y;
+function calcReciboHeight(data) {
+  let h = 40;
+  h += 70;
+  h += data.items.length * 18;
+  h += 105;
+  return h;
 }
 
 export function generarPDFComanda(data) {
@@ -93,38 +67,35 @@ export function generarPDFComanda(data) {
 
   const filename = `cocina-${data.pedidoId}-${formatTimestamp()}.pdf`;
   const filepath = path.join(COMANDAS_DIR, filename);
-  const doc = new PDFDocument({ margin: 50, size: "A4" });
+  const doc = new PDFDocument({
+    size: [PAGE_WIDTH, calcComandaHeight(data)],
+    margin: 10,
+  });
   const stream = fs.createWriteStream(filepath);
   doc.pipe(stream);
 
-  dibujarEncabezado(doc);
+  doc.fontSize(12).font("Helvetica-Bold");
+  doc.text(`MESA: ${data.mesa}`, { align: "center" });
+  doc.moveDown(0.3);
+  doc.fontSize(9).font("Helvetica");
+  doc.text(`Fecha: ${data.fecha}`, { align: "center" });
+  doc.text(`Hora: ${data.hora}`, { align: "center" });
 
-  doc.fontSize(16).font("Helvetica-Bold").text("COMANDO DE COCINA", { align: "center" });
-  doc.moveDown(1);
-
-  doc.fontSize(11).font("Helvetica");
-  doc.text(`Pedido #${data.pedidoId}`);
-  doc.text(`Mesa: ${data.mesa}`);
-  doc.text(`Fecha: ${formatFecha()}`);
-  doc.moveDown(1);
-
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
   doc.moveDown(0.5);
+  drawDivider(doc);
 
-  const headers = ["#", "Producto", "Cant.", "Notas"];
-  const rows = data.items.map((item, i) => [
-    String(i + 1),
-    item.nombre,
-    String(item.cantidad),
-    item.nota || "-",
-  ]);
+  for (const item of data.items) {
+    doc.fontSize(10).font("Helvetica-Bold");
+    doc.text(`${item.nombre} — ${item.cantidad}`);
+    if (item.nota) {
+      doc.fontSize(8).font("Helvetica-Oblique");
+      doc.text(`  Nota: ${item.nota}`);
+    }
+    doc.moveDown(0.2);
+  }
 
-  const endY = dibujarTabla(doc, headers, rows, doc.y);
-  doc.y = endY + 20;
-
-  doc.moveDown(1);
-  doc.fontSize(9).font("Helvetica").fillColor("#888888");
-  doc.text("Este es un documento generado automáticamente por Pandora Café Bar", { align: "center" });
+  doc.moveDown(0.3);
+  drawDivider(doc);
 
   doc.end();
 
@@ -134,52 +105,98 @@ export function generarPDFComanda(data) {
   });
 }
 
-export function generarPDFRecibo(data) {
+export async function generarPDFRecibo(data) {
   if (!fs.existsSync(FACTURAS_DIR)) {
     fs.mkdirSync(FACTURAS_DIR, { recursive: true });
   }
 
   const filename = `pago-${data.facturaId}-${formatTimestamp()}.pdf`;
   const filepath = path.join(FACTURAS_DIR, filename);
-  const doc = new PDFDocument({ margin: 50, size: "A4" });
+  const doc = new PDFDocument({
+    size: [PAGE_WIDTH, calcReciboHeight(data)],
+    margin: 10,
+  });
   const stream = fs.createWriteStream(filepath);
   doc.pipe(stream);
 
-  dibujarEncabezado(doc);
-
-  doc.fontSize(16).font("Helvetica-Bold").text("RECIBO DE PAGO", { align: "center" });
-  doc.moveDown(1);
+  if (fs.existsSync(LOGO_PATH)) {
+    try {
+      const imgWidth = 65;
+      const cx = (PAGE_WIDTH - imgWidth) / 2;
+      const bwBuffer = await sharp(LOGO_PATH).grayscale().threshold(128).png().toBuffer();
+      doc.image(bwBuffer, cx, doc.y, { width: imgWidth });
+      doc.moveDown(1.2);
+    } catch (err) {
+      console.error("Error al cargar el logo:", LOGO_PATH, err.message);
+    }
+  } else {
+    console.error("Logo no encontrado en:", LOGO_PATH);
+  }
 
   doc.fontSize(11).font("Helvetica");
-  doc.text(`Factura #${data.facturaId}`);
-  doc.text(`Mesa: ${data.mesa}`);
-  doc.text(`Fecha: ${formatFecha()}`);
-  doc.moveDown(1);
+  doc.text("PANDORA BISTRO-CAFÉ BAR", { align: "center" });
+  doc.moveDown(0.2);
+  doc.fontSize(9).font("Helvetica");
+  doc.text("NIT: 1053784676", { align: "center" });
+  doc.text("Mall Combia", { align: "center" });
+  doc.moveDown(0.3);
+  doc.text(formatFecha(), { align: "center" });
+  doc.text(`Mesa: ${data.mesa}  ·  ${data.metodoPago}`, { align: "center" });
 
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+  doc.moveDown(0.3);
+  drawDivider(doc);
+
+  const NAME_COL = CONTENT_WIDTH * 0.50;
+  const QTY_COL = CONTENT_WIDTH * 0.15;
+  const PRICE_COL = CONTENT_WIDTH * 0.35;
+  const QTY_X = LEFT_MARGIN + NAME_COL;
+  const PRICE_X = QTY_X + QTY_COL;
+
+  for (const item of data.items) {
+    const totalItem = formatearMonto(item.cantidad * item.precio);
+    const itemY = doc.y;
+    doc.fontSize(9).font("Helvetica");
+    doc.text(item.nombre, LEFT_MARGIN, itemY, {
+      align: "left", width: NAME_COL,
+    });
+    const afterNameY = doc.y;
+    doc.text(`x${item.cantidad}`, QTY_X, itemY, {
+      align: "center", width: QTY_COL,
+    });
+    doc.text(totalItem, PRICE_X, itemY, {
+      align: "right", width: PRICE_COL,
+    });
+    doc.y = afterNameY;
+  }
+
+  doc.moveDown(0.2);
+  drawDivider(doc);
+
+  doc.fontSize(9).font("Helvetica");
+  const subY = doc.y;
+  doc.text("Subtotal", LEFT_MARGIN, subY, { align: "left", width: CONTENT_WIDTH });
+  doc.text(formatearMonto(data.subtotal), LEFT_MARGIN, subY, { align: "right", width: CONTENT_WIDTH });
+  doc.y = subY + 14;
+  const taxY = doc.y;
+  doc.text("Impuesto Consumo 8%", LEFT_MARGIN, taxY, { align: "left", width: CONTENT_WIDTH });
+  doc.text(formatearMonto(data.impuesto), LEFT_MARGIN, taxY, { align: "right", width: CONTENT_WIDTH });
+  doc.y = taxY + 14;
+
+  doc.moveDown(0.2);
+  drawDivider(doc);
+
+  const totalY = doc.y;
+  doc.fontSize(11).font("Helvetica");
+  doc.text("TOTAL", LEFT_MARGIN, totalY, { align: "left", width: CONTENT_WIDTH });
+  doc.text(formatearMonto(data.total), LEFT_MARGIN, totalY, { align: "right", width: CONTENT_WIDTH });
+  doc.y = totalY + 16;
+
   doc.moveDown(0.5);
-
-  const headers = ["#", "Producto", "Cant.", "Precio"];
-  const rows = data.items.map((item, i) => [
-    String(i + 1),
-    item.nombre,
-    String(item.cantidad),
-    formatearMonto(item.precio),
-  ]);
-
-  const endY = dibujarTabla(doc, headers, rows, doc.y);
-  doc.y = endY + 15;
-
-  doc.fontSize(12).font("Helvetica-Bold");
-  doc.text(`Total: ${formatearMonto(data.total)}`, { align: "right" });
-  doc.moveDown(2);
-
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown(0.5);
-
-  doc.fontSize(9).font("Helvetica").fillColor("#888888");
-  doc.text("¡Gracias por su preferencia!", { align: "center" });
-  doc.text("Este es un documento generado automáticamente por Pandora Café Bar", { align: "center" });
+  doc.fontSize(8).font("Helvetica-Oblique");
+  if (FRASE_MARCA) doc.text(FRASE_MARCA, { align: "center" });
+  doc.font("Helvetica");
+  doc.moveDown(0.3);
+  doc.text("¡Gracias por su compra!", { align: "center" });
 
   doc.end();
 
@@ -188,3 +205,11 @@ export function generarPDFRecibo(data) {
     stream.on("error", reject);
   });
 }
+
+function drawDivider(doc) {
+  const y = doc.y + 3;
+  doc.moveTo(LEFT_MARGIN, y).lineTo(RIGHT_MARGIN, y).lineWidth(0.5).stroke("#888888");
+  doc.y = y + 6;
+}
+
+
