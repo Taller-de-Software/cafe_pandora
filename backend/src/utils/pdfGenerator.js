@@ -6,7 +6,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FACTURAS_DIR = path.join(__dirname, "../../uploads/facturas");
+const FACTURAS_DIR = path.join(__dirname, "../../../uploads/facturas");
+const COMANDAS_DIR = path.join(__dirname, "../../../uploads/cocina");
 
 function formatFecha(fecha) {
   const d = fecha ? new Date(fecha) : new Date();
@@ -86,12 +87,12 @@ function dibujarTabla(doc, headers, rows, startY) {
 }
 
 export function generarPDFComanda(data) {
-  if (!fs.existsSync(FACTURAS_DIR)) {
-    fs.mkdirSync(FACTURAS_DIR, { recursive: true });
+  if (!fs.existsSync(COMANDAS_DIR)) {
+    fs.mkdirSync(COMANDAS_DIR, { recursive: true });
   }
 
   const filename = `cocina-${data.pedidoId}-${formatTimestamp()}.pdf`;
-  const filepath = path.join(FACTURAS_DIR, filename);
+  const filepath = path.join(COMANDAS_DIR, filename);
   const doc = new PDFDocument({ margin: 50, size: "A4" });
   const stream = fs.createWriteStream(filepath);
   doc.pipe(stream);
@@ -128,7 +129,7 @@ export function generarPDFComanda(data) {
   doc.end();
 
   return new Promise((resolve, reject) => {
-    stream.on("finish", () => resolve(`/uploads/facturas/${filename}`));
+    stream.on("finish", () => resolve(`/uploads/cocina/${filename}`));
     stream.on("error", reject);
   });
 }

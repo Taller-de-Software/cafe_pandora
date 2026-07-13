@@ -1,7 +1,6 @@
 import prisma from "../../config/db.config.js";
 import { connectPrinter, printCocina, printPago, disconnectPrinter } from "../../utils/printer.js";
 import { generarPDFComanda, generarPDFRecibo } from "../../utils/pdfGenerator.js";
-import { getPrintMode, setPrintMode } from "../../config/print-config.js";
 
 function crearError(statusCode, message) {
   const error = new Error(message);
@@ -14,6 +13,11 @@ function formatFecha() {
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit",
   });
+}
+
+async function leerModoImpresion() {
+  const config = await prisma.configuracion.findFirst();
+  return config?.modoImpresion ?? "simulacion";
 }
 
 export const imprimirFacturaCocina = async (pedidoId) => {
@@ -40,7 +44,9 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     })),
   };
 
-  if (getPrintMode() === "simulate") {
+  const modo = await leerModoImpresion();
+
+  if (modo === "simulacion") {
     console.log("🖨️  [IMPRESIÓN SIMULADA]");
     console.log(JSON.stringify(data, null, 2));
     const pdfUrl = await generarPDFComanda(data);
@@ -85,7 +91,9 @@ export const imprimirReciboPago = async (facturaId) => {
     total: factura.total,
   };
 
-  if (getPrintMode() === "simulate") {
+  const modo = await leerModoImpresion();
+
+  if (modo === "simulacion") {
     console.log("🖨️  [IMPRESIÓN SIMULADA]");
     console.log(JSON.stringify(data, null, 2));
     const pdfUrl = await generarPDFRecibo(data);
@@ -100,20 +108,12 @@ export const imprimirReciboPago = async (facturaId) => {
 };
 
 export const probarImpresora = async () => {
-  if (getPrintMode() === "simulate") {
+  const modo = await leerModoImpresion();
+  if (modo === "simulacion") {
     console.log("🖨️  [IMPRESIÓN SIMULADA]");
     return { message: "Modo simulación activo" };
   }
   await connectPrinter();
   disconnectPrinter();
   return { message: "Impresora conectada exitosamente" };
-};
-
-export const obtenerModoImpresion = () => {
-  return { mode: getPrintMode() };
-};
-
-export const cambiarModoImpresion = (mode) => {
-  setPrintMode(mode);
-  return { mode: getPrintMode() };
 };

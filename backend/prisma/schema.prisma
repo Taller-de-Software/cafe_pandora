@@ -16,6 +16,11 @@ datasource db {
 // ENUMS
 // ============================================================
 
+enum ModoImpresion {
+  simulacion
+  real
+}
+
 enum Rol {
   administrador
   mesero
@@ -266,6 +271,17 @@ model Reserva {
   creadoEn DateTime @default(now())
 
   @@map("reservas")
+}
+
+// ============================================================
+// CONFIGURACION
+// ============================================================
+
+model Configuracion {
+  id            Int            @id @default(autoincrement())
+  modoImpresion ModoImpresion  @default(simulacion)
+
+  @@map("configuracion")
 }
 
 // ============================================================

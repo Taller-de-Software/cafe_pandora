@@ -24,6 +24,24 @@ export const obtener = async (req, res, next) => {
   }
 };
 
+export const obtenerComprobante = async (req, res, next) => {
+  try {
+    const result = await facturasService.obtenerComprobante(req.params.id);
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const comprobanteDisponible = async (req, res, next) => {
+  try {
+    const result = await facturasService.comprobanteDisponible(req.params.id);
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const crear = async (req, res, next) => {
   try {
     const factura = await facturasService.crear(req.body);

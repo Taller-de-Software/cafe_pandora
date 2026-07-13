@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { obtenerResumenCaja } from '../data/caja'
-import { imprimirFactura } from '../../pedidos/data/facturas'
+import { obtenerComprobante, comprobanteDisponible } from '../../pedidos/data/facturas'
 import type { CajaSesion, ResumenFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
 import { useError } from '@/context/ErrorContext'
@@ -16,6 +16,8 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
   const { showError, showSuccess } = useError()
   const [selected, setSelected] = useState<ResumenFactura | null>(null)
   const [printingId, setPrintingId] = useState<number | null>(null)
+  const [disponibilidad, setDisponibilidad] = useState<Record<number, boolean>>({})
+  const [modoImpresion, setModoImpresion] = useState<'simulacion' | 'real'>('simulacion')
 
   const { data: resumen, isLoading } = useQuery({
     queryKey: ['caja', sesion?.id, 'facturacion'],
@@ -24,12 +26,38 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
     refetchInterval: 15_000,
   })
 
+  useEffect(() => {
+    if (!resumen?.facturas.length) return
+    async function checkAll() {
+      try {
+        const modeRes = await comprobanteDisponible(resumen.facturas[0].id)
+        const modo = modeRes.modo
+        setModoImpresion(modo)
+        if (modo === 'real') {
+          setDisponibilidad({})
+          return
+        }
+        const results = await Promise.allSettled(
+          resumen.facturas.map(f => comprobanteDisponible(f.id))
+        )
+        const map: Record<number, boolean> = {}
+        resumen.facturas.forEach((f, i) => {
+          map[f.id] = results[i].status === 'fulfilled' ? results[i].value.disponible : false
+        })
+        setDisponibilidad(map)
+      } catch { /* ignore */ }
+    }
+    checkAll()
+  }, [resumen?.facturas])
+
   async function handlePrint(e: React.MouseEvent, facturaId: number) {
     e.stopPropagation()
     setPrintingId(facturaId)
     try {
-      const result = await imprimirFactura(facturaId)
-      if (result.message) {
+      const result = await obtenerComprobante(facturaId)
+      if (result.pdfUrl) {
+        window.open(result.pdfUrl, '_blank')
+      } else if (result.message) {
         showSuccess(result.message)
       }
     } catch (err) {
@@ -85,9 +113,10 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
                     <button
                       className={styles.printBtn}
                       onClick={(e) => handlePrint(e, f.id)}
-                      disabled={printingId === f.id}
+                      disabled={printingId === f.id || (modoImpresion === 'simulacion' && disponibilidad[f.id] === false)}
+                      title={modoImpresion === 'simulacion' && disponibilidad[f.id] === false ? 'Comprobante no disponible' : 'Imprimir'}
                     >
-                      {printingId === f.id ? '...' : 'Imprimir'}
+                      {printingId === f.id ? '...' : modoImpresion === 'simulacion' && disponibilidad[f.id] === false ? 'N/D' : 'Imprimir'}
                     </button>
                   </td>
                 </tr>

@@ -9,10 +9,7 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get("/mode", impresionController.obtenerModoImpresion);
-router.put("/mode", authorize(ROLES.ADMIN), impresionController.cambiarModoImpresion);
-
-router.post("/cocina/:pedidoId", authorize(ROLES.ADMIN), validateId, impresionController.imprimirFacturaCocina);
+router.post("/cocina/:id", authorize(ROLES.ADMIN), validateId, impresionController.imprimirFacturaCocina);
 router.post("/pago/:id", authorize(ROLES.ADMIN), validateId, impresionController.imprimirReciboPago);
 router.post("/probar", impresionController.probarImpresora);
 

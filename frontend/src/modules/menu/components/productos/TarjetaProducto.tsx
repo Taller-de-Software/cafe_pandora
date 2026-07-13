@@ -48,6 +48,8 @@ function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProp
       <div className={styles.cuerpo}>
         <div className={styles.encabezado}>
           <h4 className={styles.nombre}>{producto.nombre}</h4>
+        </div>
+        <div className={styles.badges}>
           {!producto.habilitado && (
             <span className={styles.badgeInhabilitado}>INHABILITADO</span>
           )}
