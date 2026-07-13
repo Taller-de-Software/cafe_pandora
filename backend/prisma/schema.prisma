@@ -53,6 +53,7 @@ enum TipoMovimientoCaja {
 
 model Usuario {
   id     Int     @id @default(autoincrement())
+  nombre String  @unique
   rol    Rol
   pin    String?
 
@@ -98,6 +99,7 @@ model MetodoPago {
   entidad String?
 
   facturas Factura[]
+  abonos   AbonoPedido[]
 
   @@unique([nombre, entidad])
   @@map("metodos_pago")
@@ -154,6 +156,7 @@ model Pedido {
   turno        Int
   estado       EstadoPedido @default(recibido)
   total        Float?
+  totalAbonado Float        @default(0)
   mesaId       Int
   mesa         Mesa         @relation("MesaActual", fields: [mesaId], references: [id])
   mesaOrigenId Int?
@@ -171,6 +174,7 @@ model Pedido {
   detalles   DetallePedido[]
   factura    Factura?
   unionMesas UnionMesa[]
+  abonos     AbonoPedido[]
 
   @@map("pedidos")
 }
@@ -224,6 +228,22 @@ model UnionMesa {
   pedido   Pedido @relation(fields: [pedidoId], references: [id])
 
   @@map("union_mesas")
+}
+
+// ============================================================
+// ABONO PEDIDO
+// ============================================================
+
+model AbonoPedido {
+  id            Int        @id @default(autoincrement())
+  monto         Float
+  metodoPagoId  Int
+  metodoPago    MetodoPago @relation(fields: [metodoPagoId], references: [id])
+  pedidoId      Int
+  pedido        Pedido     @relation(fields: [pedidoId], references: [id])
+  creadoEn      DateTime   @default(now())
+
+  @@map("abonos_pedido")
 }
 
 // ============================================================

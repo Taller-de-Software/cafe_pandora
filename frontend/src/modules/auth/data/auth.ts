@@ -1,6 +1,7 @@
 import { api } from '@/services/api'
 
 export interface LoginRequest {
+  nombre: string
   rol: 'administrador' | 'mesero'
   pin?: string
 }
@@ -13,8 +14,8 @@ export interface LoginResponse {
 
 export interface Usuario {
   id: number
+  nombre: string
   rol: string
-  nombre?: string
 }
 
 export async function login(data: LoginRequest): Promise<LoginResponse> {
@@ -32,6 +33,6 @@ export interface RegisterResponse {
   esPrimero: boolean
 }
 
-export async function register(pin?: string): Promise<RegisterResponse> {
-  return api.post<RegisterResponse>('/auth/register', { pin })
+export async function register(data: { nombre: string; pin?: string }): Promise<RegisterResponse> {
+  return api.post<RegisterResponse>('/auth/register', data)
 }

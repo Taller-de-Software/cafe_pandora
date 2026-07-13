@@ -4,10 +4,10 @@ import type { Categoria } from '../../api/categorias'
 import type { Subcategoria } from '../../api/subcategorias'
 import { useError } from '@/context/ErrorContext'
 import { useFormattedInput } from '@/hooks/useFormattedInput'
+import { getApiUrl } from '@/services/server-config'
 import styles from './FormularioProducto.module.css'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'
-const BASE = API_URL.replace('/api', '')
+const BASE = getApiUrl().replace('/api', '')
 
 function imagenUrlCompleta(imagenUrl?: string): string | null {
   if (!imagenUrl) return null

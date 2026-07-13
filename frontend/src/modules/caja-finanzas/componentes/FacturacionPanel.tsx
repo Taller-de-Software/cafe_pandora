@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { obtenerResumenCaja } from '../data/caja'
-import { obtenerComprobante, comprobanteDisponible } from '../../pedidos/data/facturas'
+import { descargarComprobante, comprobanteDisponible } from '../../pedidos/data/facturas'
 import type { CajaSesion, ResumenFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
 import { useError } from '@/context/ErrorContext'
 import FacturaDetalle from './FacturaDetalle'
+import PdfViewerModal from './PdfViewerModal'
 import styles from './FacturacionPanel.module.css'
 
 interface FacturacionPanelProps {
@@ -18,6 +19,7 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
   const [printingId, setPrintingId] = useState<number | null>(null)
   const [disponibilidad, setDisponibilidad] = useState<Record<number, boolean>>({})
   const [modoImpresion, setModoImpresion] = useState<'simulacion' | 'real'>('simulacion')
+  const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null)
 
   const { data: resumen, isLoading } = useQuery({
     queryKey: ['caja', sesion?.id, 'facturacion'],
@@ -54,17 +56,20 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
     e.stopPropagation()
     setPrintingId(facturaId)
     try {
-      const result = await obtenerComprobante(facturaId)
-      if (result.pdfUrl) {
-        window.open(result.pdfUrl, '_blank')
-      } else if (result.message) {
-        showSuccess(result.message)
-      }
+      const blobUrl = await descargarComprobante(facturaId)
+      setPdfViewerUrl(blobUrl)
     } catch (err) {
       showError(err)
     } finally {
       setPrintingId(null)
     }
+  }
+
+  function handleClosePdfViewer() {
+    if (pdfViewerUrl) {
+      URL.revokeObjectURL(pdfViewerUrl)
+    }
+    setPdfViewerUrl(null)
   }
 
   if (!sesion) {
@@ -128,6 +133,10 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
 
       {selected && (
         <FacturaDetalle factura={selected} onClose={() => setSelected(null)} />
+      )}
+
+      {pdfViewerUrl && (
+        <PdfViewerModal pdfUrl={pdfViewerUrl} onClose={handleClosePdfViewer} />
       )}
     </div>
   )

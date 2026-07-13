@@ -28,12 +28,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: loginApi,
-    onSuccess: (res, variables) => {
+    onSuccess: (res) => {
       storage.setAccessToken(res.accessToken)
       storage.setRefreshToken(res.refreshToken)
-      const usuarioCompleto = { ...res.usuario, rol: variables.rol }
-      storage.setUser(usuarioCompleto)
-      queryClient.setQueryData(['auth', 'me'], usuarioCompleto)
+      storage.setUser(res.usuario)
+      queryClient.setQueryData(['auth', 'me'], res.usuario)
     },
   })
 
@@ -52,8 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loginMutation.mutateAsync(data)
   }
 
-  const register = async (pin?: string) => {
-    await registerMutation.mutateAsync(pin)
+  const register = async (data: { nombre: string; pin?: string }) => {
+    await registerMutation.mutateAsync(data)
   }
 
   const logout = () => {

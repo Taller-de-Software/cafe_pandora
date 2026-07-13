@@ -58,8 +58,13 @@ export const cierre = async (id) => {
   if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
   if (sesion.cierre) throw crearError(400, "La sesión ya está cerrada");
 
-  const totalEgresos = sesion.retiros.reduce((sum, r) => sum + r.monto, 0);
-  const netoCajon = sesion.baseInicial + sesion.totalVentas - totalEgresos;
+  const totalEntradas = sesion.retiros
+    .filter((r) => r.tipo === "entrada")
+    .reduce((sum, r) => sum + r.monto, 0);
+  const totalEgresos = sesion.retiros
+    .filter((r) => r.tipo === "salida")
+    .reduce((sum, r) => sum + r.monto, 0);
+  const netoCajon = sesion.baseInicial + sesion.totalVentas + totalEntradas - totalEgresos;
 
   const sesionActualizada = await prisma.cajaSesion.update({
     where: { id },

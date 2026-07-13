@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
-import { PedidosProvider } from '../context/PedidosContext'
 import { ReservasProvider } from '../context/ReservasContext'
 import { listarPedidos } from '../data/pedidos'
 import NuevoPedidoView from '../componentes/NuevoPedidoView'
@@ -67,11 +66,9 @@ function PedidosContent() {
 function Pedidos() {
   usePedidosSocket()
   return (
-    <PedidosProvider>
-      <ReservasProvider>
-        <PedidosContent />
-      </ReservasProvider>
-    </PedidosProvider>
+    <ReservasProvider>
+      <PedidosContent />
+    </ReservasProvider>
   )
 }
 

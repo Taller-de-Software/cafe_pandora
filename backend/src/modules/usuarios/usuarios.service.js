@@ -7,7 +7,7 @@ function crearError(statusCode, message) {
   return error;
 }
 
-const usuarioSelect = { id: true, rol: true };
+const usuarioSelect = { id: true, nombre: true, rol: true };
 
 export const listar = async () => {
   return prisma.usuario.findMany({ select: usuarioSelect });
@@ -20,18 +20,26 @@ export const obtener = async (id) => {
 };
 
 export const crear = async (data) => {
-  const createData = {};
+  const existingNombre = await prisma.usuario.findUnique({ where: { nombre: data.nombre } });
+  if (existingNombre) throw crearError(409, "Ya existe un usuario con ese nombre");
+
+  const createData = { nombre: data.nombre, rol: data.rol };
   if (data.pin) {
     createData.pin = await hashPassword(data.pin);
   }
   return prisma.usuario.create({
-    data: { rol: data.rol, ...createData },
+    data: createData,
     select: usuarioSelect,
   });
 };
 
 export const actualizar = async (id, data) => {
   const updateData = {};
+  if (data.nombre) {
+    const existing = await prisma.usuario.findFirst({ where: { nombre: data.nombre, id: { not: id } } });
+    if (existing) throw crearError(409, "Ya existe un usuario con ese nombre");
+    updateData.nombre = data.nombre;
+  }
   if (data.pin) {
     updateData.pin = await hashPassword(data.pin);
   }

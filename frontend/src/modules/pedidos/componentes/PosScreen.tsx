@@ -82,10 +82,8 @@ function PosScreen() {
       return
     }
     try {
-      const turno = 1
       await createPedidoMut.mutateAsync({
         mesaId: selectedMesa.id,
-        turno,
         items: items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad, notas: i.notas || undefined })),
       })
     } catch {

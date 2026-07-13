@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { useError } from '@/context/ErrorContext'
 import ServerConfigModal from '@modules/configuracion/componentes/ServerConfigModal'
+import { getApiUrl } from '@/services/server-config'
 import styles from './login.module.css'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'
-const BASE = API_URL.replace('/api', '')
+const BASE = getApiUrl().replace('/api', '')
 const LOGO_URL = `${BASE}/uploads/productos/logo%20cafepandora%20sin%20fondo.png`
 
 type Tab = 'login' | 'register'
@@ -16,6 +16,7 @@ function Login() {
   const navigate = useNavigate()
   const { showError } = useError()
   const [tab, setTab] = useState<Tab>('login')
+  const [nombre, setNombre] = useState('')
   const [rol, setRol] = useState<'administrador' | 'mesero'>('administrador')
   const [pin, setPin] = useState('')
   const [loading, setLoading] = useState(false)
@@ -23,9 +24,13 @@ function Login() {
 
   async function handleLogin(e: FormEvent) {
     e.preventDefault()
+    if (!nombre.trim()) {
+      showError('Ingrese su nombre de usuario')
+      return
+    }
     setLoading(true)
     try {
-      await login({ rol, pin: rol === 'administrador' ? pin : undefined })
+      await login({ nombre: nombre.trim(), rol, pin: rol === 'administrador' ? pin : undefined })
       navigate('/dashboard')
     } catch (err) {
       showError(err)
@@ -36,9 +41,13 @@ function Login() {
 
   async function handleRegister(e: FormEvent) {
     e.preventDefault()
+    if (!nombre.trim()) {
+      showError('Ingrese un nombre de usuario')
+      return
+    }
     setLoading(true)
     try {
-      await registerUser(pin || undefined)
+      await registerUser({ nombre: nombre.trim(), pin: pin || undefined })
       navigate('/dashboard')
     } catch (err) {
       showError(err)
@@ -64,7 +73,7 @@ function Login() {
         <div className={styles.rightCol}>
           <div className={styles.formContainer}>
             <h1 className={styles.title}>Acceso Administrativo</h1>
-            <p className={styles.subtitle}>Seleccione su rol e ingrese su PIN</p>
+            <p className={styles.subtitle}>Ingrese sus credenciales para acceder</p>
 
             <div className={styles.tabs}>
               <button
@@ -83,6 +92,24 @@ function Login() {
 
             {tab === 'login' ? (
               <form className={styles.form} onSubmit={handleLogin}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Nombre de Usuario</label>
+                  <div className={styles.inputGroup}>
+                    <svg className={styles.inputIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E6A65" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                      placeholder="Nombre del usuario"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div className={styles.field}>
                   <label className={styles.label}>Rol de Empleado</label>
                   <select
@@ -122,6 +149,24 @@ function Login() {
               </form>
             ) : (
               <form className={styles.form} onSubmit={handleRegister}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Nombre de Usuario</label>
+                  <div className={styles.inputGroup}>
+                    <svg className={styles.inputIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E6A65" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                      placeholder="Nombre del usuario"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div className={styles.field}>
                   <label className={styles.label}>PIN (opcional)</label>
                   <div className={styles.inputGroup}>

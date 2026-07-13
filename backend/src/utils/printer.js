@@ -2,24 +2,6 @@ import escpos from "escpos";
 import usb from "usb";
 import { formatearNumero } from "./formatear.js";
 
-// ─────────────────────────────────────────
-// IMPRESORA FÍSICA (descomentar cuando llegue la impresora)
-// 1. Instalar: pnpm add node-thermal-printer
-// 2. Descomentar este bloque
-// 3. Cambiar interface al puerto USB real (ver en Dispositivos e impresoras)
-// 4. Cambiar type según el modelo (EPSON o STAR)
-// 5. En .env cambiar PRINT_MODE=simulate → PRINT_MODE=real
-// ─────────────────────────────────────────
-// import { ThermalPrinter, PrinterTypes } from "node-thermal-printer";
-//
-// const thermalPrinter = new ThermalPrinter({
-//   type: PrinterTypes.EPSON,  // cambiar según modelo
-//   interface: "USB001",       // cambiar al puerto real
-//   characterSet: "PC850",
-//   removeSpecialCharacters: false,
-// });
-// ─────────────────────────────────────────
-
 let device = null;
 
 const SAT_VENDOR_IDS = [0x0416, 0x04b8, 0x067b, 0x0fe6, 0x1fc9];
@@ -65,6 +47,11 @@ function connectPrinter() {
   });
 }
 
+function alignRight(printer, text, totalWidth) {
+  const padding = Math.max(0, totalWidth - text.length);
+  return " ".repeat(padding) + text;
+}
+
 function printCocina(data) {
   return new Promise((resolve, reject) => {
     if (!device) {
@@ -79,32 +66,48 @@ function printCocina(data) {
         .align("ct")
         .style("b")
         .size(1, 1)
-        .text("=== PANDORA CAFE BAR ===")
-        .text("--- FACTURA COCINA ---")
+        .text("PANDORA BISTRO")
+        .text("CAFE BAR")
+        .style("normal")
+        .size(0, 0)
+        .text("NIT: 1053784676")
+        .text("Medellín")
+        .text("")
+        .align("lt")
+        .text("────────────────────────────────")
+        .align("ct")
+        .style("b")
+        .size(0, 1)
+        .text("COMANDO DE COCINA")
+        .size(0, 0)
+        .style("normal")
         .text("")
         .align("lt")
         .text(`Pedido #: ${data.pedidoId}`)
-        .text(`Mesa: ${data.mesa}`)
-        .text(`Mesero: ${data.mesero}`)
+        .text(`Mesa: ${data.mesa || "-"}`)
+        .text(`Mesero: ${data.mesero || "-"}`)
         .text(`Fecha: ${data.fecha}`)
         .text("")
+        .text("────────────────────────────────")
         .style("b")
-        .text("--- ITEMS ---")
-        .style("normal");
+        .text("Cant  Producto")
+        .style("normal")
+        .text("────────────────────────────────");
 
       for (const item of data.items) {
-        printer.text(`${item.cantidad}x ${item.nombre}`);
+        const cantStr = `${item.cantidad}x`;
+        printer.text(`${cantStr.padEnd(5)}${item.nombre}`);
         if (item.nota) {
-          printer.text(`   Nota: ${item.nota}`);
+          printer.fontSize(0).text(`      Nota: ${item.nota}`).fontSize(0);
         }
       }
 
       printer
         .text("")
-        .text("----------------------------")
-        .text("")
+        .text("────────────────────────────────")
         .align("ct")
-        .text("Gracias por su preferencia")
+        .text("")
+        .text("¡Gracias por su preferencia!")
         .text("")
         .cut()
         .close();
@@ -130,36 +133,95 @@ function printPago(data) {
         .align("ct")
         .style("b")
         .size(1, 1)
-        .text("=== PANDORA CAFE BAR ===")
-        .text("--- RECIBO DE PAGO ---")
+        .text("PANDORA BISTRO")
+        .text("CAFE BAR")
+        .style("normal")
+        .size(0, 0)
+        .text("NIT: 1053784676")
+        .text("Medellín")
         .text("")
         .align("lt")
-        .text(`Factura: ${data.facturaNumero}`)
-        .text(`Mesa: ${data.mesa}`)
-        .text(`Fecha: ${data.fecha}`)
-        .text("")
+        .text("────────────────────────────────")
+        .align("ct")
         .style("b")
-        .text("--- DETALLE ---")
-        .style("normal");
+        .size(0, 1)
+        .text("RECIBO DE PAGO")
+        .size(0, 0)
+        .style("normal")
+        .text("")
+        .align("lt");
 
-      for (const item of data.items) {
-        const totalItem = formatearNumero(item.cantidad * item.precio);
-        printer.text(`${item.cantidad}x ${item.nombre}  $${totalItem}`);
+      if (data.fecha) {
+        const [fechaPart, horaPart] = data.fecha.split(" ");
+        if (horaPart) {
+          printer.text(`Fecha: ${fechaPart}   Hora: ${horaPart}`);
+        } else {
+          printer.text(`Fecha: ${data.fecha}`);
+        }
       }
+      if (data.mesa) printer.text(`Mesa: ${data.mesa}`);
+      if (data.cajero) printer.text(`Cajero: ${data.cajero}`);
+      if (data.metodoPago) printer.text(`Pago: ${data.metodoPago}`);
 
       printer
         .text("")
-        .text("----------------------------")
+        .text("────────────────────────────────")
         .style("b")
-        .align("rt")
-        .text(`TOTAL: $${formatearNumero(data.total)}`)
+        .text("Cant  Producto            Total")
         .style("normal")
-        .align("lt")
-        .text("")
-        .text("----------------------------")
+        .text("────────────────────────────────");
+
+      for (const item of data.items) {
+        const totalItem = `$${formatearNumero(item.cantidad * item.precio)}`;
+        const cantStr = `${item.cantidad}x`;
+        const nombreTruncate = item.nombre.length > 18
+          ? item.nombre.slice(0, 18)
+          : item.nombre;
+        const行 = `${cantStr.padEnd(5)}${nombreTruncate.padEnd(22)}${totalItem}`;
+        printer.text(行);
+      }
+
+      printer.text("────────────────────────────────");
+
+      if (data.subtotal != null) {
+        const subStr = `$${formatearNumero(data.subtotal)}`;
+        printer.text(`${alignRight(printer, "Subtotal", 28)}${subStr}`);
+      }
+      if (data.impuestoConsumo != null) {
+        const impStr = `$${formatearNumero(data.impuestoConsumo)}`;
+        printer.text(`${alignRight(printer, "Imp. Consumo 8%", 28)}${impStr}`);
+      }
+
+      if (data.subtotal != null || data.impuestoConsumo != null) {
+        printer
+          .text("══════════════════════════════════")
+          .style("b")
+          .size(0, 1);
+        const totalStr = `$${formatearNumero(data.total)}`;
+        printer.text(`${alignRight(printer, "TOTAL", 28)}${totalStr}`);
+        printer
+          .size(0, 0)
+          .style("normal");
+      } else {
+        printer
+          .style("b")
+          .align("rt")
+          .text(`TOTAL: $${formatearNumero(data.total)}`)
+          .style("normal")
+          .align("lt");
+      }
+
+      printer
+        .text("────────────────────────────────")
         .text("")
         .align("ct")
-        .text("Gracias por su visita!")
+        .text("Más que un lugar,")
+        .text("una experiencia para tus")
+        .text("sentidos.")
+        .text("")
+        .style("b")
+        .text("¡Gracias por su compra!")
+        .style("normal")
         .text("")
         .cut()
         .close();

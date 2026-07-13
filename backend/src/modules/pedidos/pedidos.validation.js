@@ -8,7 +8,7 @@ const itemSchema = z.object({
 
 export const crearPedidoSchema = z.object({
   mesaId: z.number().int().positive("Debe seleccionar una mesa"),
-  turno: z.number().int().positive(),
+  turno: z.number().int().positive().optional(),
   mesaOrigenId: z.number().int().positive().optional(),
   items: z.array(itemSchema).min(1, "Debe incluir al menos un item"),
 }).strict();
@@ -17,6 +17,23 @@ export const cambiarEstadoSchema = z.object({
   estado: z.enum(["recibido", "pendiente", "hecho", "finalizado", "cancelado"]),
 }).strict();
 
-export const fusionarSchema = z.object({
-  pedidoIds: z.array(z.number().int().positive()).min(2, "Se requieren al menos 2 pedidos"),
+export const actualizarItemsSchema = z.object({
+  items: z.array(itemSchema).min(1, "Debe incluir al menos un item"),
+}).strict();
+
+export const separarCuentaSchema = z.object({
+  cuentas: z.array(z.array(itemSchema).min(1)).min(2, "Se requieren al menos 2 cuentas"),
+}).strict();
+
+export const unirMesasSchema = z.object({
+  mesaOrigenId: z.number().int().positive("Debe seleccionar una mesa"),
+}).strict();
+
+export const cambiarMesaSchema = z.object({
+  mesaId: z.number().int().positive("Debe seleccionar una mesa"),
+}).strict();
+
+export const abonoSchema = z.object({
+  monto: z.number().positive("El monto debe ser mayor a 0"),
+  metodoPagoId: z.number().int().positive("Debe seleccionar un método de pago"),
 }).strict();

@@ -1,4 +1,6 @@
 import { api } from '@/services/api'
+import { getApiUrl } from '@/services/server-config'
+import { storage } from '@/services/storage'
 
 export interface MetodoPago {
   id: number
@@ -49,4 +51,22 @@ export async function obtenerComprobante(facturaId: number): Promise<{ pdfUrl?: 
 
 export async function comprobanteDisponible(facturaId: number): Promise<{ disponible: boolean; modo: 'simulacion' | 'real' }> {
   return api.get<{ disponible: boolean; modo: 'simulacion' | 'real' }>(`/facturas/${facturaId}/comprobante-disponible`)
+}
+
+export async function descargarComprobante(facturaId: number): Promise<string> {
+  const token = storage.getAccessToken()
+  const res = await fetch(`${getApiUrl()}/facturas/${facturaId}/comprobante-archivo`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    let msg = 'No se pudo descargar el comprobante'
+    try {
+      const json = JSON.parse(text)
+      msg = json.message || msg
+    } catch { /* empty */ }
+    throw new Error(msg)
+  }
+  const blob = await res.blob()
+  return URL.createObjectURL(blob)
 }

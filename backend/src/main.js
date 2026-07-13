@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -22,9 +24,23 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
+  : ["http://localhost:5173", "http://localhost:3000"];
+
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(cors({ origin: corsOrigins, credentials: true }));
+app.use(express.json({ limit: "1mb" }));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Demasiadas peticiones. Intenta de nuevo en 15 minutos." },
+});
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
 
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "API Pandora Cafe Bar funcionando" });
@@ -42,6 +58,8 @@ app.use("/api/caja", cajaRoutes);
 app.use("/api/metodos-pago", metodosPagoRoutes);
 app.use("/api/configuracion", configuracionRoutes);
 app.use("/api/reservas", reservasRoutes);
+
+app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 
 app.use((req, res) => {
   res.status(404).json({

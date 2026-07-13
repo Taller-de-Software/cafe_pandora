@@ -5,7 +5,7 @@ export interface AuthContextValue {
   user: Usuario | null
   loading: boolean
   login: (data: LoginRequest) => Promise<void>
-  register: (pin?: string) => Promise<void>
+  register: (data: { nombre: string; pin?: string }) => Promise<void>
   logout: () => void
   isAuthenticated: boolean
   isFirstUser: boolean | null

@@ -1,6 +1,7 @@
 import prisma from "../../config/db.config.js";
 import { connectPrinter, printCocina, printPago, disconnectPrinter } from "../../utils/printer.js";
 import { generarPDFComanda, generarPDFRecibo } from "../../utils/pdfGenerator.js";
+import { leerModoImpresion } from "../../config/print-config.js";
 
 function crearError(statusCode, message) {
   const error = new Error(message);
@@ -9,15 +10,13 @@ function crearError(statusCode, message) {
 }
 
 function formatFecha() {
-  return new Date().toLocaleString("es-MX", {
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit",
-  });
-}
-
-async function leerModoImpresion() {
-  const config = await prisma.configuracion.findFirst();
-  return config?.modoImpresion ?? "simulacion";
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
 }
 
 export const imprimirFacturaCocina = async (pedidoId) => {
@@ -34,7 +33,7 @@ export const imprimirFacturaCocina = async (pedidoId) => {
 
   const data = {
     pedidoId: pedido.id,
-    mesa: pedido.mesa.nombre,
+    mesa: pedido.mesa?.nombre,
     mesero: pedido.usuario?.nombre || pedido.usuario?.rol || "Sin mesero",
     fecha: formatFecha(),
     items: pedido.detalles.map((d) => ({
@@ -47,17 +46,19 @@ export const imprimirFacturaCocina = async (pedidoId) => {
   const modo = await leerModoImpresion();
 
   if (modo === "simulacion") {
-    console.log("🖨️  [IMPRESIÓN SIMULADA]");
-    console.log(JSON.stringify(data, null, 2));
+    console.log("🖨️  [IMPRESIÓN SIMULADA - COCINA]");
     const pdfUrl = await generarPDFComanda(data);
     return { pdfUrl };
   }
 
   await connectPrinter();
-  await printCocina(data);
-  disconnectPrinter();
+  try {
+    await printCocina(data);
+  } finally {
+    disconnectPrinter();
+  }
 
-  return { message: "Factura de cocina impresa", pedidoId };
+  return { message: "Comanda de cocina impresa", pedidoId };
 };
 
 export const imprimirReciboPago = async (facturaId) => {
@@ -67,6 +68,7 @@ export const imprimirReciboPago = async (facturaId) => {
       pedido: {
         include: {
           mesa: true,
+          usuario: true,
           detalles: { include: { producto: true } },
         },
       },
@@ -75,34 +77,42 @@ export const imprimirReciboPago = async (facturaId) => {
 
   if (!factura) throw crearError(404, "Factura no encontrada");
 
-  const mesa = factura.pedido.mesa.nombre;
+  const mesa = factura.pedido.mesa?.nombre;
   const items = factura.pedido.detalles.map((d) => ({
     cantidad: d.cantidad,
     nombre: d.producto.nombre,
     precio: d.precioUnitario,
   }));
 
+  const subtotal = items.reduce((s, it) => s + it.cantidad * it.precio, 0);
+  const impuestoConsumo = Math.round(subtotal * 0.08);
+
   const data = {
     facturaId: factura.id,
     facturaNumero: `#${factura.id}`,
     mesa,
+    cajero: factura.pedido.usuario?.nombre || factura.pedido.usuario?.rol,
     fecha: formatFecha(),
     items,
+    subtotal,
+    impuestoConsumo,
     total: factura.total,
   };
 
   const modo = await leerModoImpresion();
 
   if (modo === "simulacion") {
-    console.log("🖨️  [IMPRESIÓN SIMULADA]");
-    console.log(JSON.stringify(data, null, 2));
+    console.log("🖨️  [IMPRESIÓN SIMULADA - PAGO]");
     const pdfUrl = await generarPDFRecibo(data);
     return { pdfUrl };
   }
 
   await connectPrinter();
-  await printPago(data);
-  disconnectPrinter();
+  try {
+    await printPago(data);
+  } finally {
+    disconnectPrinter();
+  }
 
   return { message: "Recibo de pago impreso", facturaId: factura.id };
 };
@@ -114,6 +124,9 @@ export const probarImpresora = async () => {
     return { message: "Modo simulación activo" };
   }
   await connectPrinter();
-  disconnectPrinter();
-  return { message: "Impresora conectada exitosamente" };
+  try {
+    return { message: "Impresora conectada exitosamente" };
+  } finally {
+    disconnectPrinter();
+  }
 };
