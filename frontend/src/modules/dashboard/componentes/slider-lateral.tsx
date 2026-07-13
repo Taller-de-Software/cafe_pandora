@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '@modules/auth/context/useAuth'
+import { getApiUrl } from '@/services/server-config'
 import Icono from './iconos'
 import { itemsFijos, type ItemNavegacion } from '../data/navegacion'
 import styles from './slider-lateral.module.css'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'
-const BASE = API_URL.replace('/api', '')
+const BASE = getApiUrl().replace('/api', '')
 const LOGO_URL = `${BASE}/uploads/productos/logo%20cafepandora.png`
 
 const SUBTITLES: Record<string, string> = {

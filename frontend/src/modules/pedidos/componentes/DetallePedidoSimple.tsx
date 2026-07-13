@@ -75,7 +75,7 @@ function DetallePedidoSimple({ pedido, onClose }: DetallePedidoSimpleProps) {
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>HORA</span>
-              <span className={styles.infoValue}>{new Date(pedido.creadoEn).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</span>
+              <span className={styles.infoValue}>{new Date(pedido.creadoEn).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
 
@@ -90,7 +90,7 @@ function DetallePedidoSimple({ pedido, onClose }: DetallePedidoSimpleProps) {
                   </div>
                   <div className={styles.itemRight}>
                     <span className={styles.itemCant}>x{d.cantidad}</span>
-                    <span className={styles.itemPrecio}>${(d.precioUnitario * d.cantidad).toLocaleString('es-CL')}</span>
+                    <span className={styles.itemPrecio}>${(d.precioUnitario * d.cantidad).toLocaleString('es-CO')}</span>
                   </div>
                 </div>
               ))}
@@ -99,7 +99,7 @@ function DetallePedidoSimple({ pedido, onClose }: DetallePedidoSimpleProps) {
 
           <div className={styles.totalRow}>
             <span className={styles.totalLabel}>Total</span>
-            <span className={styles.totalValor}>${subtotal.toLocaleString('es-CL')}</span>
+            <span className={styles.totalValor}>${subtotal.toLocaleString('es-CO')}</span>
           </div>
         </div>
 

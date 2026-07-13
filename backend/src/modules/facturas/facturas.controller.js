@@ -1,4 +1,5 @@
 import { z } from "zod";
+import path from "path";
 import * as facturasService from "./facturas.service.js";
 import { ok, created } from "../../utils/response.js";
 import { ESTADOS_PEDIDO } from "../../config/constants.js";
@@ -37,6 +38,18 @@ export const comprobanteDisponible = async (req, res, next) => {
   try {
     const result = await facturasService.comprobanteDisponible(req.params.id);
     ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const descargarComprobante = async (req, res, next) => {
+  try {
+    const ruta = await facturasService.descargarComprobante(req.params.id);
+    const nombre = path.basename(ruta);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="${nombre}"`);
+    res.sendFile(ruta);
   } catch (err) {
     next(err);
   }

@@ -1,3 +1,19 @@
+const isProd = process.env.NODE_ENV === "production";
+
+if (isProd && !process.env.JWT_SECRET) {
+  throw new Error("FATAL: JWT_SECRET no está definido. No se puede arrancar en producción.");
+}
+if (isProd && !process.env.JWT_REFRESH_SECRET) {
+  throw new Error("FATAL: JWT_REFRESH_SECRET no está definido. No se puede arrancar en producción.");
+}
+
+if (!process.env.JWT_SECRET) {
+  console.warn("⚠️  JWT_SECRET no definido, usando fallback de desarrollo. NO usar en producción.");
+}
+if (!process.env.JWT_REFRESH_SECRET) {
+  console.warn("⚠️  JWT_REFRESH_SECRET no definido, usando fallback de desarrollo. NO usar en producción.");
+}
+
 export const authConfig = {
   jwtSecret: process.env.JWT_SECRET || "fallback-secret-no-usar-en-prod",
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || "fallback-refresh-secret-no-usar-en-prod",

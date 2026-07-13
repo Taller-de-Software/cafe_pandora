@@ -14,6 +14,7 @@ router.get("/", facturasController.listar);
 router.get("/:id", validateId, facturasController.obtener);
 router.get("/:id/comprobante", validateId, facturasController.obtenerComprobante);
 router.get("/:id/comprobante-disponible", validateId, facturasController.comprobanteDisponible);
+router.get("/:id/comprobante-archivo", validateId, facturasController.descargarComprobante);
 router.post("/", authorize(ROLES.ADMIN), validate(crearFacturaSchema), facturasController.crear);
 
 export default router;

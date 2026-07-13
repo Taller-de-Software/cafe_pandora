@@ -4,21 +4,17 @@ import { fileURLToPath } from "url";
 import prisma from "../../config/db.config.js";
 import { connectPrinter, printPago, disconnectPrinter } from "../../utils/printer.js";
 import { ESTADOS_PEDIDO, ESTADOS_MESA } from "../../config/constants.js";
+import { leerModoImpresion } from "../../config/print-config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const FACTURAS_DIR = path.join(__dirname, "../../../../uploads/facturas");
 
-function scanComprobante(id) {
+function scanComprobanteRuta(id) {
   if (!fs.existsSync(FACTURAS_DIR)) return null;
   const files = fs.readdirSync(FACTURAS_DIR);
   const match = files.find((f) => f.startsWith(`pago-${id}-`) && f.endsWith(".pdf"));
-  return match ? `/uploads/facturas/${match}` : null;
-}
-
-async function leerModoImpresion() {
-  const config = await prisma.configuracion.findFirst();
-  return config?.modoImpresion ?? "simulacion";
+  return match ? path.join(FACTURAS_DIR, match) : null;
 }
 
 function crearError(statusCode, message) {
@@ -34,6 +30,7 @@ export const obtenerComprobante = async (id) => {
       pedido: {
         include: {
           mesa: true,
+          usuario: true,
           detalles: { include: { producto: true } },
         },
       },
@@ -44,34 +41,59 @@ export const obtenerComprobante = async (id) => {
   const modo = await leerModoImpresion();
 
   if (modo === "real") {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+
+    const items = factura.pedido.detalles.map((det) => ({
+      cantidad: det.cantidad,
+      nombre: det.producto.nombre,
+      precio: det.precioUnitario,
+    }));
+    const subtotal = items.reduce((s, it) => s + it.cantidad * it.precio, 0);
+
     const data = {
       facturaId: factura.id,
       facturaNumero: `#${factura.id}`,
-      mesa: factura.pedido.mesa.nombre,
-      fecha: new Date().toLocaleString("es-MX"),
-      items: factura.pedido.detalles.map((d) => ({
-        cantidad: d.cantidad,
-        nombre: d.producto.nombre,
-        precio: d.precioUnitario,
-      })),
+      mesa: factura.pedido.mesa?.nombre,
+      cajero: factura.pedido.usuario?.nombre || factura.pedido.usuario?.rol,
+      fecha: `${dd}/${mm}/${yyyy} ${hh}:${min}`,
+      items,
+      subtotal,
+      impuestoConsumo: factura.impuestoConsumo,
       total: factura.total,
     };
     await connectPrinter();
-    await printPago(data);
-    disconnectPrinter();
+    try {
+      await printPago(data);
+    } finally {
+      disconnectPrinter();
+    }
     return { message: "Recibo reenviado a la impresora" };
   }
 
-  const pdfUrl = scanComprobante(id);
-  if (pdfUrl) return { pdfUrl };
+  const pdfRuta = scanComprobanteRuta(id);
+  if (pdfRuta) return { pdfUrl: `/uploads/facturas/${path.basename(pdfRuta)}` };
   throw crearError(404, "El comprobante ya no está disponible");
 };
 
 export const comprobanteDisponible = async (id) => {
   const modo = await leerModoImpresion();
   if (modo === "real") return { disponible: true, modo: "real" };
-  const pdfUrl = scanComprobante(id);
-  return { disponible: !!pdfUrl, modo: "simulacion" };
+  const pdfRuta = scanComprobanteRuta(id);
+  return { disponible: !!pdfRuta, modo: "simulacion" };
+};
+
+export const descargarComprobante = async (id) => {
+  const modo = await leerModoImpresion();
+  if (modo === "real") throw crearError(400, "Modo impresión real: use reimprimir en vez de descargar");
+
+  const pdfRuta = scanComprobanteRuta(id);
+  if (!pdfRuta) throw crearError(404, "El comprobante ya no está disponible");
+  return pdfRuta;
 };
 
 export const listar = async (filters = {}) => {

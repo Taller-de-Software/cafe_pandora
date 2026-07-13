@@ -8,8 +8,8 @@ function crearError(statusCode, message) {
   return error;
 }
 
-export const login = async ({ rol, pin }) => {
-  const usuario = await prisma.usuario.findFirst({ where: { rol } });
+export const login = async ({ nombre, rol, pin }) => {
+  const usuario = await prisma.usuario.findFirst({ where: { nombre, rol } });
   if (!usuario) throw crearError(401, "Credenciales inválidas");
 
   if (usuario.rol === "administrador") {
@@ -27,6 +27,7 @@ export const login = async ({ rol, pin }) => {
     refreshToken,
     usuario: {
       id: usuario.id,
+      nombre: usuario.nombre,
       rol: usuario.rol,
     },
   };
@@ -48,7 +49,7 @@ export const refresh = async ({ refreshToken }) => {
   }
 };
 
-export const register = async ({ pin }) => {
+export const register = async ({ nombre, pin }) => {
   const usuariosExistentes = await prisma.usuario.count();
   const esPrimero = usuariosExistentes === 0;
   const rol = esPrimero ? "administrador" : "mesero";
@@ -57,14 +58,19 @@ export const register = async ({ pin }) => {
     throw crearError(400, "El PIN es requerido para crear el primer usuario (administrador)");
   }
 
-  const createData = {};
+  const existingNombre = await prisma.usuario.findUnique({ where: { nombre } });
+  if (existingNombre) {
+    throw crearError(409, "Ya existe un usuario con ese nombre");
+  }
+
+  const createData = { nombre, rol };
   if (pin) {
     createData.pin = await hashPassword(pin);
   }
 
   const usuario = await prisma.usuario.create({
-    data: { rol, ...createData },
-    select: { id: true, rol: true },
+    data: createData,
+    select: { id: true, nombre: true, rol: true },
   });
 
   const payload = { id: usuario.id, rol: usuario.rol };
@@ -82,7 +88,7 @@ export const register = async ({ pin }) => {
 export const getMe = async (id) => {
   const usuario = await prisma.usuario.findUnique({
     where: { id },
-    select: { id: true, rol: true },
+    select: { id: true, nombre: true, rol: true },
   });
   if (!usuario) throw crearError(404, "Usuario no encontrado");
   return usuario;

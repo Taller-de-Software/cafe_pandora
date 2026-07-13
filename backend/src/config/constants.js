@@ -16,6 +16,7 @@ export const ESTADOS_MESA = {
   OCUPADA: "ocupada",
   POR_PAGAR: "por_pagar",
   RESERVADA: "reservada",
+  FUERA_DE_SERVICIO: "fuera_de_servicio",
 };
 
 export const METODOS_PAGO = {

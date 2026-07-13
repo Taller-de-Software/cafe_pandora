@@ -78,3 +78,72 @@ export const cancelar = async (req, res, next) => {
     next(err);
   }
 };
+
+export const actualizarItems = async (req, res, next) => {
+  try {
+    const pedido = await pedidosService.actualizarItems(req.params.id, req.body.items);
+
+    const io = getIO(req);
+    io.to("room:all").emit("pedido:actualizado", { pedidoId: pedido.id });
+
+    ok(res, pedido, "Items actualizados");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const separarCuenta = async (req, res, next) => {
+  try {
+    const resultado = await pedidosService.separarCuenta(req.params.id, req.body.cuentas);
+
+    const io = getIO(req);
+    for (const np of resultado.nuevosPedidos) {
+      io.to("room:all").emit("pedido:nuevo", np);
+    }
+    io.to("room:all").emit("pedido:actualizado", { pedidoId: resultado.original.id });
+
+    ok(res, resultado, "Cuenta separada");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const unirMesas = async (req, res, next) => {
+  try {
+    const pedido = await pedidosService.unirMesas(req.params.id, req.body.mesaOrigenId);
+
+    const io = getIO(req);
+    io.to("room:all").emit("pedido:fusionado", { pedidoId: pedido.id });
+    io.to("room:all").emit("mesa:actualizada", { mesaId: req.body.mesaOrigenId });
+
+    ok(res, pedido, "Mesas fusionadas");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const cambiarMesa = async (req, res, next) => {
+  try {
+    const pedido = await pedidosService.cambiarMesa(req.params.id, req.body.mesaId);
+
+    const io = getIO(req);
+    io.to("room:all").emit("mesa:actualizada", { mesaId: pedido.mesaId });
+
+    ok(res, pedido, "Mesa cambiada");
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const registrarAbono = async (req, res, next) => {
+  try {
+    const resultado = await pedidosService.registrarAbono(req.params.id, req.body);
+
+    const io = getIO(req);
+    io.to("room:all").emit("pedido:abono", { pedidoId: resultado.pedido.id, abono: resultado.abono });
+
+    ok(res, resultado, "Abono registrado");
+  } catch (err) {
+    next(err);
+  }
+};

@@ -26,6 +26,6 @@ export const validateId = (req, res, next) => {
       errors: result.error.flatten().fieldErrors,
     });
   }
-  req.params = result.data;
+  req.params.id = result.data.id;
   next();
 };

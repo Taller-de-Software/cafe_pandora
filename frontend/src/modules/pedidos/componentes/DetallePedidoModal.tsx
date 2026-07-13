@@ -1,20 +1,24 @@
-import { useState, useEffect, useMemo, useContext } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { Pedido as ApiPedido, Mesa, EstadoPedido } from '../data/pedidos'
-import { listarMesas, cambiarEstado } from '../data/pedidos'
-import type { PedidoPendiente, ItemPedidoPendiente } from '@/types/PedidoPendiente'
-import { PedidosContext } from '../context/PedidosContext'
+import type { Pedido, EstadoPedido } from '../data/pedidos'
+import {
+  listarMesas,
+  cambiarEstado,
+  actualizarItemsPedido,
+  separarCuentaPedido,
+  unirMesasPedido,
+  cambiarMesaPedido,
+  registrarAbonoPedido,
+  listarMetodosPago,
+} from '../data/pedidos'
 import { listarCategorias } from '../../menu/api/categorias'
 import { listarSubcategorias } from '../../menu/api/subcategorias'
 import type { Subcategoria } from '../../menu/api/subcategorias'
 import { listarProductos } from '../../menu/api/productos'
 import type { Producto } from '../../menu/api/productos'
-import type { Abono } from '@/types/PedidoPendiente'
 import { formatearPesos } from '@/utils/formatear'
 import { useError } from '@/context/ErrorContext'
 import styles from './DetallePedidoModal.module.css'
-
-type Pedido = ApiPedido | PedidoPendiente
 
 interface DetallePedidoModalProps {
   pedido: Pedido
@@ -30,26 +34,12 @@ function formatPrecio(valor: number | undefined): string {
   return decimal > 0 ? `${entero},${decimal}` : `${entero}`
 }
 
-function isApiPedido(p: Pedido): p is ApiPedido {
-  return 'detalles' in p && 'mesaId' in p
-}
-
-function isPedidoPendienteObj(p: Pedido): p is PedidoPendiente {
-  return 'items' in p && 'mesero' in p
-}
-
 function getMesaNumero(p: Pedido): string {
-  try {
-    if (isApiPedido(p)) return String(p.mesaId ?? '')
-    return p.mesa?.replace(/\D/g, '') ?? ''
-  } catch { return '' }
+  return String(p.mesaId ?? '')
 }
 
 function getMesaNombre(p: Pedido): string {
-  try {
-    if (isApiPedido(p)) return p.mesa?.nombre ?? p.mesa?.id?.toString() ?? ''
-    return p.mesa ?? ''
-  } catch { return '' }
+  return p.mesa?.nombre ?? ''
 }
 
 function getComandaId(p: Pedido): string {
@@ -58,17 +48,13 @@ function getComandaId(p: Pedido): string {
 
 function getHoraComanda(p: Pedido): string {
   try {
-    if (isApiPedido(p)) {
-      if (!p.creadoEn) return '—'
-      return new Date(p.creadoEn).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
-    }
-    return p.horaCreacion ?? '—'
+    if (!p.creadoEn) return '—'
+    return new Date(p.creadoEn).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
   } catch { return '—' }
 }
 
 function getMesero(p: Pedido): string {
-  if (isApiPedido(p)) return p.usuario?.rol ?? '—'
-  return p.mesero ?? '—'
+  return p.usuario?.nombre ?? p.usuario?.rol ?? '—'
 }
 
 interface ProductoRow {
@@ -76,23 +62,22 @@ interface ProductoRow {
   precioUnitario: number
   cantidad: number
   subtotal: number
+  productoId?: number
+  requierePreparacion?: boolean
 }
 
 function getProductos(p: Pedido): ProductoRow[] {
-  try {
-    if (isApiPedido(p)) {
-      if (!Array.isArray(p.detalles)) return []
-      return p.detalles
-        .filter((d) => d != null)
-        .map((d) => ({
-          nombre: d.producto?.nombre ?? 'Producto',
-          precioUnitario: d.precioUnitario ?? 0,
-          cantidad: d.cantidad ?? 0,
-          subtotal: (d.precioUnitario ?? 0) * (d.cantidad ?? 0),
-        }))
-    }
-    return Array.isArray(p.items) ? p.items : []
-  } catch { return [] }
+  if (!Array.isArray(p.detalles)) return []
+  return p.detalles
+    .filter((d) => d != null)
+    .map((d) => ({
+      nombre: d.producto?.nombre ?? 'Producto',
+      precioUnitario: d.precioUnitario ?? 0,
+      cantidad: d.cantidad ?? 0,
+      subtotal: (d.precioUnitario ?? 0) * (d.cantidad ?? 0),
+      productoId: d.productoId,
+      requierePreparacion: d.producto?.requierePreparacion,
+    }))
 }
 
 function formatearInputPesos(valor: string): { valorNumerico: number; valorFormateado: string } {
@@ -110,12 +95,9 @@ function obtenerColumnaDestinoEnUso(asignaciones: Record<string, number>): numbe
 }
 
 function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
-  const pedidosCtx = useContext(PedidosContext)
   const { showError, showWarning, showSuccess } = useError()
-  const actualizarPedido = pedidosCtx?.actualizarPedido
-  const pedidosPendientes = pedidosCtx?.pedidosPendientes ?? []
-
   const queryClient = useQueryClient()
+
   const cambiarEstadoApi = useMutation({
     mutationFn: ({ id, estado }: { id: number; estado: EstadoPedido }) => cambiarEstado(id, estado),
     onSuccess: () => {
@@ -125,8 +107,64 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     },
     onError: (err) => showError(err),
   })
+
+  const actualizarItemsMut = useMutation({
+    mutationFn: ({ id, items }: { id: number; items: { productoId: number; cantidad: number }[] }) =>
+      actualizarItemsPedido(id, items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Productos actualizados')
+    },
+    onError: (err) => showError(err),
+  })
+
+  const separarCuentaMut = useMutation({
+    mutationFn: ({ id, cuentas }: { id: number; cuentas: { productoId: number; cantidad: number; precioUnitario: number }[][] }) =>
+      separarCuentaPedido(id, cuentas),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Cuenta separada exitosamente')
+    },
+    onError: (err) => showError(err),
+  })
+
+  const unirMesasMut = useMutation({
+    mutationFn: ({ id, mesaOrigenId }: { id: number; mesaOrigenId: number }) =>
+      unirMesasPedido(id, mesaOrigenId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Mesas fusionadas exitosamente')
+    },
+    onError: (err) => showError(err),
+  })
+
+  const cambiarMesaMut = useMutation({
+    mutationFn: ({ id, mesaId }: { id: number; mesaId: number }) =>
+      cambiarMesaPedido(id, mesaId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Mesa cambiada exitosamente')
+    },
+    onError: (err) => showError(err),
+  })
+
+  const abonoMut = useMutation({
+    mutationFn: ({ id, monto, metodoPagoId }: { id: number; monto: number; metodoPagoId: number }) =>
+      registrarAbonoPedido(id, { monto, metodoPagoId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Abono registrado exitosamente')
+    },
+    onError: (err) => showError(err),
+  })
+
   const [modo, setModo] = useState<Modo>('acciones')
-  const [draftItems, setDraftItems] = useState<ItemPedidoPendiente[]>([])
+  const [draftItems, setDraftItems] = useState<ProductoRow[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState<number | null>(null)
   const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([])
   const [subcategoriaActiva, setSubcategoriaActiva] = useState<number | null>(null)
@@ -135,6 +173,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   const [maxCuenta, setMaxCuenta] = useState(1)
   const [mesaSeleccionada, setMesaSeleccionada] = useState<string | null>(null)
   const [montoIngresado, setMontoIngresado] = useState(0)
+  const [metodoPagoAbono, setMetodoPagoAbono] = useState<number | null>(null)
 
   const { data: mesasDisponibles = [] } = useQuery({
     queryKey: ['mesas'],
@@ -164,11 +203,11 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     if (categoriaActiva === null) {
       setSubcategorias([])
       setSubcategoriaActiva(null)
-      return
+    } else {
+      listarSubcategorias(categoriaActiva)
+        .then(setSubcategorias)
+        .catch(() => setSubcategorias([]))
     }
-    listarSubcategorias(categoriaActiva)
-      .then(setSubcategorias)
-      .catch(() => setSubcategorias([]))
   }, [categoriaActiva])
 
   const { data: catalogo = [] } = useQuery({
@@ -182,34 +221,11 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     staleTime: 1000 * 60 * 5,
   })
 
-  if (!pedido) return null
-
-  const mesaNum = getMesaNumero(pedido)
-  const mesaNombre = getMesaNombre(pedido)
-  const comandaId = getComandaId(pedido)
-  const horaComanda = getHoraComanda(pedido)
-  const mesero = getMesero(pedido)
-  const productosActuales = getProductos(pedido)
-
-  const pedidoPendiente = isPedidoPendienteObj(pedido)
-    ? pedidosPendientes.find((p) => p.id === pedido.id) ?? pedido
-    : pedidosPendientes.find((p) => p.mesa === mesaNombre) ?? null
-
-  const itemsOriginales: ItemPedidoPendiente[] = pedidoPendiente
-    ? (Array.isArray(pedidoPendiente.items) ? pedidoPendiente.items : [])
-    : (Array.isArray(productosActuales) ? productosActuales.map((p) => ({
-        nombre: p.nombre ?? '',
-        cantidad: p.cantidad ?? 0,
-        precioUnitario: p.precioUnitario ?? 0,
-        subtotal: p.subtotal ?? 0,
-      })) : [])
-
-  const saldoPendiente = pedidoPendiente
-    ? (pedidoPendiente.total ?? 0) - (pedidoPendiente.totalAbonado ?? 0)
-    : (productosActuales ?? []).reduce((sum, p) => sum + (p.subtotal ?? 0), 0)
-
-  const montoValido = montoIngresado > 0 && montoIngresado <= saldoPendiente
-  const montoError = montoIngresado > saldoPendiente ? 'El monto no puede ser mayor al total de la cuenta' : ''
+  const { data: metodosPago = [] } = useQuery({
+    queryKey: ['metodos-pago'],
+    queryFn: listarMetodosPago,
+    staleTime: 1000 * 60 * 5,
+  })
 
   const catalogoFiltrado = useMemo(() => {
     const items = Array.isArray(catalogo) ? catalogo : []
@@ -219,16 +235,31 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     return filtrados.filter((p) => p?.habilitado !== false)
   }, [catalogo, busqueda])
 
+  if (!pedido) return null
+
+  const mesaNum = getMesaNumero(pedido)
+  const mesaNombre = getMesaNombre(pedido)
+  const comandaId = getComandaId(pedido)
+  const horaComanda = getHoraComanda(pedido)
+  const mesero = getMesero(pedido)
+  const productosActuales = getProductos(pedido)
+
+  const totalAbonado = pedido.totalAbonado || 0
+  const saldoPendiente = (pedido.total ?? 0) - totalAbonado
+
+  const montoValido = montoIngresado > 0 && montoIngresado <= saldoPendiente && metodoPagoAbono !== null
+  const montoError = montoIngresado > saldoPendiente ? 'El monto no puede ser mayor al saldo pendiente' : ''
+
   const originalStr = JSON.stringify(
-    (itemsOriginales ?? []).map((i) => ({ nombre: i?.nombre, cantidad: i?.cantidad, precioUnitario: i?.precioUnitario }))
+    (productosActuales ?? []).map((i) => ({ productoId: i?.productoId, nombre: i?.nombre, cantidad: i?.cantidad, precioUnitario: i?.precioUnitario }))
   )
   const draftStr = JSON.stringify(
-    (draftItems ?? []).map((i) => ({ nombre: i?.nombre, cantidad: i?.cantidad, precioUnitario: i?.precioUnitario }))
+    (draftItems ?? []).map((i) => ({ productoId: i?.productoId, nombre: i?.nombre, cantidad: i?.cantidad, precioUnitario: i?.precioUnitario }))
   )
   const hasChanges = originalStr !== draftStr
 
   function entrarAgregarQuitar() {
-    setDraftItems((itemsOriginales ?? []).map((i) => ({ ...i })))
+    setDraftItems((productosActuales ?? []).map((i) => ({ ...i })))
     setCategoriaActiva(null)
     setSubcategoriaActiva(null)
     setSubcategorias([])
@@ -242,6 +273,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     setMaxCuenta(1)
     setMesaSeleccionada(null)
     setMontoIngresado(0)
+    setMetodoPagoAbono(null)
     setModo('acciones')
   }
 
@@ -249,7 +281,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     if (!producto) return
     setDraftItems((prev) => {
       const arr = Array.isArray(prev) ? prev : []
-      const idx = arr.findIndex((i) => i.nombre === producto.nombre)
+      const idx = arr.findIndex((i) => i.productoId === producto.id)
       if (idx >= 0) {
         const updated = [...arr]
         const nuevaCant = (updated[idx].cantidad ?? 0) + 1
@@ -265,6 +297,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
         cantidad: 1,
         precioUnitario: producto.precio ?? 0,
         subtotal: producto.precio ?? 0,
+        productoId: producto.id,
         requierePreparacion: producto.requierePreparacion,
       }]
     })
@@ -292,47 +325,34 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
   function confirmarCambios() {
     const itemsNorm = Array.isArray(draftItems) ? draftItems : []
+    const items = itemsNorm
+      .filter((i) => i.productoId)
+      .map((i) => ({ productoId: i.productoId!, cantidad: i.cantidad }))
 
     const huboProductoNuevoConPreparacion = itemsNorm.some(draftItem => {
-      const original = (itemsOriginales ?? []).find(i => i.nombre === draftItem.nombre)
+      const original = (productosActuales ?? []).find(i => i.nombre === draftItem.nombre)
       const cantidadAgregada = (draftItem.cantidad ?? 0) - (original?.cantidad ?? 0)
       if (cantidadAgregada <= 0) return false
       return draftItem.requierePreparacion === true
     })
 
-    const pedidoEstado = String((pedido as any).estado ?? '').toLowerCase()
+    const pedidoEstado = String(pedido.estado ?? '').toLowerCase()
     const debeRevertirAEstado = pedidoEstado === 'hecho' && huboProductoNuevoConPreparacion
 
-    if (actualizarPedido) {
-      const targetId = pedidoPendiente ? pedidoPendiente.id : String(pedido.id)
-      const pedidoEstadoActual = String((pedido as any).estado ?? '').toUpperCase()
-      const estadoValido = ['RECIBIDO', 'PENDIENTE', 'HECHO', 'FINALIZADO'].includes(pedidoEstadoActual)
-        ? pedidoEstadoActual as PedidoPendiente['estado']
-        : 'PENDIENTE'
-      actualizarPedido(targetId, itemsNorm, {
-        mesa: mesaNombre,
-        mesero: mesero,
-        horaCreacion: horaComanda,
-        estado: estadoValido,
-      })
-      if (debeRevertirAEstado && pedidosCtx?.cambiarEstado) {
-        pedidosCtx.cambiarEstado(targetId, 'PENDIENTE')
+    actualizarItemsMut.mutate({ id: pedido.id, items }, {
+      onSuccess: () => {
+        if (debeRevertirAEstado) {
+          cambiarEstadoApi.mutate({ id: pedido.id, estado: 'pendiente' })
+        }
       }
-    } else {
-      showWarning('Esta funcionalidad aún no está disponible.')
-    }
-
-    if (debeRevertirAEstado) {
-      cambiarEstadoApi.mutate({ id: Number(pedido.id), estado: 'pendiente' })
-    }
+    })
 
     setModo('acciones')
   }
 
   function entrarSepararCuenta() {
-    const nombres = (productosActuales ?? []).map((p) => p?.nombre ?? '').filter(Boolean)
     const init: Record<string, number> = {}
-    nombres.forEach((n) => { init[n] = 1 })
+    productosActuales.forEach((p) => { if (p.nombre) init[p.nombre] = 1 })
     setAsignaciones(init)
     setMaxCuenta(1)
     setModo('separar-cuenta')
@@ -353,29 +373,33 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
       showWarning('Solo se puede dividir hacia una cuenta a la vez.')
       return
     }
-    const cuentas = Object.keys(asignaciones)
-    if (cuentas.length === 0) return
-    const agrupado: Record<number, ItemPedidoPendiente[]> = {}
+    const cuentasMap: Record<number, typeof productosActuales> = {}
     for (const [nombre, cuenta] of Object.entries(asignaciones)) {
-      if (!agrupado[cuenta]) agrupado[cuenta] = []
-      const item = (productosActuales ?? []).find((p) => p?.nombre === nombre)
+      if (!cuentasMap[cuenta]) cuentasMap[cuenta] = []
+      const item = productosActuales.find((p) => p.nombre === nombre)
       if (item) {
-        agrupado[cuenta].push({
-          nombre: item.nombre ?? nombre,
-          cantidad: item.cantidad ?? 0,
-          precioUnitario: item.precioUnitario ?? 0,
-          subtotal: item.subtotal ?? 0,
-        })
+        cuentasMap[cuenta].push(item)
       }
     }
-    const itemsPorCuenta = Object.entries(agrupado)
+    const itemsPorCuenta = Object.entries(cuentasMap)
       .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([, items]) => items)
-    if (pedidoPendiente && pedidosCtx?.separarCuenta) {
-      pedidosCtx.separarCuenta(pedidoPendiente.id, itemsPorCuenta)
-    } else {
-      showWarning('Esta funcionalidad aún no está disponible.')
+      .map(([, items]) =>
+        items
+          .filter((i) => i.productoId)
+          .map((i) => ({
+            productoId: i.productoId!,
+            cantidad: i.cantidad,
+            precioUnitario: i.precioUnitario,
+          }))
+      )
+      .filter((cuenta) => cuenta.length > 0)
+
+    if (itemsPorCuenta.length < 2) {
+      showWarning('Debe haber al menos 2 cuentas con productos.')
+      return
     }
+
+    separarCuentaMut.mutate({ id: pedido.id, cuentas: itemsPorCuenta })
     setModo('acciones')
   }
 
@@ -390,11 +414,9 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
   function confirmarUnion() {
     if (!mesaSeleccionada) return
-    if (pedidoPendiente && pedidosCtx?.unirPedidos) {
-      pedidosCtx.unirPedidos(pedidoPendiente.id, mesaSeleccionada)
-    } else {
-      showWarning('Esta funcionalidad aún no está disponible.')
-    }
+    const mesa = mesasDisponibles.find((m) => m.nombre === mesaSeleccionada)
+    if (!mesa) return
+    unirMesasMut.mutate({ id: pedido.id, mesaOrigenId: mesa.id })
     setModo('acciones')
   }
 
@@ -402,36 +424,18 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
   function entrarAbonarDinero() {
     setMontoIngresado(0)
+    setMetodoPagoAbono(metodosPago.length > 0 ? metodosPago[0].id : null)
     setModo('abonar-dinero')
   }
 
   function confirmarAbono() {
-    if (!montoValido) return
-    const ahora = new Date()
-    const hh = String(ahora.getHours()).padStart(2, '0')
-    const mm = String(ahora.getMinutes()).padStart(2, '0')
-    const abono: Abono = {
-      monto: montoIngresado,
-      metodo: 'Efectivo',
-      hora: `${hh}:${mm}`,
-    }
-    if (pedidoPendiente && pedidosCtx?.registrarAbono) {
-      pedidosCtx.registrarAbono(pedidoPendiente.id, abono)
-    } else {
-      showWarning('Esta funcionalidad aún no está disponible.')
-    }
+    if (!montoValido || !metodoPagoAbono) return
+    abonoMut.mutate({ id: pedido.id, monto: montoIngresado, metodoPagoId: metodoPagoAbono })
     setModo('acciones')
   }
 
   const columnaEnUso = obtenerColumnaDestinoEnUso(asignaciones)
   const hayMovimiento = Object.values(asignaciones).some((v) => v !== 1)
-
-  const mesasOcupadas = new Set(
-    pedidosPendientes.filter((p) => p.mesa !== mesaNombre).map((p) => p.mesa)
-  )
-  const mesasLibres = mesasDisponibles.filter(
-    (m) => m.nombre !== mesaNombre && !mesasOcupadas.has(m.nombre)
-  )
 
   function entrarCambiarMesa() {
     setMesaSeleccionada(null)
@@ -440,11 +444,9 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
   function confirmarCambioMesa() {
     if (!mesaSeleccionada) return
-    if (pedidoPendiente && pedidosCtx?.cambiarMesaPedido) {
-      pedidosCtx.cambiarMesaPedido(pedidoPendiente.id, mesaSeleccionada)
-    } else {
-      showWarning('Esta funcionalidad aún no está disponible.')
-    }
+    const mesa = mesasDisponibles.find((m) => m.nombre === mesaSeleccionada)
+    if (!mesa) return
+    cambiarMesaMut.mutate({ id: pedido.id, mesaId: mesa.id })
     setModo('acciones')
   }
 
@@ -491,7 +493,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     },
     {
       titulo: 'ABONAR DINERO',
-      descripcion: 'Resta un monto abonado de la cuenta total de la mesa.',
+      descripcion: 'Registra un pago parcial sobre el total de la cuenta.',
       icono: (
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -500,6 +502,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
       onClick: entrarAbonarDinero,
     },
   ]
+
+  const isPending = actualizarItemsMut.isPending || separarCuentaMut.isPending || unirMesasMut.isPending || cambiarMesaMut.isPending || abonoMut.isPending
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -618,7 +622,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
 
                 <div className={styles.catalogoList}>
                   {(catalogoFiltrado ?? []).map((producto) => (
-                    <div key={producto?.id ?? Math.random()} className={styles.catalogoItem}>
+                    <div key={producto?.id ?? `prod-${producto?.nombre}`} className={styles.catalogoItem}>
                       <div className={styles.catalogoItemInfo}>
                         <span className={styles.catalogoItemName}>{producto?.nombre ?? ''}</span>
                         <span className={styles.catalogoItemPrice}>${formatPrecio(producto?.precio)}</span>
@@ -714,27 +718,19 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
                   Seleccione una mesa para fusionar su pedido con la {mesaNombre}.
                 </p>
                 <div className={styles.unirGrid}>
-                  {(otrasMesas ?? []).map((mesa) => {
-                    const mesaPedido = pedidosPendientes.find((p) => p.mesa === mesa.nombre)
-                    const isSelected = mesaSeleccionada === mesa.nombre
-                    return (
-                      <div
-                        key={mesa.id}
-                        className={`${styles.unirCard} ${isSelected ? styles.unirCardSel : ''}`}
-                        onClick={() => seleccionarMesa(mesa.nombre)}
-                      >
-                        <span className={styles.unirCardName}>{mesa.nombre}</span>
-                        <div className={styles.unirCardInfo}>
-                          <span className={styles.unirCardEstadoSin}>{mesa.ubicacion}</span>
-                          {mesaPedido ? (
-                            <span className={styles.unirCardEstadoActual}>CON PEDIDO</span>
-                          ) : (
-                            <span className={styles.unirCardEstadoSin}>Sin pedido</span>
-                          )}
-                        </div>
+                  {(otrasMesas ?? []).map((mesa) => (
+                    <div
+                      key={mesa.id}
+                      className={`${styles.unirCard} ${mesaSeleccionada === mesa.nombre ? styles.unirCardSel : ''}`}
+                      onClick={() => seleccionarMesa(mesa.nombre)}
+                    >
+                      <span className={styles.unirCardName}>{mesa.nombre}</span>
+                      <div className={styles.unirCardInfo}>
+                        <span className={styles.unirCardEstadoSin}>{mesa.ubicacion}</span>
+                        <span className={styles.unirCardEstadoSin}>{mesa.estado}</span>
                       </div>
-                    )
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             </>
@@ -751,25 +747,24 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
                   Seleccione la mesa a la que desea reasignar este pedido.
                 </p>
                 <div className={styles.unirGrid}>
-                  {(mesasLibres ?? []).length === 0 ? (
+                  {mesasDisponibles.filter((m) => m.nombre !== mesaNombre && m.estado !== 'fuera_de_servicio').length === 0 ? (
                     <p className={styles.emptyText}>No hay mesas libres disponibles</p>
                   ) : (
-                    (mesasLibres ?? []).map((mesa) => {
-                      const isSelected = mesaSeleccionada === mesa.nombre
-                      return (
+                    mesasDisponibles
+                      .filter((m) => m.nombre !== mesaNombre && m.estado !== 'fuera_de_servicio')
+                      .map((mesa) => (
                         <div
                           key={mesa.id}
-                          className={`${styles.unirCard} ${isSelected ? styles.unirCardSel : ''}`}
+                          className={`${styles.unirCard} ${mesaSeleccionada === mesa.nombre ? styles.unirCardSel : ''}`}
                           onClick={() => seleccionarMesa(mesa.nombre)}
                         >
                           <span className={styles.unirCardName}>{mesa.nombre}</span>
                           <div className={styles.unirCardInfo}>
                             <span className={styles.unirCardEstadoSin}>{mesa.ubicacion}</span>
-                            <span className={styles.unirCardEstadoSin}>Libre</span>
+                            <span className={styles.unirCardEstadoSin}>{mesa.estado}</span>
                           </div>
                         </div>
-                      )
-                    })
+                      ))
                   )}
                 </div>
               </div>
@@ -801,8 +796,31 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
                   }}
                 />
                 {montoError && <p className={styles.abonoError}>{montoError}</p>}
+
+                <div className={styles.abonoTotalRow} style={{ marginTop: '12px' }}>
+                  <span className={styles.abonoLabel}>MÉTODO DE PAGO</span>
+                </div>
+                <select
+                  className={styles.editSearchInput}
+                  value={metodoPagoAbono ?? ''}
+                  onChange={(e) => setMetodoPagoAbono(Number(e.target.value))}
+                >
+                  <option value="">Seleccionar método...</option>
+                  {metodosPago.map((mp) => (
+                    <option key={mp.id} value={mp.id}>{mp.nombre}{mp.entidad ? ` - ${mp.entidad}` : ''}</option>
+                  ))}
+                </select>
+
+                <div className={styles.abonoSaldoRow} style={{ marginTop: '12px' }}>
+                  <span className={styles.abonoLabel}>TOTAL PEDIDO</span>
+                  <span className={styles.abonoTotal}>${formatearPesos(pedido.total ?? 0)}</span>
+                </div>
                 <div className={styles.abonoSaldoRow}>
-                  <span className={styles.abonoLabel}>CUENTA ACTUAL DE LA MESA</span>
+                  <span className={styles.abonoLabel}>YA ABONADO</span>
+                  <span className={styles.abonoTotal}>${formatearPesos(totalAbonado)}</span>
+                </div>
+                <div className={styles.abonoSaldoRow}>
+                  <span className={styles.abonoLabel}>SALDO PENDIENTE</span>
                   <span className={styles.abonoTotal}>${formatearPesos(saldoPendiente)}</span>
                 </div>
               </div>
@@ -816,8 +834,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
               <div className={styles.footerLeft}>
                 <button className={styles.btnVolverFooter} onClick={volverAcciones}>VOLVER</button>
               </div>
-              <button className={styles.btnConfirmar} disabled={!hasChanges} onClick={confirmarCambios}>
-                CONFIRMAR CAMBIOS
+              <button className={styles.btnConfirmar} disabled={!hasChanges || isPending} onClick={confirmarCambios}>
+                {isPending ? 'Guardando...' : 'CONFIRMAR CAMBIOS'}
               </button>
             </>
           ) : modo === 'separar-cuenta' ? (
@@ -825,8 +843,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
               <div className={styles.footerLeft}>
                 <button className={styles.btnVolverFooter} onClick={volverAcciones}>VOLVER</button>
               </div>
-              <button className={styles.btnConfirmar} disabled={!hayMovimiento} onClick={confirmarSeparar}>
-                CONFIRMAR DIVISIÓN
+              <button className={styles.btnConfirmar} disabled={!hayMovimiento || isPending} onClick={confirmarSeparar}>
+                {isPending ? 'Procesando...' : 'CONFIRMAR DIVISIÓN'}
               </button>
             </>
           ) : modo === 'unir-mesas' ? (
@@ -834,8 +852,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
               <div className={styles.footerLeft}>
                 <button className={styles.btnVolverFooter} onClick={volverAcciones}>VOLVER</button>
               </div>
-              <button className={styles.btnConfirmar} disabled={!mesaSeleccionada} onClick={confirmarUnion}>
-                FUSIONAR MESAS
+              <button className={styles.btnConfirmar} disabled={!mesaSeleccionada || isPending} onClick={confirmarUnion}>
+                {isPending ? 'Fusionando...' : 'FUSIONAR MESAS'}
               </button>
             </>
           ) : modo === 'cambiar-mesa' ? (
@@ -843,8 +861,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
               <div className={styles.footerLeft}>
                 <button className={styles.btnVolverFooter} onClick={volverAcciones}>VOLVER</button>
               </div>
-              <button className={styles.btnConfirmar} disabled={!mesaSeleccionada} onClick={confirmarCambioMesa}>
-                CAMBIAR MESA
+              <button className={styles.btnConfirmar} disabled={!mesaSeleccionada || isPending} onClick={confirmarCambioMesa}>
+                {isPending ? 'Cambiando...' : 'CAMBIAR MESA'}
               </button>
             </>
           ) : modo === 'abonar-dinero' ? (
@@ -852,8 +870,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
               <div className={styles.footerLeft}>
                 <button className={styles.btnVolverFooter} onClick={volverAcciones}>VOLVER</button>
               </div>
-              <button className={styles.btnConfirmar} disabled={!montoValido} onClick={confirmarAbono}>
-                CONFIRMAR ABONO
+              <button className={styles.btnConfirmar} disabled={!montoValido || isPending} onClick={confirmarAbono}>
+                {isPending ? 'Registrando...' : 'CONFIRMAR ABONO'}
               </button>
             </>
           ) : (

@@ -61,14 +61,14 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
     if (!categoriaActivaId) {
       setSubcategorias([])
       setSubcategoriaActivaId(null)
-      return
+    } else {
+      listarSubcategorias(categoriaActivaId)
+        .then(setSubcategorias)
+        .catch(() => {
+          setSubcategorias([])
+          showError('No se pudieron cargar las subcategorías.')
+        })
     }
-    listarSubcategorias(categoriaActivaId)
-      .then(setSubcategorias)
-      .catch(() => {
-        setSubcategorias([])
-        showError('No se pudieron cargar las subcategorías.')
-      })
   }, [categoriaActivaId, showError])
 
   useEffect(() => {
@@ -151,7 +151,6 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
     try {
       await createPedidoMut.mutateAsync({
         mesaId: mesa.id,
-        turno: 1,
         items: comanda.map((item) => ({
           productoId: item.id,
           cantidad: item.cantidad,

@@ -8,16 +8,32 @@ const __dirname = path.dirname(__filename);
 
 const FACTURAS_DIR = path.join(__dirname, "../../../uploads/facturas");
 const COMANDAS_DIR = path.join(__dirname, "../../../uploads/cocina");
+const LOGO_PATH = path.join(__dirname, "../../../images/logo cafepandora sin fondo.png");
+
+const PAPER_WIDTH_PT = 226.77;
+const MARGIN_PT = 11.34;
+const USABLE_WIDTH = PAPER_WIDTH_PT - MARGIN_PT * 2;
+const LOGO_MAX_WIDTH_PT = 113.39;
+
+const EMPRESA = {
+  nombre: "PANDORA BISTRO CAFE BAR",
+  nit: "NIT: 1053784676",
+  ciudad: "Medellín",
+};
 
 function formatFecha(fecha) {
   const d = fecha ? new Date(fecha) : new Date();
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function formatHora(fecha) {
+  const d = fecha ? new Date(fecha) : new Date();
   const hh = String(d.getHours()).padStart(2, "0");
   const min = String(d.getMinutes()).padStart(2, "0");
-  const ss = String(d.getSeconds()).padStart(2, "0");
-  return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+  return `${hh}:${min}`;
 }
 
 function formatTimestamp() {
@@ -32,58 +48,218 @@ function formatTimestamp() {
 }
 
 function formatearMonto(monto) {
-  return `$${Number(monto).toFixed(2)} MXN`;
+  return `$${Math.round(monto).toLocaleString("es-CO")}`;
+}
+
+function crearDoc() {
+  const doc = new PDFDocument({
+    size: [PAPER_WIDTH_PT, 800],
+    margins: { top: MARGIN_PT, bottom: MARGIN_PT, left: MARGIN_PT, right: MARGIN_PT },
+  });
+  return doc;
+}
+
+function dibujarLogo(doc) {
+  if (fs.existsSync(LOGO_PATH)) {
+    const logoW = LOGO_MAX_WIDTH_PT;
+    const logoX = MARGIN_PT + (USABLE_WIDTH - logoW) / 2;
+    doc.image(LOGO_PATH, logoX, doc.y, { width: logoW });
+    doc.moveDown(0.5);
+  }
 }
 
 function dibujarEncabezado(doc) {
-  doc.fontSize(20).font("Helvetica-Bold").text("PANDORA CAFÉ BAR", { align: "center" });
-  doc.moveDown(0.3);
-  doc.fontSize(10).font("Helvetica").text("Calle Principal #123, Col. Centro", { align: "center" });
-  doc.text("Tel: (123) 456-7890", { align: "center" });
-  doc.moveDown(0.5);
+  dibujarLogo(doc);
 
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+  doc.font("Courier-Bold").fontSize(13).text(EMPRESA.nombre, MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
+  doc.moveDown(0.2);
+  doc.font("Courier").fontSize(8).text(EMPRESA.nit, MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
+  doc.text(EMPRESA.ciudad, MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
+  doc.moveDown(0.8);
+  lineaSeparadora(doc);
   doc.moveDown(0.5);
 }
 
-function dibujarTabla(doc, headers, rows, startY) {
-  const colWidths = [40, 280, 80, 100];
-  const rowHeight = 20;
-  let y = startY;
-
-  doc.fontSize(9).font("Helvetica-Bold");
-  doc.rect(50, y, 500, rowHeight).fill("#2c3e50");
-  doc.fill("#ffffff");
-
-  let x = 55;
-  headers.forEach((h, i) => {
-    doc.text(h, x, y + 5, { width: colWidths[i], align: i === 0 || i === 2 ? "center" : "left" });
-    x += colWidths[i];
+function lineaSeparadora(doc) {
+  doc.font("Courier").fontSize(7);
+  doc.text("─".repeat(36), MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
   });
+}
 
-  y += rowHeight;
-  doc.fill("#000000").font("Helvetica").fontSize(9);
+function lineaDoble(doc) {
+  doc.font("Courier").fontSize(7);
+  doc.text("═".repeat(36), MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
+}
 
-  rows.forEach((row, ri) => {
-    if (ri % 2 === 0) {
-      doc.rect(50, y, 500, rowHeight).fill("#f5f5f5");
-      doc.fill("#000000");
-    }
+function textoParLinea(doc, izq, der, opciones = {}) {
+  const font = opciones.bold ? "Courier-Bold" : "Courier";
+  const size = opciones.fontSize || 8;
+  doc.font(font).fontSize(size);
 
-    x = 55;
-    row.forEach((cell, ci) => {
-      doc.text(String(cell), x, y + 5, {
-        width: colWidths[ci],
-        align: ci === 0 || ci === 2 ? "center" : "left",
-      });
-      x += colWidths[ci];
+  const anchoDisponible = USABLE_WIDTH;
+  const derWidth = doc.widthOfString(der);
+  const puntosPorChar = doc.widthOfString("M");
+  const espaciosNecesarios = Math.max(1, Math.floor((anchoDisponible - doc.widthOfString(izq) - derWidth) / puntosPorChar));
+
+  doc.text(`${izq}${" ".repeat(espaciosNecesarios)}${der}`, MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "left",
+  });
+}
+
+function wrapText(doc, text, maxChars) {
+  const lineas = [];
+  let restante = text;
+  while (restante.length > maxChars) {
+    let corte = restante.lastIndexOf(" ", maxChars);
+    if (corte <= 0) corte = maxChars;
+    lineas.push(restante.slice(0, corte));
+    restante = restante.slice(corte).trimStart();
+  }
+  lineas.push(restante);
+  return lineas;
+}
+
+function dibujarProductosComanda(doc, items) {
+  doc.moveDown(0.3);
+  doc.font("Courier-Bold").fontSize(8).text("Cant  Producto", MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+  });
+  lineaSeparadora(doc);
+  doc.moveDown(0.3);
+
+  doc.font("Courier").fontSize(8);
+  for (const item of items) {
+    const lineas = wrapText(doc, item.nombre, 28);
+    const cantStr = `${item.cantidad}x`;
+    doc.text(`${cantStr.padEnd(5)}${lineas[0]}`, MARGIN_PT, doc.y, {
+      width: USABLE_WIDTH,
     });
+    for (let i = 1; i < lineas.length; i++) {
+      doc.text(`      ${lineas[i]}`, MARGIN_PT, doc.y, {
+        width: USABLE_WIDTH,
+      });
+    }
+    if (item.nota) {
+      const notaLineas = wrapText(doc, item.nota, 28);
+      for (const nl of notaLineas) {
+        doc.font("Courier").fontSize(7).text(`      ${nl}`, MARGIN_PT, doc.y, {
+          width: USABLE_WIDTH,
+        });
+      }
+      doc.font("Courier").fontSize(8);
+    }
+  }
+}
 
-    y += rowHeight;
+function dibujarProductosRecibo(doc, items) {
+  doc.moveDown(0.3);
+  doc.font("Courier-Bold").fontSize(8);
+  textoParLinea(doc, "Cant  Producto", "Total");
+  lineaSeparadora(doc);
+  doc.moveDown(0.3);
+
+  doc.font("Courier").fontSize(8);
+  for (const item of items) {
+    const totalItem = formatearMonto(item.cantidad * item.precio);
+    const lineas = wrapText(doc, item.nombre, 22);
+    const cantStr = `${item.cantidad}x`;
+    textoParLinea(doc, `${cantStr.padEnd(5)}${lineas[0]}`, totalItem);
+    for (let i = 1; i < lineas.length; i++) {
+      doc.text(`      ${lineas[i]}`, MARGIN_PT, doc.y, {
+        width: USABLE_WIDTH,
+      });
+    }
+  }
+}
+
+function dibujarInfoVenta(doc, data) {
+  doc.font("Courier").fontSize(8);
+  textoParLinea(doc, `Fecha: ${formatFecha(data.fecha)}`, `Hora: ${formatHora(data.fecha)}`);
+  if (data.mesa) {
+    textoParLinea(doc, `Mesa: ${data.mesa}`, "");
+  }
+  if (data.cajero) {
+    textoParLinea(doc, `Cajero: ${data.cajero}`, "");
+  }
+  if (data.metodoPago) {
+    textoParLinea(doc, `Pago: ${data.metodoPago}`, "");
+  }
+  doc.moveDown(0.5);
+  lineaSeparadora(doc);
+  doc.moveDown(0.5);
+}
+
+function dibujarInfoCocina(doc, data) {
+  doc.font("Courier").fontSize(8);
+  textoParLinea(doc, `Pedido #${data.pedidoId}`, "");
+  if (data.mesa) {
+    textoParLinea(doc, `Mesa: ${data.mesa}`, "");
+  }
+  if (data.mesero) {
+    textoParLinea(doc, `Mesero: ${data.mesero}`, "");
+  }
+  textoParLinea(doc, `Fecha: ${formatFecha(data.fecha)}`, `Hora: ${formatHora(data.fecha)}`);
+  doc.moveDown(0.5);
+  lineaSeparadora(doc);
+  doc.moveDown(0.5);
+}
+
+function dibujarResumen(doc, data) {
+  doc.moveDown(0.3);
+  lineaSeparadora(doc);
+  doc.moveDown(0.3);
+
+  if (data.subtotal != null) {
+    textoParLinea(doc, "Subtotal", formatearMonto(data.subtotal));
+  }
+  if (data.impuestoConsumo != null) {
+    textoParLinea(doc, "Imp. Consumo 8%", formatearMonto(data.impuestoConsumo));
+  }
+  if (data.subtotal == null && data.total != null) {
+    textoParLinea(doc, "Total", formatearMonto(data.total));
+  }
+
+  if (data.subtotal != null || data.impuestoConsumo != null) {
+    doc.moveDown(0.3);
+    lineaDoble(doc);
+    doc.moveDown(0.3);
+    textoParLinea(doc, "TOTAL", formatearMonto(data.total), { bold: true, fontSize: 10 });
+  }
+
+  doc.moveDown(0.3);
+  lineaSeparadora(doc);
+}
+
+function dibujarPie(doc, mensaje) {
+  doc.moveDown(1);
+  doc.font("Courier").fontSize(7).fillColor("#555555");
+  const lineas = wrapText(doc, mensaje || "Más que un lugar, una experiencia para tus sentidos.", 36);
+  for (const l of lineas) {
+    doc.text(l, MARGIN_PT, doc.y, { width: USABLE_WIDTH, align: "center" });
+  }
+  doc.moveDown(0.5);
+  doc.font("Courier-Bold").fontSize(8).fillColor("#000000");
+  doc.text("¡Gracias por su compra!", MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
   });
-
-  doc.moveTo(50, y).lineTo(550, y).stroke();
-  return y;
+  doc.moveDown(0.3);
+  doc.fillColor("#000000");
 }
 
 export function generarPDFComanda(data) {
@@ -93,38 +269,22 @@ export function generarPDFComanda(data) {
 
   const filename = `cocina-${data.pedidoId}-${formatTimestamp()}.pdf`;
   const filepath = path.join(COMANDAS_DIR, filename);
-  const doc = new PDFDocument({ margin: 50, size: "A4" });
+  const doc = crearDoc();
   const stream = fs.createWriteStream(filepath);
   doc.pipe(stream);
 
   dibujarEncabezado(doc);
 
-  doc.fontSize(16).font("Helvetica-Bold").text("COMANDO DE COCINA", { align: "center" });
-  doc.moveDown(1);
-
-  doc.fontSize(11).font("Helvetica");
-  doc.text(`Pedido #${data.pedidoId}`);
-  doc.text(`Mesa: ${data.mesa}`);
-  doc.text(`Fecha: ${formatFecha()}`);
-  doc.moveDown(1);
-
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+  doc.font("Courier-Bold").fontSize(10).text("COMANDO DE COCINA", MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
   doc.moveDown(0.5);
 
-  const headers = ["#", "Producto", "Cant.", "Notas"];
-  const rows = data.items.map((item, i) => [
-    String(i + 1),
-    item.nombre,
-    String(item.cantidad),
-    item.nota || "-",
-  ]);
+  dibujarInfoCocina(doc, data);
+  dibujarProductosComanda(doc, data.items);
 
-  const endY = dibujarTabla(doc, headers, rows, doc.y);
-  doc.y = endY + 20;
-
-  doc.moveDown(1);
-  doc.fontSize(9).font("Helvetica").fillColor("#888888");
-  doc.text("Este es un documento generado automáticamente por Pandora Café Bar", { align: "center" });
+  dibujarPie(doc, null);
 
   doc.end();
 
@@ -141,45 +301,22 @@ export function generarPDFRecibo(data) {
 
   const filename = `pago-${data.facturaId}-${formatTimestamp()}.pdf`;
   const filepath = path.join(FACTURAS_DIR, filename);
-  const doc = new PDFDocument({ margin: 50, size: "A4" });
+  const doc = crearDoc();
   const stream = fs.createWriteStream(filepath);
   doc.pipe(stream);
 
   dibujarEncabezado(doc);
 
-  doc.fontSize(16).font("Helvetica-Bold").text("RECIBO DE PAGO", { align: "center" });
-  doc.moveDown(1);
-
-  doc.fontSize(11).font("Helvetica");
-  doc.text(`Factura #${data.facturaId}`);
-  doc.text(`Mesa: ${data.mesa}`);
-  doc.text(`Fecha: ${formatFecha()}`);
-  doc.moveDown(1);
-
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+  doc.font("Courier-Bold").fontSize(10).text("RECIBO DE PAGO", MARGIN_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
   doc.moveDown(0.5);
 
-  const headers = ["#", "Producto", "Cant.", "Precio"];
-  const rows = data.items.map((item, i) => [
-    String(i + 1),
-    item.nombre,
-    String(item.cantidad),
-    formatearMonto(item.precio),
-  ]);
-
-  const endY = dibujarTabla(doc, headers, rows, doc.y);
-  doc.y = endY + 15;
-
-  doc.fontSize(12).font("Helvetica-Bold");
-  doc.text(`Total: ${formatearMonto(data.total)}`, { align: "right" });
-  doc.moveDown(2);
-
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown(0.5);
-
-  doc.fontSize(9).font("Helvetica").fillColor("#888888");
-  doc.text("¡Gracias por su preferencia!", { align: "center" });
-  doc.text("Este es un documento generado automáticamente por Pandora Café Bar", { align: "center" });
+  dibujarInfoVenta(doc, data);
+  dibujarProductosRecibo(doc, data.items);
+  dibujarResumen(doc, data);
+  dibujarPie(doc, null);
 
   doc.end();
 
