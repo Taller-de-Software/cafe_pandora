@@ -114,9 +114,9 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
                       className={styles.printBtn}
                       onClick={(e) => handlePrint(e, f.id)}
                       disabled={printingId === f.id || (modoImpresion === 'simulacion' && disponibilidad[f.id] === false)}
-                      title={modoImpresion === 'simulacion' && disponibilidad[f.id] === false ? 'Comprobante no disponible' : 'Imprimir'}
+                      title={modoImpresion === 'simulacion' && disponibilidad[f.id] === false ? 'Comprobante no disponible' : 'Reimprimir'}
                     >
-                      {printingId === f.id ? '...' : modoImpresion === 'simulacion' && disponibilidad[f.id] === false ? 'N/D' : 'Imprimir'}
+                      {printingId === f.id ? '...' : modoImpresion === 'simulacion' && disponibilidad[f.id] === false ? 'N/D' : 'Reimprimir'}
                     </button>
                   </td>
                 </tr>
