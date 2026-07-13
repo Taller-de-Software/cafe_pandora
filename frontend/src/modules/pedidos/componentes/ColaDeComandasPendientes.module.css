@@ -168,6 +168,7 @@
 .itemsScroll {
   flex: 1;
   min-height: 0;
+  max-height: 8rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

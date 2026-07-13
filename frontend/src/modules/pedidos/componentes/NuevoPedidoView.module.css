@@ -6,6 +6,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .header {
@@ -146,6 +149,13 @@
 
 .btnSecondary:hover {
   background: #fff7ed;
+}
+
+@media (max-width: 1024px) {
+  .mesasContainer {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
 }
 
 @media (max-width: 768px) {

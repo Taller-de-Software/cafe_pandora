@@ -24,3 +24,10 @@
   min-height: 60px;
   font-family: inherit;
 }
+
+@media (max-width: 480px) {
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

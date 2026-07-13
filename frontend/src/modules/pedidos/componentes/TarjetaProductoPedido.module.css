@@ -45,3 +45,22 @@
   color: #b45309;
   margin-top: auto;
 }
+
+@media (max-width: 480px) {
+  .card {
+    min-height: 80px;
+    padding: 0.5rem;
+  }
+
+  .name {
+    font-size: 0.875rem;
+  }
+
+  .description {
+    font-size: 0.65rem;
+  }
+
+  .price {
+    font-size: 0.85rem;
+  }
+}

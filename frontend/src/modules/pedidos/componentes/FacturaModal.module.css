@@ -289,6 +289,22 @@
   color: #6b7280;
 }
 
+.montoInputError {
+  border-color: #dc2626;
+}
+
+.montoInputError:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.montoWarning {
+  font-size: 0.7rem;
+  color: #dc2626;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
 /* ── Impuesto switch ── */
 .impuestoRow {
   display: flex;

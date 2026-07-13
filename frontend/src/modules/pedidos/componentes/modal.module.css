@@ -82,3 +82,19 @@
 }
 
 .cancelBtn:hover { background: #f3f4f6; }
+
+@media (max-width: 480px) {
+  .modal {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions > * {
+    width: 100%;
+    text-align: center;
+  }
+}
