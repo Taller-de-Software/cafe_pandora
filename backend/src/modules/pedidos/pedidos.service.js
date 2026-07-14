@@ -182,7 +182,7 @@ export const cancelar = async (id) => {
   });
 };
 
-export const actualizarItems = async (id, itemsData) => {
+export const actualizarItems = async (id, itemsData, nuevoEstado) => {
   const pedido = await prisma.pedido.findUnique({ where: { id } });
   if (!pedido) throw crearError(404, "Pedido no encontrado");
   if (pedido.estado === ESTADOS_PEDIDO.FINALIZADO || pedido.estado === ESTADOS_PEDIDO.CANCELADO) {
@@ -204,6 +204,9 @@ export const actualizarItems = async (id, itemsData) => {
 
   const totalItems = items.reduce((sum, i) => sum + i.precioUnitario * i.cantidad, 0);
 
+  const timestamps = {};
+  if (nuevoEstado === ESTADOS_PEDIDO.PENDIENTE) timestamps.pendienteEn = new Date();
+
   return prisma.$transaction(async (tx) => {
     await tx.detallePedido.deleteMany({ where: { pedidoId: id } });
 
@@ -213,9 +216,13 @@ export const actualizarItems = async (id, itemsData) => {
       });
     }
 
+    const updateData = { total: totalItems };
+    if (nuevoEstado) updateData.estado = nuevoEstado;
+    Object.assign(updateData, timestamps);
+
     const p = await tx.pedido.update({
       where: { id },
-      data: { total: totalItems },
+      data: updateData,
       include: pedidoInclude,
     });
 
@@ -245,7 +252,7 @@ export const separarCuenta = async (id, cuentasData) => {
     const nuevosPedidos = [];
     for (let i = 1; i < cuentasData.length; i++) {
       const cuentaItems = cuentasData[i];
-      const total = cuentaItems.reduce((sum, item) => sum + item.precioUnitario * item.cantidad, 0);
+      const total = cuentaItems.reduce((sum, item) => sum + (item.precioUnitario ?? 0) * item.cantidad, 0);
 
       const nuevoPedido = await tx.pedido.create({
         data: {
@@ -265,7 +272,7 @@ export const separarCuenta = async (id, cuentasData) => {
             pedidoId: nuevoPedido.id,
             productoId: item.productoId,
             cantidad: item.cantidad,
-            precioUnitario: item.precioUnitario,
+            precioUnitario: item.precioUnitario ?? 0,
             notas: item.notas || null,
           },
         });

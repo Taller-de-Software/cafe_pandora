@@ -182,7 +182,7 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
             <span className={styles.itemsTitle}>ÍTEMS EN COMANDA</span>
 
             <div className={styles.itemsScroll}>
-              {pedido.detalles.map((d) => (
+              {pedido.detalles.slice(0, 8).map((d) => (
                 <div key={d.id} className={styles.itemRow}>
                   <span className={styles.itemName}>{d.producto.nombre.toUpperCase()}</span>
                   <span className={styles.itemCant}>Cant: {d.cantidad}</span>

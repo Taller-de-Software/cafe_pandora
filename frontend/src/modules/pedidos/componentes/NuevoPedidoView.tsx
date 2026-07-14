@@ -9,6 +9,7 @@ import ReservationModal from './ReservationModal'
 import ReservarMesaModal from './ReservarMesaModal'
 import EditarReservasModal from './EditarReservasModal'
 import TomaPedidoView from './TomaPedidoView'
+import DetallePedidoModal from './DetallePedidoModal'
 import styles from './NuevoPedidoView.module.css'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -43,6 +44,7 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
   const [reservaMesa, setReservaMesa] = useState<MesaCompleta | null>(null)
   const [showReservarMesa, setShowReservarMesa] = useState(false)
   const [showEditarReservas, setShowEditarReservas] = useState(false)
+  const [detailPedido, setDetailPedido] = useState<MesaCompleta['pedidoActivo']>(null)
 
   const { data: mesas = [], isLoading, isError } = useQuery({
     queryKey: ['mesas-completas'],
@@ -78,6 +80,14 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
       return
     }
     if (mesa.estado === 'fuera_de_servicio') return
+    if (mesa.estado === 'vacia') {
+      setSelectedMesa(mesa)
+      return
+    }
+    if (mesa.pedidoActivo) {
+      setDetailPedido(mesa.pedidoActivo)
+      return
+    }
     setSelectedMesa(mesa)
   }
 
@@ -145,7 +155,7 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
                 >
                   {statusLabel}
                 </span>
-                {m.pedidoActivo && (
+                {m.estado === 'ocupada' && m.pedidoActivo && (
                   <span className={styles.mesaPedido}>
                     Pedido #{m.pedidoActivo.id} — ${m.pedidoActivo.total ?? 0}
                   </span>
@@ -199,6 +209,13 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
       {showEditarReservas && (
         <EditarReservasModal
           onClose={() => setShowEditarReservas(false)}
+        />
+      )}
+
+      {detailPedido && (
+        <DetallePedidoModal
+          pedido={detailPedido}
+          onClose={() => setDetailPedido(null)}
         />
       )}
     </div>

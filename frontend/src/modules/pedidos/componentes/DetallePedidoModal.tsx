@@ -109,8 +109,8 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   })
 
   const actualizarItemsMut = useMutation({
-    mutationFn: ({ id, items }: { id: number; items: { productoId: number; cantidad: number }[] }) =>
-      actualizarItemsPedido(id, items),
+    mutationFn: ({ id, items, nuevoEstado }: { id: number; items: { productoId: number; cantidad: number }[]; nuevoEstado?: string }) =>
+      actualizarItemsPedido(id, items, nuevoEstado),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
@@ -337,15 +337,9 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     })
 
     const pedidoEstado = String(pedido.estado ?? '').toLowerCase()
-    const debeRevertirAEstado = pedidoEstado === 'hecho' && huboProductoNuevoConPreparacion
+    const nuevoEstado = pedidoEstado === 'hecho' && huboProductoNuevoConPreparacion ? 'pendiente' : undefined
 
-    actualizarItemsMut.mutate({ id: pedido.id, items }, {
-      onSuccess: () => {
-        if (debeRevertirAEstado) {
-          cambiarEstadoApi.mutate({ id: pedido.id, estado: 'pendiente' })
-        }
-      }
-    })
+    actualizarItemsMut.mutate({ id: pedido.id, items, nuevoEstado })
 
     setModo('acciones')
   }

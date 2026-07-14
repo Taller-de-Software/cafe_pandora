@@ -173,7 +173,7 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
             <span className={styles.headerLabel}>CATEGORÍA PEDIDOS</span>
             <div className={styles.headerRow}>
               <span className={styles.headerTitle}>
-                MESA {mesa.nombre} ({mesa.ubicacion}) • CATÁLOGO DE PRODUCTOS
+                {mesa.nombre} ({mesa.ubicacion}) • CATÁLOGO DE PRODUCTOS
               </span>
               <button className={styles.backLink} onClick={onBack}>
                 ← Cambiar Mesa
