@@ -9,7 +9,8 @@ const BASE = getApiUrl().replace('/api', '')
 function imagenUrlCompleta(imagenUrl?: string): string | null {
   if (!imagenUrl) return null
   if (imagenUrl.startsWith('http')) return imagenUrl
-  return `${BASE}/${imagenUrl.replace(/^\//, '')}`
+  const ruta = imagenUrl.startsWith('/') ? imagenUrl : `/uploads/productos/${imagenUrl}`
+  return `${BASE}${ruta.split('/').map(encodeURIComponent).join('/')}`
 }
 
 interface TarjetaProductoProps {
