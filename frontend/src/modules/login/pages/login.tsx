@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { useError } from '@/context/ErrorContext'
 import ServerConfigModal from '@modules/configuracion/componentes/ServerConfigModal'
-import { getApiUrl } from '@/services/server-config'
+import { getBaseUrl } from '@/services/server-config'
+import { useQuery } from '@tanstack/react-query'
 import { api } from '@/services/api'
 import styles from './login.module.css'
 
-const BASE = getApiUrl().replace('/api', '')
+const BASE = getBaseUrl()
 const LOGO_URL = `${BASE}/uploads/productos/logo%20cafepandora%20sin%20fondo.png`
 
 type Tab = 'login' | 'register'
@@ -27,15 +28,17 @@ function Login() {
   const [pin, setPin] = useState('')
   const [loading, setLoading] = useState(false)
   const [showConfig, setShowConfig] = useState(false)
-  const [usuariosDisponibles, setUsuariosDisponibles] = useState<UsuarioDisponible[]>([])
   const [cargandoUsuarios, setCargandoUsuarios] = useState(true)
 
+  const { data: usuariosDisponibles = [], isLoading: cargandoUsuariosQuery, refetch: refetchUsuarios } = useQuery({
+    queryKey: ['usuarios-disponibles'],
+    queryFn: () => api.get<UsuarioDisponible[]>('/auth/usuarios-disponibles'),
+    staleTime: 5 * 60 * 1000,
+  })
+
   useEffect(() => {
-    api.get<UsuarioDisponible[]>('/auth/usuarios-disponibles')
-      .then(setUsuariosDisponibles)
-      .catch(() => showError('No se pudieron cargar los usuarios'))
-      .finally(() => setCargandoUsuarios(false))
-  }, [showError])
+    setCargandoUsuarios(cargandoUsuariosQuery)
+  }, [cargandoUsuariosQuery])
 
   function getRolLabel(rol: string) {
     return rol === 'administrador' ? 'Administración' : 'Mesero'

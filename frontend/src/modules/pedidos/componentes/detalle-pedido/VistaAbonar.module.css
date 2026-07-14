@@ -1,0 +1,164 @@
+.editPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.editHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-madera);
+}
+
+.editHeaderTitle {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-acento);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.editVolverBtn {
+  background: none;
+  border: none;
+  color: var(--color-acento);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.separarInstruccion {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-texto-secundario);
+  line-height: 1.4;
+}
+
+.abonoTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+.abonoLabel {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.abonoTotal {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-titulo);
+}
+
+.abonoSaldoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+.abonoInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin: 0 1rem 0.5rem;
+  border: 1px solid var(--color-madera);
+  border-radius: var(--radius-md);
+  background: var(--color-hover-fondo);
+  color: var(--color-titulo);
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-align: right;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.abonoInput:focus {
+  border-color: var(--color-oro);
+  box-shadow: 0 0 0 2px rgba(201, 152, 53, 0.15);
+}
+
+.abonoError {
+  color: var(--color-error);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  margin: 0 1rem 0.5rem;
+}
+
+.editSearchInput {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  margin: 0 1rem 0.5rem;
+  border: 1px solid var(--color-madera);
+  border-radius: var(--radius-md);
+  background: var(--color-hover-fondo);
+  color: var(--color-titulo);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.editSearchInput:focus {
+  border-color: var(--color-oro);
+  box-shadow: 0 0 0 2px rgba(201, 152, 53, 0.15);
+}
+
+.footerLeft {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btnVolverFooter {
+  padding: 0.5rem 1rem;
+  background: var(--color-tarjeta-fondo);
+  color: var(--color-texto-secundario);
+  border: 1px solid var(--color-madera);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background var(--transition-fast);
+}
+
+.btnVolverFooter:hover {
+  background: var(--color-hover-fondo);
+}
+
+.btnConfirmar {
+  padding: 0.5rem 1rem;
+  background: var(--color-acento);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background var(--transition-fast);
+}
+
+.btnConfirmar:hover:not(:disabled) {
+  background: var(--color-acento-hover);
+}
+
+.btnConfirmar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
