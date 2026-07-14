@@ -7,7 +7,8 @@
   --font-serif: "Playfair Display", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Paleta Caja y Finanzas — Café Premium */
+  /* ===== PALETA UNIFICADA CAFÉ PANDORA ===== */
+  /* Colores base premium (Familia A) */
   --color-pagina-fondo: #FCFAF7;
   --color-encabezado-fondo: #7A3E1D;
   --color-sidebar-fondo: #7A3E1D;
@@ -28,28 +29,115 @@
 
   --color-acento: #7A3E1D;
   --color-acento-hover: #5E2F17;
+  --color-acento-secundario: #B45309;        /* Acento secundario para pedidos/menú */
+  --color-acento-secundario-hover: #92400E;
+
   --color-oro: #C99835;
   --color-oro-hover: #B3882D;
   --color-oro-superficie: #FDF6E3;
   --color-oro-insignia: #C99835;
+
   --color-crema: #F8F4EE;
   --color-madera: #E8E1D8;
   --color-borde: #E8E1D8;
+  --color-borde-claro: #F5EFE8;
 
+  /* Semánticos */
   --color-exito: #3D8B5F;
   --color-exito-hover: #2E7A4E;
   --color-exito-superficie: #EDF9F1;
+  --color-exito-borde: #86EFAC;
+  --color-exito-texto: #166534;
+
   --color-peligro: #C7544A;
   --color-peligro-hover: #A84440;
   --color-peligro-superficie: #FDEEE8;
-  --color-text-muted: #6E6A65;
+  --color-peligro-borde: #FCA5A5;
+  --color-peligro-texto: #991B1B;
+
+  --color-advertencia: #F59E0B;
+  --color-advertencia-hover: #D97706;
+  --color-advertencia-superficie: #FEF3C7;
+  --color-advertencia-borde: #FCD34D;
+  --color-advertencia-texto: #92400E;
+
+  --color-info: #2563EB;
+  --color-info-hover: #1D4ED8;
+  --color-info-superficie: #DBEAFE;
+  --color-info-borde: #93C5FD;
+  --color-info-texto: #1E40AF;
+
+  /* ===== MAPIEO DE TAILWIND GRIS -> PREMIUM (para migración) ===== */
+  /* Estos mapeos se usan para reemplazar colores hardcoded en .module.css */
+  --color-gray-900: var(--color-titulo);         /* #1F2937 -> #2D2A26 */
+  --color-gray-700: var(--color-cuerpo);         /* #374151 / #4B5563 -> #6E6A65 */
+  --color-gray-600: var(--color-cuerpo);         /* #6B7280 -> #6E6A65 */
+  --color-gray-500: var(--color-atenuado);       /* #9CA3AF -> #9B9792 */
+  --color-gray-400: var(--color-inactivo);       /* #C8C4BF mantenido */
+  --color-gray-300: var(--color-borde);          /* #D1D5DB -> #E8E1D8 */
+  --color-gray-200: var(--color-borde-claro);    /* #E5E7EB -> #F5EFE8 */
+  --color-gray-100: var(--color-hover-fondo);    /* #F3F4F6 -> #FAF7F2 */
+  --color-gray-50: var(--color-pagina-fondo);    /* #F9FAFB -> #FCFAF7 */
+
+  /* Sombras unificadas */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-modal-content: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadow-toast: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.12);
+
+  /* Breakpoints estandarizados */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+
+  /* Border radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    font-size: 16px;
+  }
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-cuerpo);
+    background: var(--color-pagina-fondo);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-titulo);
+    font-weight: 700;
+  }
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
 }
 
 /* ===== LAYOUT ===== */
 .dashboard {
   display: flex;
   height: 100vh;
-  background: #f9fafb;
+  background: var(--color-pagina-fondo);
 }
 
 .dashboard__body {

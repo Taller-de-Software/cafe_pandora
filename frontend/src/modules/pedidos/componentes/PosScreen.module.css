@@ -27,13 +27,13 @@
 
 .noResults {
   text-align: center;
-  color: #9ca3af;
+  color: var(--color-atenuado);
   padding: 2rem 0;
 }
 
 .divider {
   width: 1px;
-  background: #e5e7eb;
+  background: var(--color-borde);
   flex-shrink: 0;
 }
 

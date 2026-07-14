@@ -11,13 +11,13 @@
   overflow-x: auto;
   padding-bottom: 0.25rem;
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db transparent;
+  scrollbar-color: var(--color-borde) transparent;
   scroll-behavior: smooth;
   flex: 1;
 }
 
 .vacio {
   font-size: 0.8125rem;
-  color: #9ca3af;
+  color: var(--color-atenuado);
   white-space: nowrap;
 }

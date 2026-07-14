@@ -14,8 +14,8 @@
   align-items: center;
   gap: 0.625rem;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-toast);
   cursor: pointer;
   pointer-events: auto;
   animation: slideIn 0.3s ease-out;
@@ -36,48 +36,48 @@
 
 .message {
   flex: 1;
-  color: #1f2937;
+  color: var(--color-titulo);
   font-weight: 500;
 }
 
 .success {
-  background: #ecfdf5;
-  border: 1px solid #6ee7b7;
-  color: #065f46;
+  background: var(--color-exito-superficie);
+  border: 1px solid var(--color-exito-borde);
+  color: var(--color-exito-texto);
 }
 
 .success .icon {
-  color: #059669;
+  color: var(--color-exito);
 }
 
 .info {
-  background: #eff6ff;
-  border: 1px solid #93c5fd;
-  color: #1e40af;
+  background: var(--color-info-superficie);
+  border: 1px solid var(--color-info-borde);
+  color: var(--color-info-texto);
 }
 
 .info .icon {
-  color: #2563eb;
+  color: var(--color-info);
 }
 
 .warning {
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
-  color: #92400e;
+  background: var(--color-advertencia-superficie);
+  border: 1px solid var(--color-advertencia-borde);
+  color: var(--color-advertencia-texto);
 }
 
 .warning .icon {
-  color: #d97706;
+  color: var(--color-advertencia);
 }
 
 .error {
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  color: #991b1b;
+  background: var(--color-peligro-superficie);
+  border: 1px solid var(--color-peligro-borde);
+  color: var(--color-peligro-texto);
 }
 
 .error .icon {
-  color: #dc2626;
+  color: var(--color-peligro);
 }
 
 @keyframes slideIn {

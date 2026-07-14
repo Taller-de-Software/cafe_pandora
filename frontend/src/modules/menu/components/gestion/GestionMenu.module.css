@@ -9,12 +9,12 @@
 }
 
 .modal {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--color-tarjeta-fondo);
+  border-radius: var(--radius-lg);
   width: min(640px, 94vw);
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
 }
@@ -24,10 +24,10 @@
   align-items: center;
   gap: 8px;
   padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-borde);
   position: sticky;
   top: 0;
-  background: #fff;
+  background: var(--color-tarjeta-fondo);
   z-index: 1;
 }
 
@@ -35,6 +35,7 @@
   margin: 0;
   flex: 1;
   font-size: 1.1rem;
+  color: var(--color-titulo);
 }
 
 .btnVolver {
@@ -43,16 +44,16 @@
   cursor: pointer;
   font-size: 0.9rem;
   padding: 4px 8px;
-  border-radius: 4px;
-  color: #6b7280;
+  border-radius: var(--radius-sm);
+  color: var(--color-atenuado);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
 .btnVolver:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--color-hover-fondo);
+  color: var(--color-cuerpo);
 }
 
 .btnCerrar {
@@ -62,11 +63,11 @@
   font-size: 1.4rem;
   line-height: 1;
   padding: 0 4px;
-  color: #9ca3af;
+  color: var(--color-inactivo);
 }
 
 .btnCerrar:hover {
-  color: #374151;
+  color: var(--color-titulo);
 }
 
 .contenido {
@@ -84,38 +85,39 @@
   align-items: center;
   gap: 16px;
   padding: 20px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-borde);
   border-radius: 10px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  background: #fef9ef;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  background: var(--color-pagina-fondo);
 }
 
 .opcionCard:hover {
-  border-color: #7A3E1D;
+  border-color: var(--color-acento);
   box-shadow: 0 2px 8px rgba(122, 62, 29, 0.1);
-  background: #fef9ef;
+  background: var(--color-pagina-fondo);
 }
 
 .icono {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: #fef3c7;
+  background: var(--color-advertencia-superficie);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #7A3E1D;
+  color: var(--color-acento);
 }
 
 .texto h4 {
   margin: 0 0 4px;
   font-size: 1rem;
+  color: var(--color-titulo);
 }
 
 .texto p {
   margin: 0;
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--color-atenuado);
 }
