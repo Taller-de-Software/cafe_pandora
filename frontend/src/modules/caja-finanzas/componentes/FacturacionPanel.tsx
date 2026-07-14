@@ -85,7 +85,7 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
   return (
     <div className={styles.layout}>
       <div className={styles.header}>
-        <h3>Facturación</h3>
+        <h3>FACTURACIÓN</h3>
         <span className={styles.sessionInfo}>
           Sesión #{sesion.id} · {facturas.length} factura{facturas.length !== 1 ? 's' : ''}
         </span>

@@ -38,7 +38,7 @@
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 14px;
-  background: var(--color-pagina-fondo);
+  background: #fef9ef;
   border: 1px solid var(--color-borde);
   box-shadow: var(--shadow-sm);
 }
@@ -78,7 +78,7 @@
 }
 
 .tarjetaFiltros {
-  background: var(--color-pagina-fondo);
+  background: #fef9ef;
   border: 1px solid var(--color-madera);
   border-radius: 0.875rem;
   padding: 1rem 1.25rem;

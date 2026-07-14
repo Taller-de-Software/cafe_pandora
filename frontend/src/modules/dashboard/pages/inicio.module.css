@@ -9,7 +9,7 @@
   display: flex;
   justify-content: space-between;
   gap: 1.5rem;
-  background: var(--color-pagina-fondo);
+  background: #fef9ef;
   border: 1px solid var(--color-borde);
   border-radius: 14px;
   padding: 1.5rem;
@@ -102,7 +102,7 @@
 
 /* ── Orders card ── */
 .ordersCard {
-  background: var(--color-pagina-fondo);
+  background: #fef9ef;
   border: 1px solid var(--color-borde);
   border-radius: 14px;
   padding: 1.5rem;

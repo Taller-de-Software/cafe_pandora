@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-pagina-fondo);
+  background-color: #fef9ef;
   background-image:
     radial-gradient(ellipse at 15% 50%, rgba(122, 62, 29, 0.04) 0%, transparent 50%),
     radial-gradient(ellipse at 85% 20%, rgba(201, 152, 53, 0.03) 0%, transparent 50%),
@@ -15,7 +15,7 @@
   display: flex;
   width: min(78vw, 1200px);
   height: min(72vh, 820px);
-  background: var(--color-pagina-fondo);
+  background: #fef9ef;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow:
@@ -45,7 +45,7 @@
 
 .rightCol {
   flex: 0 0 50%;
-  background: var(--color-pagina-fondo);
+  background: #fef9ef;
   display: flex;
   align-items: center;
   justify-content: center;
