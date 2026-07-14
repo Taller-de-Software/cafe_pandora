@@ -36,3 +36,12 @@ export const me = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getUsuariosDisponibles = async (req, res, next) => {
+  try {
+    const usuarios = await authService.getUsuariosDisponibles();
+    return ok(res, usuarios);
+  } catch (err) {
+    next(err);
+  }
+};

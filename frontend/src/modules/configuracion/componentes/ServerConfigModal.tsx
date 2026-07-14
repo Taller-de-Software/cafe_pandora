@@ -8,6 +8,7 @@ import {
   testConnection,
 } from '@/services/server-config'
 import { reconnectSocket } from '@/services/socket'
+import { api } from '@/services/api'
 import { useError } from '@/context/ErrorContext'
 import styles from './ServerConfigModal.module.css'
 
@@ -34,6 +35,9 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null)
   const [saved, setSaved] = useState(false)
+  const [detecting, setDetecting] = useState(false)
+  const [detectedUrls, setDetectedUrls] = useState<{ interfaceName: string; interfaceAddress: string; fullUrl: string; apiUrl: string; socketUrl: string }[] | null>(null)
+  const [detectError, setDetectError] = useState<string | null>(null)
 
   const preview = `http://${ip || '...' }:${port || '3001'}/api`
   const hasCustom = isCustomConfig()
@@ -53,6 +57,41 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
     } catch (err) {
       showError(err)
       setTestResult({ ok: false, message: 'Error al probar la conexión.' })
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  async function handleAutoDetect() {
+    setDetecting(true)
+    setDetectError(null)
+    setDetectedUrls(null)
+    try {
+      const result = await api.get<{ interfaceName: string; interfaceAddress: string; fullUrl: string; apiUrl: string; socketUrl: string }[]>('/red/connect-urls')
+      setDetectedUrls(result)
+    } catch (err) {
+      setDetectError('No se pudo auto-detectar la IP. Verifica que el servidor esté accesible.')
+    } finally {
+      setDetecting(false)
+    }
+  }
+
+  function useDetectedUrl(detected: { apiUrl: string }) {
+    const p = parseUrl(detected.apiUrl)
+    setIp(p.ip)
+    setPort(p.port)
+    setDetectedUrls(null)
+    setDetectError(null)
+  }
+
+  async function handleTestPort() {
+    setTesting(true)
+    setTestResult(null)
+    try {
+      const result = await api.post<{ ok: boolean }>('/red/test-port', { host: ip, port: parseInt(port) || 3001 })
+      setTestResult({ ok: result.ok, message: result.ok ? 'Puerto accesible desde el servidor' : 'Puerto bloqueado o no accesible' })
+    } catch (err) {
+      setTestResult({ ok: false, message: 'Error al probar el puerto desde el servidor' })
     } finally {
       setTesting(false)
     }
@@ -134,12 +173,45 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
               onClick={handleTest}
               disabled={testing || !ip}
             >
-              {testing ? 'Probando...' : 'Probar conexión'}
+              {testing ? 'Probando...' : 'Probar conexión (cliente)'}
+            </button>
+            <button
+              className={styles.testBtn}
+              onClick={handleTestPort}
+              disabled={testing || !ip}
+            >
+              {testing ? 'Probando...' : 'Probar puerto (servidor)'}
             </button>
             {testResult && (
               <span className={`${styles.testResult} ${testResult.ok ? styles.testOk : styles.testError}`}>
                 {testResult.ok ? '✓' : '✕'} {testResult.message}
               </span>
+            )}
+          </div>
+
+          <div className={styles.detectSection}>
+            <button
+              className={styles.detectBtn}
+              onClick={handleAutoDetect}
+              disabled={detecting}
+            >
+              {detecting ? 'Detectando...' : 'Auto-detectar IP del servidor'}
+            </button>
+            {detectError && (
+              <span className={styles.detectError}>{detectError}</span>
+            )}
+            {detectedUrls && detectedUrls.length > 0 && (
+              <div className={styles.detectedUrls}>
+                <strong>IPs detectadas:</strong>
+                {detectedUrls.map((d) => (
+                  <div key={d.interfaceName} className={styles.detectedItem}>
+                    <span className={styles.detectedLabel}>{d.interfaceName} ({d.interfaceAddress})</span>
+                    <button className={styles.useBtn} onClick={() => useDetectedUrl(d)}>
+                      Usar
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 

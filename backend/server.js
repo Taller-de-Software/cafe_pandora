@@ -9,6 +9,7 @@ const server = http.createServer(app);
 const io = setupSocket(server);
 
 app.set("io", io);
+global.io = io;
 
 server.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto http://localhost:${PORT}`);

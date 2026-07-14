@@ -20,6 +20,8 @@ import cajaRoutes from "./modules/caja/caja.routes.js";
 import metodosPagoRoutes from "./modules/metodos_pago/metodos_pago.routes.js";
 import reservasRoutes from "./modules/reservas/reservas.routes.js";
 import configuracionRoutes from "./modules/configuracion/configuracion.routes.js";
+import diagnosticoRoutes from "./modules/diagnostico/diagnostico.routes.js";
+import redRoutes from "./modules/red/red.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -58,6 +60,8 @@ app.use("/api/caja", cajaRoutes);
 app.use("/api/metodos-pago", metodosPagoRoutes);
 app.use("/api/configuracion", configuracionRoutes);
 app.use("/api/reservas", reservasRoutes);
+app.use("/api/diagnostico", diagnosticoRoutes);
+app.use("/api/red", redRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 
