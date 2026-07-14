@@ -103,6 +103,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas'] })
       showSuccess('Estado del pedido actualizado')
     },
     onError: (err) => showError(err),
@@ -125,6 +126,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas'] })
       showSuccess('Cuenta separada exitosamente')
     },
     onError: (err) => showError(err),
@@ -136,6 +138,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas'] })
       showSuccess('Mesas fusionadas exitosamente')
     },
     onError: (err) => showError(err),
@@ -147,6 +150,7 @@ function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas'] })
       showSuccess('Mesa cambiada exitosamente')
     },
     onError: (err) => showError(err),
