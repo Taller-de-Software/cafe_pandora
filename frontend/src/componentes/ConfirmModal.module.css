@@ -10,25 +10,25 @@
 }
 
 .modal {
-  background: white;
-  border-radius: 0.75rem;
+  background: var(--color-tarjeta-fondo);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   width: 100%;
   max-width: 24rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-modal);
   animation: scaleIn 0.15s ease-out;
 }
 
 .titulo {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-titulo);
   margin-bottom: 0.5rem;
 }
 
 .mensaje {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-cuerpo);
   margin-bottom: 1.5rem;
   line-height: 1.5;
 }
@@ -41,42 +41,42 @@
 
 .btnCancelar {
   padding: 0.5rem 1rem;
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--color-hover-fondo);
+  color: var(--color-cuerpo);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 500;
   font-size: 0.875rem;
-  transition: background 0.2s;
+  transition: background var(--transition-fast);
 }
 
 .btnCancelar:hover {
-  background: #e5e7eb;
+  background: var(--color-borde-claro);
 }
 
 .btnConfirmar {
   padding: 0.5rem 1rem;
-  background: #b45309;
+  background: var(--color-acento-secundario);
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 500;
   font-size: 0.875rem;
-  transition: background 0.2s;
+  transition: background var(--transition-fast);
 }
 
 .btnConfirmar:hover {
-  background: #92400e;
+  background: var(--color-acento-secundario-hover);
 }
 
 .btnDanger {
-  background: #dc2626;
+  background: var(--color-peligro);
 }
 
 .btnDanger:hover {
-  background: #b91c1c;
+  background: var(--color-peligro-hover);
 }
 
 @keyframes fadeIn {

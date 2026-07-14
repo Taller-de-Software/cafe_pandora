@@ -7,9 +7,9 @@
 .gestionBar {
   padding: 0.75rem 1rem;
   border-radius: 0.875rem;
-  background: #fef9ef;
-  border: 1px solid #E8E1D8;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: var(--color-pagina-fondo);
+  border: 1px solid var(--color-madera);
+  box-shadow: var(--shadow-sm);
 }
 
 .header {
@@ -23,7 +23,7 @@
 .titulo {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-titulo);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0;
@@ -31,27 +31,27 @@
 
 .contador {
   font-size: 0.8125rem;
-  color: #9ca3af;
+  color: var(--color-atenuado);
   font-weight: 500;
 }
 
 .btnAgregar {
   margin-left: auto;
   padding: 0.5rem 1rem;
-  background: #7A3E1D;
+  background: var(--color-acento);
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   text-transform: uppercase;
-  transition: background-color 0.15s ease, transform 0.1s ease;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
   white-space: nowrap;
 }
 
 .btnAgregar:hover {
-  background: #5E2F17;
+  background: var(--color-acento-hover);
   transform: translateY(-1px);
 }
 
@@ -65,7 +65,7 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: 2rem;
-  color: #9ca3af;
+  color: var(--color-atenuado);
   font-size: 0.875rem;
 }
 
@@ -81,7 +81,7 @@
 }
 
 .grupoSection + .grupoSection {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-borde);
   margin-top: 1.25rem;
   padding-top: 1.25rem;
 }
@@ -89,6 +89,6 @@
 .noCategory {
   text-align: center;
   padding: 3rem;
-  color: #9ca3af;
+  color: var(--color-atenuado);
   font-size: 0.875rem;
 }

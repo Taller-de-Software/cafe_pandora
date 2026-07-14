@@ -10,26 +10,26 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--color-atenuado);
   margin-bottom: 0;
 }
 
 .breadcrumbLink {
-  color: #6b7280;
+  color: var(--color-atenuado);
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color var(--transition-fast);
 }
 
 .breadcrumbLink:hover {
-  color: #b45309;
+  color: var(--color-acento-secundario);
 }
 
 .breadcrumbSep {
-  color: #d1d5db;
+  color: var(--color-borde);
 }
 
 .breadcrumbCurrent {
-  color: #374151;
+  color: var(--color-cuerpo);
   font-weight: 600;
 }
 
@@ -38,11 +38,11 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: #fef9ef;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  background: var(--color-crema);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
   flex-shrink: 0;
 }
 
@@ -53,9 +53,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fef3c7;
-  border-radius: 12px;
-  border: 1px solid #fde68a;
+  background: var(--color-advertencia-superficie);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-advertencia-borde);
 }
 
 .moduleInfo {
@@ -67,14 +67,14 @@
 .moduleTitle {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #1f2937;
+  color: var(--color-titulo);
   margin: 0;
   line-height: 1.2;
 }
 
 .moduleDesc {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-cuerpo);
   margin: 0;
   line-height: 1.4;
 }
@@ -89,33 +89,33 @@
 
 .tab {
   padding: 0.5rem 1.25rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  background: white;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-md);
+  background: var(--color-tarjeta-fondo);
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
   text-transform: uppercase;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .tabActive {
-  background: #7A3E1D;
+  background: var(--color-acento);
   color: white;
-  border-color: #7A3E1D;
+  border-color: var(--color-acento);
 }
 
 .tabActive:hover {
-  background: #7A3E1D;
+  background: var(--color-acento);
 }
 
 .badge {
-  background: #dc2626;
+  background: var(--color-peligro);
   color: white;
   font-size: 0.65rem;
   font-weight: 700;
   padding: 0.1rem 0.4rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   margin-left: 0.4rem;
   line-height: 1.3;
 }
@@ -132,9 +132,9 @@
 }
 
 .listPanel {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  background: var(--color-tarjeta-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-lg);
   padding: 1rem;
 }
 

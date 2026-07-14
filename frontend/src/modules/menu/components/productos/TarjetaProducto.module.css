@@ -1,18 +1,19 @@
 .card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 1rem;
+  background: var(--color-tarjeta-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-acento-secundario);
 }
 
 .cardExpandido {
-  border-color: #7A3E1D;
+  border-color: var(--color-acento);
 }
 
 .imagen {
@@ -28,7 +29,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fef3c7;
+  background: var(--color-advertencia-superficie);
 }
 
 .cuerpo {
@@ -42,7 +43,7 @@
 .nombre {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-titulo);
   overflow-wrap: break-word;
   word-break: break-word;
 }
@@ -58,9 +59,9 @@
   font-size: 0.625rem;
   font-weight: 600;
   padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  background: #fca5a5;
-  color: #7f1d1d;
+  border-radius: var(--radius-sm);
+  background: var(--color-peligro-superficie);
+  color: var(--color-peligro-texto);
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -70,9 +71,9 @@
   font-size: 0.625rem;
   font-weight: 600;
   padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  background: #fef3c7;
-  color: #92400e;
+  border-radius: var(--radius-sm);
+  background: var(--color-advertencia-superficie);
+  color: var(--color-advertencia-texto);
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -82,9 +83,9 @@
   font-size: 0.625rem;
   font-weight: 600;
   padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  background: #e5e7eb;
-  color: #6b7280;
+  border-radius: var(--radius-sm);
+  background: var(--color-hover-fondo);
+  color: var(--color-atenuado);
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -92,7 +93,7 @@
 
 .descripcion {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--color-atenuado);
   margin-bottom: 0.5rem;
   line-height: 1.4;
   overflow-wrap: break-word;
@@ -116,7 +117,7 @@
 .precio {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #7A3E1D;
+  color: var(--color-acento);
 }
 
 .linkAccion {
@@ -124,10 +125,10 @@
   border: none;
   padding: 0;
   font-size: 0.8125rem;
-  color: #7A3E1D;
+  color: var(--color-acento);
   cursor: pointer;
   font-weight: 500;
-  transition: color 0.15s ease, transform 0.1s ease;
+  transition: color var(--transition-fast), transform var(--transition-fast);
 }
 
 .linkAccion:hover {
@@ -140,7 +141,7 @@
   align-items: center;
   gap: 0.5rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--color-borde-claro);
 }
 
 .btnEditar {
@@ -148,12 +149,12 @@
   padding: 0.375rem 1rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  background: #7A3E1D;
+  background: var(--color-acento);
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: filter 0.15s ease;
+  transition: background var(--transition-fast);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -162,7 +163,7 @@
 }
 
 .btnEditar:hover {
-  filter: brightness(0.92);
+  background: var(--color-acento-hover);
 }
 
 .btnBorrar {
@@ -170,12 +171,12 @@
   padding: 0.375rem 1rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  background: #ef4444;
+  background: var(--color-peligro);
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: filter 0.15s ease;
+  transition: background var(--transition-fast);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -184,7 +185,7 @@
 }
 
 .btnBorrar:hover {
-  filter: brightness(0.92);
+  background: var(--color-peligro-hover);
 }
 
 .confirmacion {
@@ -196,7 +197,7 @@
 
 .confirmText {
   font-size: 0.875rem;
-  color: #ef4444;
+  color: var(--color-peligro);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -206,20 +207,20 @@
   padding: 0.375rem 1rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  background: #ef4444;
+  background: var(--color-peligro);
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  transition: filter 0.15s ease;
+  transition: background var(--transition-fast);
 }
 
 .btnConfirmarSi:hover {
-  filter: brightness(0.92);
+  background: var(--color-peligro-hover);
 }
 
 .btnConfirmarNo {
@@ -227,20 +228,20 @@
   padding: 0.375rem 1rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--color-hover-fondo);
+  color: var(--color-cuerpo);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  transition: filter 0.15s ease;
+  transition: background var(--transition-fast);
 }
 
 .btnConfirmarNo:hover {
-  filter: brightness(0.92);
+  background: var(--color-borde);
 }
 
 .linkOcultar {
@@ -248,7 +249,7 @@
   border: none;
   padding: 0;
   font-size: 0.8125rem;
-  color: #7A3E1D;
+  color: var(--color-acento);
   cursor: pointer;
   font-weight: 500;
   margin-left: auto;

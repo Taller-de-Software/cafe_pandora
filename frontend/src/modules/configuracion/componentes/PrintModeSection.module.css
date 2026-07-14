@@ -6,19 +6,19 @@
 
 .hint {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-atenuado);
   line-height: 1.5;
   margin: 0;
 }
 
 .hint strong {
-  color: #374151;
+  color: var(--color-cuerpo);
 }
 
 .statusCard {
-  background: white;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 0.75rem;
+  background: var(--color-tarjeta-fondo);
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radius-lg);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -40,7 +40,7 @@
 .statusLabel {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--color-atenuado);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -51,11 +51,11 @@
 }
 
 .statusSimulate {
-  color: #2563eb;
+  color: var(--color-info);
 }
 
 .statusReal {
-  color: #d97706;
+  color: var(--color-acento-secundario);
 }
 
 .indicator {
@@ -66,41 +66,41 @@
 }
 
 .indicatorSimulate {
-  background: #2563eb;
+  background: var(--color-info);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .indicatorReal {
-  background: #d97706;
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+  background: var(--color-acento-secundario);
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.15);
 }
 
 .toggleBtn {
   padding: 0.625rem 1.25rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
   border: none;
 }
 
 .toggleToReal {
-  background: #d97706;
+  background: var(--color-acento-secundario);
   color: white;
 }
 
 .toggleToReal:hover {
-  background: #b45309;
+  background: var(--color-acento-secundario-hover);
 }
 
 .toggleToSimulate {
-  background: #2563eb;
+  background: var(--color-info);
   color: white;
 }
 
 .toggleToSimulate:hover {
-  background: #1d4ed8;
+  background: var(--color-info-hover);
 }
 
 .toggleBtn:disabled {
@@ -109,16 +109,16 @@
 }
 
 .infoBox {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  background: var(--color-hover-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-lg);
   padding: 1rem;
 }
 
 .infoTitle {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--color-atenuado);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   display: block;
@@ -140,32 +140,32 @@
 .infoMode {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #374151;
+  color: var(--color-titulo);
 }
 
 .infoDesc {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--color-atenuado);
   line-height: 1.4;
 }
 
 .testSection {
-  background: #fef3c7;
-  border: 1px solid #fcd34d;
-  border-radius: 0.75rem;
+  background: var(--color-advertencia-superficie);
+  border: 1px solid var(--color-advertencia-borde);
+  border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
 }
 
 .testTitle {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #92400e;
+  color: var(--color-advertencia-texto);
   margin: 0 0 0.25rem;
 }
 
 .testDesc {
   font-size: 0.75rem;
-  color: #92400e;
+  color: var(--color-advertencia-texto);
   margin: 0 0 0.75rem;
   line-height: 1.4;
 }
@@ -173,20 +173,20 @@
 .testBtn {
   width: 100%;
   padding: 0.625rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s;
-  border: 1.5px solid #d1d5db;
-  background: white;
-  color: #374151;
+  transition: all var(--transition-fast);
+  border: 1.5px solid var(--color-borde);
+  background: var(--color-tarjeta-fondo);
+  color: var(--color-cuerpo);
 }
 
 .testBtn:hover {
-  background: #f9fafb;
-  border-color: #b45309;
-  color: #b45309;
+  background: var(--color-hover-fondo);
+  border-color: var(--color-acento-secundario);
+  color: var(--color-acento-secundario);
 }
 
 .testBtn:disabled {
@@ -197,7 +197,7 @@
 .testResult {
   margin-top: 0.75rem;
   padding: 0.625rem 0.875rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-size: 0.8rem;
   font-weight: 600;
   display: flex;
@@ -206,24 +206,24 @@
 }
 
 .testSuccess {
-  background: #dcfce7;
-  border: 1px solid #86efac;
-  color: #166534;
+  background: var(--color-exito-superficie);
+  border: 1px solid var(--color-exito-borde);
+  color: var(--color-exito-texto);
 }
 
 .testError {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
+  background: var(--color-peligro-superficie);
+  border: 1px solid var(--color-peligro-borde);
+  color: var(--color-peligro-texto);
 }
 
 .simulatedBadge {
   font-size: 0.6rem;
   font-weight: 700;
-  color: #b45309;
-  background: #fef3c7;
+  color: var(--color-acento-secundario);
+  background: var(--color-advertencia-superficie);
   padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
