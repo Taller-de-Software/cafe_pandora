@@ -151,6 +151,7 @@
 
 .catalogScroll {
   flex: 1;
+  max-height: 60vh;
   overflow-y: auto;
   min-height: 0;
 }
@@ -569,6 +570,10 @@
   .headerTitle {
     font-size: 0.95rem;
   }
+
+  .summaryCardItems {
+    max-height: 60vh;
+  }
 }
 
 @media (max-width: 480px) {
@@ -578,15 +583,25 @@
   }
 
   .container {
+    flex-direction: column;
     gap: 8px;
   }
 
   .leftColumn {
-    flex: 45;
+    flex: none;
+    height: auto;
+    min-height: 0;
   }
 
   .rightColumn {
-    flex: 55;
+    flex: none;
+    height: auto;
+    min-height: 0;
+  }
+
+  .catalogScroll {
+    max-height: 45vh;
+    overflow-y: auto;
   }
 
   .headerRow {
@@ -620,6 +635,11 @@
     font-size: 0.7rem;
   }
 
+  .summaryCardItems {
+    padding: 0 0.5rem;
+    max-height: none;
+  }
+
   .comandaName {
     font-size: 0.7rem;
   }
@@ -650,10 +670,6 @@
 
   .summaryCardHeader {
     padding: 0.75rem 0.5rem 0;
-  }
-
-  .summaryCardItems {
-    padding: 0 0.5rem;
   }
 
   .summaryCardFooter {

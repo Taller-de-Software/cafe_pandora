@@ -93,3 +93,11 @@ export const getMe = async (id) => {
   if (!usuario) throw crearError(404, "Usuario no encontrado");
   return usuario;
 };
+
+export const getUsuariosDisponibles = async () => {
+  const usuarios = await prisma.usuario.findMany({
+    select: { id: true, nombre: true, rol: true },
+    orderBy: [{ rol: "desc" }, { nombre: "asc" }],
+  });
+  return usuarios;
+};

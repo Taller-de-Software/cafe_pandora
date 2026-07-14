@@ -6,7 +6,7 @@ import { itemsFijos, type ItemNavegacion } from '../data/navegacion'
 import styles from './slider-lateral.module.css'
 
 const BASE = getApiUrl().replace('/api', '')
-const LOGO_URL = `${BASE}/uploads/productos/logo%20cafepandora.png`
+const LOGO_URL = `${BASE}/uploads/productos/logo-cafepandora-sin-fondo.png`
 
 const SUBTITLES: Record<string, string> = {
   '/dashboard/inicio': 'Panel principal',
@@ -35,7 +35,7 @@ function SliderLateral({ isOpen }: SliderLateralProps) {
   return (
     <aside className={`${styles.sidebar} ${isOpen ? styles.expanded : styles.collapsed}`}>
       <div className={styles.logoSection}>
-        <img className={styles.logoCircle} src="/logo-cafepandora.png" alt="Café Pandora" />
+        <img className={styles.logoCircle} src="/logo-cafepandora-sin-fondo.png" alt="Café Pandora" />
         <h1 className={styles.systemName}>CAFÉ PANDORA</h1>
         <p className={styles.systemSub}>POS SISTEMA ADMINISTRATIVO</p>
       </div>

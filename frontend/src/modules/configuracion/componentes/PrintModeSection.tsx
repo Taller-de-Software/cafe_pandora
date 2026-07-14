@@ -15,6 +15,10 @@ function setPrintMode(mode: 'simulacion' | 'real'): Promise<ConfiguracionRespons
   return api.put<ConfiguracionResponse>('/configuracion/impresion', { modoImpresion: mode })
 }
 
+async function testPrinter(): Promise<{ success: boolean; message: string; simulated?: boolean; pdfUrl?: string }> {
+  return api.post('/impresion/probar')
+}
+
 function PrintModeSection() {
   const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
@@ -31,6 +35,18 @@ function PrintModeSection() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['print-mode'] })
       showSuccess('Modo de impresión actualizado')
+    },
+    onError: showError,
+  })
+
+  const testMutation = useMutation({
+    mutationFn: testPrinter,
+    onSuccess: (result) => {
+      if (result.success) {
+        showSuccess(result.message || (result.simulated ? 'Modo simulación activo - prueba exitosa' : 'Impresora conectada correctamente'))
+      } else {
+        showError(result.message || 'Error al probar la impresora')
+      }
     },
     onError: showError,
   })
@@ -67,7 +83,27 @@ function PrintModeSection() {
               : mode === 'simulacion'
                 ? 'Cambiar a Impresora Real'
                 : 'Cambiar a Simulación'}
+          </button>
+      </div>
+
+      <div className={styles.testSection}>
+        <h4 className={styles.testTitle}>Probar Impresora</h4>
+        <p className={styles.testDesc}>
+          Verifica la conexión con la impresora térmica. En modo simulación genera un PDF de prueba.
+        </p>
+        <button
+          className={styles.testBtn}
+          onClick={() => testMutation.mutate()}
+          disabled={testMutation.isPending}
+        >
+          {testMutation.isPending ? 'Probando...' : 'Probar Impresora'}
         </button>
+        {testMutation.isSuccess && testMutation.data && (
+          <p className={`${styles.testResult} ${testMutation.data.success ? styles.testSuccess : styles.testError}`}>
+            {testMutation.data.simulated && <span className={styles.simulatedBadge}>Simulado</span>}
+            {testMutation.data.message}
+          </p>
+        )}
       </div>
 
       <div className={styles.infoBox}>
