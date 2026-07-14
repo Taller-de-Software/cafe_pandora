@@ -1,15 +1,7 @@
 import type { Producto } from '@modules/menu/api/productos'
 import { formatearNumero } from '@/utils/formatear'
-import { getApiUrl } from '@/services/server-config'
+import { imagenUrlCompleta } from '@/utils/imagen'
 import styles from './ProductCard.module.css'
-
-const BASE = getApiUrl().replace('/api', '')
-
-function imagenUrlCompleta(imagenUrl?: string): string | null {
-  if (!imagenUrl) return null
-  if (imagenUrl.startsWith('http')) return imagenUrl
-  return `${BASE}/${imagenUrl.replace(/^\//, '')}`
-}
 
 interface ProductCardProps {
   producto: Producto

@@ -1,4 +1,5 @@
 import { api } from '@/services/api'
+import type { MetodoPago } from '@/types/metodo-pago'
 
 export type EstadoPedido = 'recibido' | 'pendiente' | 'hecho' | 'finalizado' | 'cancelado'
 
@@ -32,12 +33,6 @@ export interface Pedido {
   factura?: { id: number } | null
   abonos?: AbonoPedido[]
   creadoEn: string
-}
-
-export interface MetodoPago {
-  id: number
-  nombre: string
-  entidad?: string
 }
 
 export interface Mesa {

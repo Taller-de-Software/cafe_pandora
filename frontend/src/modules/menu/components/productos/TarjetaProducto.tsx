@@ -1,16 +1,8 @@
 import { useState } from 'react'
 import type { Producto } from '../../api/productos'
 import { formatearNumero } from '@/utils/formatear'
-import { getApiUrl } from '@/services/server-config'
+import { imagenUrlCompleta } from '@/utils/imagen'
 import styles from './TarjetaProducto.module.css'
-
-const BASE = getApiUrl().replace('/api', '')
-
-function imagenUrlCompleta(imagenUrl?: string): string | null {
-  if (!imagenUrl) return null
-  if (imagenUrl.startsWith('http')) return imagenUrl
-  return `${BASE}/${imagenUrl.replace(/^\//, '')}`
-}
 
 interface TarjetaProductoProps {
   producto: Producto

@@ -1,10 +1,5 @@
 import { api } from '@/services/api'
-
-export interface MetodoPago {
-  id: number
-  nombre: string
-  entidad?: string
-}
+import type { MetodoPago } from '@/types/metodo-pago'
 
 export async function listarMetodosPago(): Promise<MetodoPago[]> {
   return api.get<MetodoPago[]>('/metodos-pago')

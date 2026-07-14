@@ -1,0 +1,188 @@
+.editPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.editHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-madera);
+}
+
+.editHeaderTitle {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-acento);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.editVolverBtn {
+  background: none;
+  border: none;
+  color: var(--color-acento);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.separarInstruccion {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-texto-secundario);
+  line-height: 1.4;
+}
+
+.separarList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.separarItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--color-hover-fondo);
+  border: 1px solid var(--color-madera);
+  border-radius: var(--radius-md);
+}
+
+.separarItemName {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--color-titulo);
+}
+
+.separarBadge {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-texto-secundario);
+  background: var(--color-madera);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+}
+
+.separarBotones {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.separarBtn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-madera);
+  background: var(--color-tarjeta-fondo);
+  color: var(--color-texto-secundario);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.separarBtn:hover:not(:disabled) {
+  background: var(--color-hover-fondo);
+  border-color: var(--color-acento);
+  color: var(--color-acento);
+}
+
+.separarBtnActivo {
+  background: var(--color-acento);
+  border-color: var(--color-acento);
+  color: white;
+}
+
+.separarBtnDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.separarBtnAdd {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px dashed var(--color-oro);
+  background: var(--color-hover-fondo);
+  color: var(--color-acento);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.separarBtnAdd:hover {
+  background: var(--color-hover-fondo);
+  border-color: var(--color-acento);
+  color: var(--color-acento);
+}
+
+.footerLeft {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btnVolverFooter {
+  padding: 0.5rem 1rem;
+  background: var(--color-tarjeta-fondo);
+  color: var(--color-texto-secundario);
+  border: 1px solid var(--color-madera);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background var(--transition-fast);
+}
+
+.btnVolverFooter:hover {
+  background: var(--color-hover-fondo);
+}
+
+.btnConfirmar {
+  padding: 0.5rem 1rem;
+  background: var(--color-acento);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background var(--transition-fast);
+}
+
+.btnConfirmar:hover:not(:disabled) {
+  background: var(--color-acento-hover);
+}
+
+.btnConfirmar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emptyText {
+  text-align: center;
+  color: var(--color-texto-secundario);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  padding: 1.5rem;
+}
