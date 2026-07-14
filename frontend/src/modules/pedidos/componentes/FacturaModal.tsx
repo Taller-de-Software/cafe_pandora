@@ -106,9 +106,14 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
     setMetodoSeleccionId(match?.id ?? null)
   }, [metodosPago])
 
-  const subtotal = useMemo(() => {
+  const totalPedido = useMemo(() => {
     return pedido.total ?? pedido.detalles.reduce((acc, d) => acc + d.precioUnitario * d.cantidad, 0)
   }, [pedido])
+
+  const totalAbonado = pedido.totalAbonado ?? 0
+  const saldoPendiente = useMemo(() => Math.max(totalPedido - totalAbonado, 0), [totalPedido, totalAbonado])
+
+  const subtotal = saldoPendiente
 
   const impuesto = useMemo(
     () => (cobrarImpuesto ? subtotal * 0.08 : 0),
@@ -199,8 +204,16 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
             <span className={styles.mesero}>Mesero: {(pedido.usuario as any)?.nombre?.toUpperCase() ?? pedido.usuario?.rol?.toUpperCase() ?? '—'}</span>
           </div>
           <div className={styles.infoRight}>
-            <span className={styles.infoLabel}>TOTAL</span>
-            <span className={styles.totalGrande}>${subtotal.toLocaleString('es-CO')}</span>
+            <span className={styles.infoLabel}>TOTAL PEDIDO</span>
+            <span className={styles.totalGrande}>${totalPedido.toLocaleString('es-CO')}</span>
+            {totalAbonado > 0 && (
+              <>
+                <span className={styles.infoLabel}>YA ABONADO</span>
+                <span className={styles.totalAbonado}>-${totalAbonado.toLocaleString('es-CO')}</span>
+                <span className={styles.infoLabel}>SALDO PENDIENTE</span>
+                <span className={styles.saldoPendiente}>${saldoPendiente.toLocaleString('es-CO')}</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -289,18 +302,34 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
         </div>
 
         <div className={styles.resumen}>
+          {totalAbonado > 0 && (
+            <>
+              <div className={styles.resumenRow}>
+                <span className={styles.resumenLabel}>Total pedido</span>
+                <span className={styles.resumenValor}>${totalPedido.toLocaleString('es-CO')}</span>
+              </div>
+              <div className={styles.resumenRow}>
+                <span className={styles.resumenLabel}>Ya abonado</span>
+                <span className={styles.resumenValor}>-${totalAbonado.toLocaleString('es-CO')}</span>
+              </div>
+              <div className={`${styles.resumenRow} ${styles.resumenDivider}`}>
+                <span className={styles.resumenLabel}>Saldo pendiente</span>
+                <span className={styles.resumenValor}>${saldoPendiente.toLocaleString('es-CO')}</span>
+              </div>
+            </>
+          )}
           <div className={styles.resumenRow}>
-            <span className={styles.resumenLabel}>Subtotal</span>
+            <span className={styles.resumenLabel}>{totalAbonado > 0 ? 'Subtotal a cobrar' : 'Subtotal'}</span>
             <span className={styles.resumenValor}>${subtotal.toLocaleString('es-CO')}</span>
           </div>
           {cobrarImpuesto && (
             <div className={styles.resumenRow}>
-              <span className={styles.resumenLabel}>Impuesto (8%)</span>
+              <span className={styles.resumenLabel}>Impuesto consumo (8%)</span>
               <span className={styles.resumenValor}>${impuesto.toLocaleString('es-CO')}</span>
             </div>
           )}
           <div className={`${styles.resumenRow} ${styles.resumenTotal}`}>
-            <span className={styles.resumenLabel}>Total</span>
+            <span className={styles.resumenLabel}>Total a cobrar</span>
             <span className={styles.totalFinal}>${total.toLocaleString('es-CO')}</span>
           </div>
         </div>
