@@ -4,6 +4,15 @@ import { formatearNumero } from '@/utils/formatear'
 import { imagenUrlCompleta } from '@/utils/imagen'
 import styles from './TarjetaProducto.module.css'
 
+const BASE = getApiUrl().replace('/api', '')
+
+function imagenUrlCompleta(imagenUrl?: string): string | null {
+  if (!imagenUrl) return null
+  if (imagenUrl.startsWith('http')) return imagenUrl
+  const ruta = imagenUrl.startsWith('/') ? imagenUrl : `/uploads/productos/${imagenUrl}`
+  return `${BASE}${ruta.split('/').map(encodeURIComponent).join('/')}`
+}
+
 interface TarjetaProductoProps {
   producto: Producto
   onEditar: (producto: Producto) => void
