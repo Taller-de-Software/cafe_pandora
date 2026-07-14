@@ -75,8 +75,8 @@ export async function cancelarPedido(id: number): Promise<Pedido> {
   return api.post<Pedido>(`/pedidos/${id}/cancelar`)
 }
 
-export async function actualizarItemsPedido(id: number, items: { productoId: number; cantidad: number; notas?: string }[]): Promise<Pedido> {
-  return api.patch<Pedido>(`/pedidos/${id}/items`, { items })
+export async function actualizarItemsPedido(id: number, items: { productoId: number; cantidad: number; notas?: string }[], nuevoEstado?: string): Promise<Pedido> {
+  return api.patch<Pedido>(`/pedidos/${id}/items`, { items, nuevoEstado })
 }
 
 export async function separarCuentaPedido(id: number, cuentas: { productoId: number; cantidad: number; precioUnitario: number; notas?: string }[][]): Promise<{ original: Pedido; nuevosPedidos: Pedido[] }> {

@@ -81,7 +81,7 @@ export const cancelar = async (req, res, next) => {
 
 export const actualizarItems = async (req, res, next) => {
   try {
-    const pedido = await pedidosService.actualizarItems(req.params.id, req.body.items);
+    const pedido = await pedidosService.actualizarItems(req.params.id, req.body.items, req.body.nuevoEstado);
 
     const io = getIO(req);
     io.to("room:all").emit("pedido:actualizado", { pedidoId: pedido.id });

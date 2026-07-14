@@ -27,7 +27,7 @@ function MesaCard({ mesa, onClick }: MesaCardProps) {
         <span className={`${styles.badge} ${styles[cfg.className + 'Badge']}`}>{cfg.label}</span>
         <span className={styles.capacidad}>Cap. {mesa.capacidad}</span>
       </div>
-      {mesa.pedidoActivo && (
+      {mesa.estado === 'ocupada' && mesa.pedidoActivo && (
         <div className={styles.pedidoInfo}>
           <span>${(mesa.pedidoActivo.total ?? 0).toLocaleString()}</span>
           <span>{mesa.pedidoActivo.detalles?.length ?? 0} prod.</span>

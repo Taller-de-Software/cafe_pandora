@@ -3,6 +3,7 @@ import { z } from "zod";
 const itemSchema = z.object({
   productoId: z.number().int().positive(),
   cantidad: z.number().int().positive("La cantidad debe ser mayor a 0"),
+  precioUnitario: z.number().positive().optional(),
   notas: z.string().trim().optional(),
 });
 
@@ -19,6 +20,7 @@ export const cambiarEstadoSchema = z.object({
 
 export const actualizarItemsSchema = z.object({
   items: z.array(itemSchema).min(1, "Debe incluir al menos un item"),
+  nuevoEstado: z.enum(["pendiente"]).optional(),
 }).strict();
 
 export const separarCuentaSchema = z.object({
