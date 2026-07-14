@@ -9,7 +9,7 @@ import ReservationModal from './ReservationModal'
 import ReservarMesaModal from './ReservarMesaModal'
 import EditarReservasModal from './EditarReservasModal'
 import TomaPedidoView from './TomaPedidoView'
-import DetallePedidoModal from './DetallePedidoModal'
+import DetallePedidoModal from './detalle-pedido/DetallePedidoModal'
 import styles from './NuevoPedidoView.module.css'
 
 const STATUS_LABELS: Record<string, string> = {

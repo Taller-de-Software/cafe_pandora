@@ -70,3 +70,7 @@ export async function testConnection(url: string): Promise<{ ok: boolean; messag
     return { ok: false, message: 'No se pudo conectar al servidor. Verifica la IP y el puerto.' }
   }
 }
+
+export function getBaseUrl(): string {
+  return getApiUrl().replace('/api', '')
+}

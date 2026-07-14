@@ -114,4 +114,51 @@ export const api = {
     request<T>(path, { method: 'POST', body }),
   putFormData: <T>(path: string, body: FormData) =>
     request<T>(path, { method: 'PUT', body }),
+  getBlob: (path: string) => requestBlob(path),
+}
+
+async function requestBlob(path: string): Promise<Blob> {
+  const token = storage.getAccessToken()
+  const headers: Record<string, string> = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT)
+
+  try {
+    const res = await fetch(`${getApiUrl()}${path}`, {
+      headers,
+      signal: controller.signal,
+    })
+
+    if (res.status === 401 && storage.getRefreshToken()) {
+      const ok = await refreshTokens()
+      if (ok) return requestBlob(path)
+      disconnectSocket()
+      storage.clear()
+      window.location.href = '/'
+      throw new Error('401 Sesión expirada')
+    }
+
+    if (!res.ok) {
+      const text = await res.text()
+      let msg = 'Error al descargar'
+      try {
+        const json = JSON.parse(text)
+        msg = json.message || msg
+      } catch { /* empty */ }
+      throw new Error(`${res.status} ${msg}`)
+    }
+
+    return await res.blob()
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('La solicitud tardó demasiado en responder', { cause: err })
+    }
+    console.error('[API Error]', err)
+    throw err
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }

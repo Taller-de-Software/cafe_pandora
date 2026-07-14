@@ -4,16 +4,8 @@ import type { Categoria } from '../../api/categorias'
 import type { Subcategoria } from '../../api/subcategorias'
 import { useError } from '@/context/ErrorContext'
 import { useFormattedInput } from '@/hooks/useFormattedInput'
-import { getApiUrl } from '@/services/server-config'
+import { imagenUrlCompleta } from '@/utils/imagen'
 import styles from './FormularioProducto.module.css'
-
-const BASE = getApiUrl().replace('/api', '')
-
-function imagenUrlCompleta(imagenUrl?: string): string | null {
-  if (!imagenUrl) return null
-  if (imagenUrl.startsWith('http')) return imagenUrl
-  return `${BASE}/${imagenUrl.replace(/^\//, '')}`
-}
 
 interface FormularioProductoProps {
   producto?: Producto | null
