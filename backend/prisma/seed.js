@@ -1,6 +1,42 @@
 import { PrismaClient } from '@prisma/client'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const PRODUCTOS_DIR = path.resolve(__dirname, '../../uploads/productos')
 
 const prisma = new PrismaClient()
+
+function normalizar(str) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+function cargarImagenes() {
+  const map = new Map()
+  if (!fs.existsSync(PRODUCTOS_DIR)) return map
+
+  const files = fs.readdirSync(PRODUCTOS_DIR).filter((f) => {
+    const ext = path.extname(f).toLowerCase()
+    return ['.png', '.jpg', '.jpeg', '.webp', '.avif'].includes(ext)
+  })
+
+  for (const file of files) {
+    const baseName = path.parse(file).name
+    const key = normalizar(baseName)
+    if (!map.has(key)) {
+      map.set(key, file)
+    }
+  }
+  return map
+}
+
+const imagenesMap = cargarImagenes()
 
 // ============================================================
 // DATOS DEL CATÁLOGO — Café Pandora
@@ -299,13 +335,19 @@ async function main() {
           continue
         }
 
+        const imgFile = prod.imagen
+          ? prod.imagen
+          : imagenesMap.get(normalizar(prod.nombre))
+        const imagenUrl = imgFile ? `/uploads/productos/${imgFile}` : undefined
+
         await prisma.producto.create({
           data: {
             nombre: prod.nombre,
             descripcion: prod.descripcion,
             precio: prod.precio,
-            requierePreparacion: true,
+            requierePreparacion: prod.requierePreparacion ?? true,
             habilitado: true,
+            imagenUrl,
             categoriaId: categoria.id,
             subcategoriaId: subcat.id,
           },
