@@ -123,6 +123,132 @@ const categorias = [
       },
     ],
   },
+
+ {
+  nombre: 'Platillos',
+  subcategorias: [
+    {
+      nombre: 'Arepas',
+      productos: [
+        { nombre: 'Arepas Con Carne', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Arepas Con Pollo', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Arepas Con Chicharron', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Arepas Con Costilla', precio: 15000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Arepas Mixta', precio: 16000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Tostones',
+      productos: [
+        { nombre: 'Tostones de Carne', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Tostones de Pollo', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Tostones de Paisa', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Tostones de Ranchero', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Tostones Mixto', precio: 16000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Waffles de Pandeyuca',
+      productos: [
+        { nombre: 'Waffles de Pandeyuca Mini', precio: 10000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Waffles de Pandeyuca Relleno Pollo', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Waffles de Pandeyuca Relleno Carne', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Waffles de Pandeyuca Relleno Hawaiano', precio: 16000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Waffles de Pandeyuca Queso y Bocadillo', precio: 14000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Empanadas',
+      productos: [
+        { nombre: 'Empanada Maiz', precio: 2200, descripcion: '', requierePreparacion: true },
+        { nombre: 'Empanada Hojaldre de Carne', precio: 5000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Empanada Hojaldre de Pollo', precio: 5000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Empanada Hojaldre de Chicharron', precio: 5000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Empanada Hojaldre Ranchera', precio: 5000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Mini Pizza',
+      productos: [
+        { nombre: 'Mini Pizza Carne', precio: 15000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Mini Pizza Pollo', precio: 15000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Mini Pizza Paisa', precio: 15000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Mini Pizza Hawaiana', precio: 15000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Mini Pizza Mixta', precio: 15000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Sandwich',
+      productos: [
+        { nombre: 'Sandwich Carne', precio: 15000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Sandwich Chicharron', precio: 15000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Sandwich Hawaiano', precio: 15000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Sandwich Jamon y Queso', precio: 14000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Sandwich Pollo', precio: 15000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Desgranado',
+      productos: [
+        { nombre: 'Pollo Crispy', precio: 17000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Costilla Ahumada', precio: 17000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Para Compartir',
+      productos: [
+        { nombre: 'Plato de Chicharron', precio: 17000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Plato de Morcilla', precio: 17000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Ceviche de Chicharron', precio: 15000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Picadas',
+      productos: [
+        { nombre: 'Picada Personal', precio: 32000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Picada 2-3 Personas', precio: 60000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Antojitos',
+      productos: [
+        { nombre: 'Papas Explosion', precio: 18000, descripcion: 'Papa Criolla, Chorizo, Chicharron, lechuga y Quesos', requierePreparacion: true },
+        { nombre: 'Mini Hamburguesas', precio: 22000, descripcion: 'Plato de 3 mini hamburguesas acompañadas de Papas', requierePreparacion: true },
+        { nombre: 'Arepa Burger', precio: 16000, descripcion: 'Arepa, carne burger, piña dulce, platano maduro, ripio de papa, salsa de la casa y queso gratinado', requierePreparacion: true },
+        { nombre: 'Burro', precio: 17000, descripcion: 'Carne, pollo o mixto. Lechuga, maicitos, tocineta, queso, guacamole y pico de gallo', requierePreparacion: true },
+        { nombre: 'Papas Crispy', precio: 19000, descripcion: 'Papas en cubo, pollo crispy, guacamole, pico de Gallo, salsa, queso gratinado', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Desayunos',
+      productos: [
+        { nombre: 'Desayuno Montañero', precio: 18000, descripcion: 'Chorizo, Morcilla, Arepa, Aguacate, Huevo, Queso', requierePreparacion: true },
+        { nombre: 'Desayuno Tradicional', precio: 17000, descripcion: 'Porcion de Fruta, Huevos al gusto, arepa, tocineta y queso cuajada', requierePreparacion: true },
+        { nombre: 'Desayuno Waffles con Fruta', precio: 17000, descripcion: 'Waffles de Pandeyuca, acompañados de fruta de temporada y mermelada de mora', requierePreparacion: true },
+        { nombre: 'Desayuno Huevo Pochado', precio: 18000, descripcion: 'Pan tostado o arepa, guacamole, tocineta y tomate cherry', requierePreparacion: true },
+        { nombre: 'Desayuno Omelette', precio: 18000, descripcion: 'Jamon y queso, pan tostado con mantequilla y mermelada, fruta de temporada', requierePreparacion: true },
+        { nombre: 'Desayuno Migas de Arepa', precio: 18000, descripcion: 'Queso cuajada, tocineta y fruta de temporada', requierePreparacion: true },
+        { nombre: 'Huevos Napolitanos', precio: 17000, descripcion: 'Cama de salsa napolitana, pan tostado o arepa, queso y fruta de temporada', requierePreparacion: true },
+      ],
+    },
+    {
+      nombre: 'Panaderia',
+      productos: [
+        { nombre: 'Pan Queso', precio: 10000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Dedos de Queso x2', precio: 7000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Galletas New York', precio: 6000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Pandeyuca', precio: 3500, descripcion: '', requierePreparacion: true },
+        { nombre: 'Torta Zanahoria', precio: 10000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Torta Envinada', precio: 11000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Torta Chocolate', precio: 11000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Torta Mani', precio: 11000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Croissant Arequipe', precio: 6000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Croissant Bocadillo', precio: 6000, descripcion: '', requierePreparacion: true },
+        { nombre: 'Croissant Queso', precio: 6000, descripcion: '', requierePreparacion: true },
+      ],
+    },
+  ],
+},
 ]
 
 // ============================================================

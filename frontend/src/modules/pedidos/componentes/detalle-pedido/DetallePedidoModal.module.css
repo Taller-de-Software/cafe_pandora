@@ -38,17 +38,17 @@
 }
 
 .mesaCircle {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: #b45309;
+  color: white;
+  font-weight: 800;
+  font-size: 0.9375rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-sans);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: white;
+  flex-shrink: 0;
 }
 
 .headerTitle {
@@ -214,10 +214,15 @@
 }
 
 .accionIcon {
-  color: var(--color-acento);
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.625rem;
+  background: var(--color-acento);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .accionTitle {
@@ -259,6 +264,51 @@
 
 .btnCerrar:hover {
   background: var(--color-hover-fondo);
+}
+
+.footerLeft {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btnVolverFooter {
+  padding: 0.5rem 1rem;
+  background: var(--color-tarjeta-fondo);
+  color: var(--color-texto-secundario);
+  border: 1px solid var(--color-madera);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background var(--transition-fast);
+}
+
+.btnVolverFooter:hover {
+  background: var(--color-hover-fondo);
+}
+
+.btnConfirmar {
+  padding: 0.5rem 1rem;
+  background: var(--color-acento);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background var(--transition-fast);
+}
+
+.btnConfirmar:hover:not(:disabled) {
+  background: var(--color-acento-hover);
+}
+
+.btnConfirmar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 480px) {

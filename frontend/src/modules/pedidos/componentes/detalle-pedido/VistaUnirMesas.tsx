@@ -49,13 +49,6 @@ export default function VistaUnirMesas({
           )}
         </div>
       </div>
-
-      <div className={styles.footerLeft}>
-        <button className={styles.btnVolverFooter} onClick={onVolver}>VOLVER</button>
-      </div>
-      <button className={styles.btnConfirmar} disabled={!mesaSeleccionada || isPending} onClick={onConfirmar}>
-        {isPending ? 'Fusionando...' : 'FUSIONAR MESAS'}
-      </button>
     </>
   )
 }
