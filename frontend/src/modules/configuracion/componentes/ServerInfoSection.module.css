@@ -1,0 +1,208 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hint {
+  font-size: 0.875rem;
+  color: var(--color-atenuado);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.loading, .error {
+  font-size: 0.875rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+}
+
+.loading {
+  color: var(--color-atenuado);
+}
+
+.error {
+  color: var(--color-peligro-texto);
+  background: var(--color-peligro-superficie);
+  border: 1px solid var(--color-peligro-borde);
+}
+
+.infoCard {
+  background: var(--color-tarjeta-fondo);
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-borde-claro);
+}
+
+.infoRow:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-atenuado);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.infoValue {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-titulo);
+}
+
+.infoValueMono {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-acento-secundario);
+  font-family: var(--font-mono);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btnPrimary, .btnSecondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btnPrimary {
+  background: var(--color-acento-secundario);
+  color: white;
+  border: none;
+}
+
+.btnPrimary:hover {
+  background: var(--color-acento-secundario-hover);
+}
+
+.btnSecondary {
+  background: var(--color-tarjeta-fondo);
+  color: var(--color-cuerpo);
+  border: 1.5px solid var(--color-borde);
+}
+
+.btnSecondary:hover {
+  background: var(--color-hover-fondo);
+  border-color: var(--color-acento-secundario);
+  color: var(--color-acento-secundario);
+}
+
+.qrSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: var(--color-tarjeta-fondo);
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radius-lg);
+}
+
+.qrLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-atenuado);
+  margin: 0;
+}
+
+.qrImage {
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-md);
+}
+
+.qrUrl {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--color-acento-secundario);
+  margin: 0;
+  word-break: break-all;
+  text-align: center;
+}
+
+.interfacesSection {
+  background: var(--color-hover-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.interfacesTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-atenuado);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.interfaceItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-borde-claro);
+}
+
+.interfaceItem:last-child {
+  border-bottom: none;
+}
+
+.interfaceName {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-titulo);
+  min-width: 60px;
+}
+
+.interfaceAddr {
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  color: var(--color-cuerpo);
+}
+
+.preferredBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-exito-texto);
+  background: var(--color-exito-superficie);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .infoRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}

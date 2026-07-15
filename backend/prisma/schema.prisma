@@ -117,6 +117,11 @@ model Producto {
   imagenUrl           String?
   requierePreparacion Boolean       @default(false)
   habilitado          Boolean       @default(true)
+  sku                 String?
+  codigoBarras        String?
+  atajo               String?
+  favorito            Boolean       @default(false)
+  orden               Int           @default(0)
   categoriaId         Int
   categoria           Categoria     @relation(fields: [categoriaId], references: [id])
   subcategoriaId      Int?
@@ -124,6 +129,9 @@ model Producto {
 
   detallesPedido DetallePedido[]
 
+  @@unique([sku])
+  @@unique([codigoBarras])
+  @@unique([atajo])
   @@map("productos")
 }
 
@@ -299,8 +307,19 @@ model Reserva {
 // ============================================================
 
 model Configuracion {
-  id            Int            @id @default(autoincrement())
-  modoImpresion ModoImpresion  @default(simulacion)
+  id              Int            @id @default(autoincrement())
+  modoImpresion   ModoImpresion  @default(simulacion)
+  serverHost      String         @default("0.0.0.0")
+  serverPort      Int            @default(3001)
+  corsOrigins     String?        @default("http://localhost:5173,http://localhost:3000")
+  sessionTtlMin   Int            @default(600)
+  pinMaxAttempts  Int            @default(5)
+  pinLockoutMin   Int            @default(15)
+  offlineModeEnabled Boolean    @default(true)
+  qrCodeEnabled   Boolean        @default(true)
+  printerVendorId Int?
+  printerProductId Int?
+  printerEncoding String         @default("CP858")
 
   @@map("configuracion")
 }

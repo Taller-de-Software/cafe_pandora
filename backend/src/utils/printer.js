@@ -31,18 +31,35 @@ function connectPrinter() {
     try {
       const printerInfo = findSATPrinter();
       if (!printerInfo) {
-        return reject(new Error("Impresora no encontrada. Conecta la impresora SAT por USB."));
+        const err = new Error("Impresora SAT no encontrada. Conecta la impresora por USB.");
+        err.code = "PRINTER_NOT_FOUND";
+        return reject(err);
       }
 
       device = new escpos.USB(printerInfo.vendorId, printerInfo.productId);
       device.open((err) => {
         if (err) {
-          return reject(new Error("Error al abrir la impresora: " + err.message));
+          const code = err.code || "PRINTER_OPEN_ERROR";
+          let message = "Error al abrir la impresora";
+          if (code === "EACCES") {
+            message = "Sin permisos de acceso al dispositivo USB. Ejecuta con permisos de administrador o agrega regla de udev.";
+          } else if (code === "ENODEV" || code === "ENOENT") {
+            message = "Dispositivo USB no disponible. Reconecta la impresora.";
+          } else if (code === "ETIMEOUT") {
+            message = "Timeout: la impresora no responde. Verifica la conexión USB.";
+          } else {
+            message = `Error al abrir la impresora: ${err.message || code}`;
+          }
+          const openErr = new Error(message);
+          openErr.code = code;
+          return reject(openErr);
         }
         resolve();
       });
     } catch (err) {
-      reject(new Error("Error al conectar impresora: " + err.message));
+      const wrapErr = new Error("Error al conectar impresora: " + err.message);
+      wrapErr.code = err.code || "PRINTER_CONNECT_ERROR";
+      reject(wrapErr);
     }
   });
 }

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@modules/auth/context/useAuth'
+import { useConnectionStatus } from '@/hooks/useConnectionStatus'
 import Icono from './iconos'
 import styles from './barra-superior.module.css'
 
@@ -8,9 +9,16 @@ interface BarraSuperiorProps {
   onToggle: () => void
 }
 
+const STATUS_CONFIG = {
+  connected: { color: 'var(--color-exito)', label: 'Conectado', dot: '🟢' },
+  reconnecting: { color: 'var(--color-advertencia)', label: 'Reconectando...', dot: '🟡' },
+  disconnected: { color: 'var(--color-peligro)', label: 'Desconectado', dot: '🔴' },
+} as const
+
 function BarraSuperior({ onToggle }: BarraSuperiorProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const { status, attempt } = useConnectionStatus()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -52,6 +60,12 @@ function BarraSuperior({ onToggle }: BarraSuperiorProps) {
         </div>
       </div>
       <div className={styles.right}>
+        <div className={styles.connectionStatus} style={{ color: STATUS_CONFIG[status].color }}>
+          <span className={styles.statusDot}>{STATUS_CONFIG[status].dot}</span>
+          <span className={styles.statusLabel}>
+            {status === 'reconnectating' ? `Intento ${attempt}` : STATUS_CONFIG[status].label}
+          </span>
+        </div>
         <div className={styles.profileWrapper} ref={menuRef}>
           <button className={styles.profileBtn} onClick={() => setMenuOpen(!menuOpen)}>
             <div className={styles.avatar}>{initials}</div>
