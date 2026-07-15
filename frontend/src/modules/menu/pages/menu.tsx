@@ -18,6 +18,14 @@ interface GrupoProductos {
 }
 import styles from './menu.module.css'
 
+function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
+
 function Menu() {
   const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
@@ -27,6 +35,7 @@ function Menu() {
   const [showGestion, setShowGestion] = useState(false)
   const [showProdForm, setShowProdForm] = useState(false)
   const [productoEditando, setProductoEditando] = useState<Producto | null>(null)
+  const [busqueda, setBusqueda] = useState('')
 
   const { data: categorias = [], isLoading: catCargando, isError: catError } = useQuery({
     queryKey: ['categorias'],
@@ -44,9 +53,21 @@ function Menu() {
   })
 
   const mostrarInhabilitados = categoriaActivaId === null && subcategoriaActivaId === null
-  const productosFiltrados = subcategoriaActivaId
+  const productosBase = subcategoriaActivaId
     ? productos.filter((p) => p.subcategoriaId === subcategoriaActivaId && (mostrarInhabilitados || p.habilitado !== false))
     : productos.filter((p) => mostrarInhabilitados || p.habilitado !== false)
+
+  const productosFiltrados = busqueda.trim()
+    ? productosBase.filter((p) => {
+        const term = normalizar(busqueda)
+        return (
+          normalizar(p.nombre).includes(term) ||
+          normalizar(p.descripcion || '').includes(term) ||
+          normalizar(p.categoria?.nombre || '').includes(term) ||
+          normalizar(p.subcategoria?.nombre || '').includes(term)
+        )
+      })
+    : productosBase
 
   const selectedCategoria = categorias.find((c) => c.id === categoriaActivaId)
   const categoriaNombre = selectedCategoria?.nombre ?? (categoriaActivaId === null ? 'Todos los productos' : null)
@@ -231,11 +252,13 @@ function Menu() {
       <div className={styles.seccionProductos}>
         {prodCargando && <p>Cargando productos...</p>}
         {prodError && <p>Error al cargar productos</p>}
-        {!prodCargando && !prodError && (
+          {!prodCargando && !prodError && (
           <ListaProductos
             productos={productosFiltrados}
             grupos={grupos}
             categoriaNombre={categoriaNombre}
+            busqueda={busqueda}
+            onBusquedaChange={setBusqueda}
             onGestionar={() => setShowGestion(true)}
             onEditar={abrirFormProducto}
             onEliminar={handleEliminarProducto}

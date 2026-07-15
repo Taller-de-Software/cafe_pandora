@@ -108,6 +108,51 @@
   cursor: not-allowed;
 }
 
+.printerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.75rem;
+  background: var(--color-hover-fondo);
+  border-radius: var(--radius-md);
+}
+
+.printerInfoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.printerInfoLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-atenuado);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.printerInfoValue {
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--color-cuerpo);
+}
+
+.testActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.testActions .testBtn {
+  flex: 1;
+}
+
+.errorCode {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
 .infoBox {
   background: var(--color-hover-fondo);
   border: 1px solid var(--color-borde);

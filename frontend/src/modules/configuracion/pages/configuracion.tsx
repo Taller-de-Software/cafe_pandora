@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import Usuarios from '@modules/usuarios/pages/usuarios'
 import MetodosPagoLista from '../componentes/MetodosPagoLista'
-import ServerConfigModal from '../componentes/ServerConfigModal'
+import ServerInfoSection from '../componentes/ServerInfoSection'
+import NetworkDiagnosticsSection from '../componentes/NetworkDiagnosticsSection'
 import PrintModeSection from '../componentes/PrintModeSection'
 import styles from './configuracion.module.css'
 
-type Tab = 'usuarios' | 'metodos-pago' | 'servidor' | 'impresion'
+type Tab = 'usuarios' | 'metodos-pago' | 'servidor' | 'red' | 'impresion'
 
 function Configuracion() {
   const [tab, setTab] = useState<Tab>('usuarios')
-  const [showServerModal, setShowServerModal] = useState(false)
 
   return (
     <div className={styles.page}>
@@ -35,6 +35,12 @@ function Configuracion() {
           Servidor
         </button>
         <button
+          className={`${styles.tab} ${tab === 'red' ? styles.tabActive : ''}`}
+          onClick={() => setTab('red')}
+        >
+          Red
+        </button>
+        <button
           className={`${styles.tab} ${tab === 'impresion' ? styles.tabActive : ''}`}
           onClick={() => setTab('impresion')}
         >
@@ -45,28 +51,10 @@ function Configuracion() {
       <div className={styles.content}>
         {tab === 'usuarios' && <Usuarios />}
         {tab === 'metodos-pago' && <MetodosPagoLista />}
-        {tab === 'servidor' && (
-          <div className={styles.serverSection}>
-            <p className={styles.serverHint}>
-              Configura la dirección del backend. En PC usa <strong>localhost</strong>. En tablet o móvil usa la IP del computador donde corre el servidor.
-            </p>
-            <button className={styles.serverBtn} onClick={() => setShowServerModal(true)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-                <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-                <line x1="6" y1="6" x2="6.01" y2="6" />
-                <line x1="6" y1="18" x2="6.01" y2="18" />
-              </svg>
-              Configurar Conexión del Servidor
-            </button>
-          </div>
-        )}
+        {tab === 'servidor' && <ServerInfoSection />}
+        {tab === 'red' && <NetworkDiagnosticsSection />}
         {tab === 'impresion' && <PrintModeSection />}
       </div>
-
-      {showServerModal && (
-        <ServerConfigModal onClose={() => setShowServerModal(false)} />
-      )}
     </div>
   )
 }

@@ -9,8 +9,9 @@ function createSocket(): Socket {
   return io(url, {
     autoConnect: false,
     reconnection: true,
-    reconnectionAttempts: 10,
-    reconnectionDelay: 2000,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
     auth: (cb: (auth: { token: string | null }) => void) => {
       cb({ token: storage.getAccessToken() })
     },

@@ -66,3 +66,21 @@ export const obtenerConfiguracionRed = async (req, res, next) => {
     next(err);
   }
 };
+
+export const obtenerNetworkInfo = async (req, res, next) => {
+  try {
+    const result = await redService.obtenerNetworkInfo();
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const obtenerDiagnosticoDetallado = async (req, res, next) => {
+  try {
+    const result = await redService.obtenerDiagnosticoDetallado();
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};

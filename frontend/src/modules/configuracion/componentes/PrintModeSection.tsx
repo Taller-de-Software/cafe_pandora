@@ -5,6 +5,18 @@ import styles from './PrintModeSection.module.css'
 
 interface ConfiguracionResponse {
   modoImpresion: 'simulacion' | 'real'
+  printerEncoding?: string
+  printerVendorId?: number
+  printerProductId?: number
+}
+
+interface TestResult {
+  success: boolean
+  message: string
+  simulated?: boolean
+  pdfUrl?: string
+  error?: string
+  code?: string
 }
 
 function getPrintMode(): Promise<ConfiguracionResponse> {
@@ -15,8 +27,12 @@ function setPrintMode(mode: 'simulacion' | 'real'): Promise<ConfiguracionRespons
   return api.put<ConfiguracionResponse>('/configuracion/impresion', { modoImpresion: mode })
 }
 
-async function testPrinter(): Promise<{ success: boolean; message: string; simulated?: boolean; pdfUrl?: string }> {
+async function testPrinter(): Promise<TestResult> {
   return api.post('/impresion/probar')
+}
+
+async function printTestReceipt(): Promise<TestResult> {
+  return api.post('/diagnostico/impresora/imprimir-prueba')
 }
 
 function PrintModeSection() {
@@ -45,7 +61,19 @@ function PrintModeSection() {
       if (result.success) {
         showSuccess(result.message || (result.simulated ? 'Modo simulación activo - prueba exitosa' : 'Impresora conectada correctamente'))
       } else {
-        showError(result.message || 'Error al probar la impresora')
+        showError(result.error || result.message || 'Error al probar la impresora')
+      }
+    },
+    onError: showError,
+  })
+
+  const printTestMutation = useMutation({
+    mutationFn: printTestReceipt,
+    onSuccess: (result) => {
+      if (result.success) {
+        showSuccess(result.message || 'Prueba de impresión enviada')
+      } else {
+        showError(result.error || result.message || 'Error al imprimir prueba')
       }
     },
     onError: showError,
@@ -73,6 +101,29 @@ function PrintModeSection() {
           <div className={`${styles.indicator} ${mode === 'simulacion' ? styles.indicatorSimulate : styles.indicatorReal}`} />
         </div>
 
+        {mode === 'real' && data && (
+          <div className={styles.printerInfo}>
+            {data.printerVendorId && (
+              <div className={styles.printerInfoRow}>
+                <span className={styles.printerInfoLabel}>Vendor ID</span>
+                <span className={styles.printerInfoValue}>0x{data.printerVendorId.toString(16).toUpperCase().padStart(4, '0')}</span>
+              </div>
+            )}
+            {data.printerProductId && (
+              <div className={styles.printerInfoRow}>
+                <span className={styles.printerInfoLabel}>Product ID</span>
+                <span className={styles.printerInfoValue}>0x{data.printerProductId.toString(16).toUpperCase().padStart(4, '0')}</span>
+              </div>
+            )}
+            {data.printerEncoding && (
+              <div className={styles.printerInfoRow}>
+                <span className={styles.printerInfoLabel}>Encoding</span>
+                <span className={styles.printerInfoValue}>{data.printerEncoding}</span>
+              </div>
+            )}
+          </div>
+        )}
+
           <button
             className={`${styles.toggleBtn} ${mode === 'simulacion' ? styles.toggleToReal : styles.toggleToSimulate}`}
             onClick={handleToggle}
@@ -91,17 +142,35 @@ function PrintModeSection() {
         <p className={styles.testDesc}>
           Verifica la conexión con la impresora térmica. En modo simulación genera un PDF de prueba.
         </p>
-        <button
-          className={styles.testBtn}
-          onClick={() => testMutation.mutate()}
-          disabled={testMutation.isPending}
-        >
-          {testMutation.isPending ? 'Probando...' : 'Probar Impresora'}
-        </button>
+        <div className={styles.testActions}>
+          <button
+            className={styles.testBtn}
+            onClick={() => testMutation.mutate()}
+            disabled={testMutation.isPending}
+          >
+            {testMutation.isPending ? 'Probando...' : 'Probar Conexión'}
+          </button>
+          <button
+            className={styles.testBtn}
+            onClick={() => printTestMutation.mutate()}
+            disabled={printTestMutation.isPending}
+          >
+            {printTestMutation.isPending ? 'Imprimiendo...' : 'Imprimir Prueba'}
+          </button>
+        </div>
         {testMutation.isSuccess && testMutation.data && (
           <p className={`${styles.testResult} ${testMutation.data.success ? styles.testSuccess : styles.testError}`}>
             {testMutation.data.simulated && <span className={styles.simulatedBadge}>Simulado</span>}
-            {testMutation.data.message}
+            {testMutation.data.success ? testMutation.data.message : (testMutation.data.error || testMutation.data.message)}
+            {testMutation.data.code && !testMutation.data.success && (
+              <span className={styles.errorCode}> ({testMutation.data.code})</span>
+            )}
+          </p>
+        )}
+        {printTestMutation.isSuccess && printTestMutation.data && (
+          <p className={`${styles.testResult} ${printTestMutation.data.success ? styles.testSuccess : styles.testError}`}>
+            {printTestMutation.data.simulated && <span className={styles.simulatedBadge}>Simulado</span>}
+            {printTestMutation.data.success ? printTestMutation.data.message : (printTestMutation.data.error || printTestMutation.data.message)}
           </p>
         )}
       </div>

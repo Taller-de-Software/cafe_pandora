@@ -3,7 +3,9 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import path from "path";
+import os from "os";
 import { fileURLToPath } from "url";
+import { getNetworkInterfaces, getServerPort } from "./config/network.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,12 +28,42 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
-const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
-  : ["http://localhost:5173", "http://localhost:3000"];
+const staticOrigins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:3001"];
+
+async function buildCorsOrigins() {
+  const envOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
+    : [];
+  try {
+    const interfaces = await getNetworkInterfaces();
+    const port = getServerPort();
+    const networkUrls = interfaces
+      .filter((i) => !i.internal)
+      .map((i) => `http://${i.address}:${port}`);
+    return [...new Set([...staticOrigins, ...envOrigins, ...networkUrls])];
+  } catch {
+    return [...new Set([...staticOrigins, ...envOrigins])];
+  }
+}
+
+let corsOrigins = staticOrigins;
+
+buildCorsOrigins().then((origins) => {
+  corsOrigins = origins;
+  console.log("[CORS] Orígenes permitidos:", corsOrigins);
+});
 
 app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
-app.use(cors({ origin: corsOrigins, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || corsOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: "1mb" }));
 
 const authLimiter = rateLimit({
@@ -44,8 +76,42 @@ const authLimiter = rateLimit({
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
-app.get("/api/health", (req, res) => {
-  res.json({ success: true, message: "API Pandora Cafe Bar funcionando" });
+app.get("/api/health", async (req, res) => {
+  try {
+    const interfaces = await getNetworkInterfaces();
+    const preferred = interfaces.find((i) => i.preferred);
+    const hostname = os.hostname();
+    const port = getServerPort();
+
+    let dbOk = false;
+    try {
+      const prisma = (await import("./config/db.config.js")).default;
+      await prisma.$queryRaw`SELECT 1`;
+      dbOk = true;
+    } catch {}
+
+    let socketClients = 0;
+    if (global.io) {
+      for (const [, ] of global.io.sockets.sockets) {
+        socketClients++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "API Cafe Pandora funcionando",
+      data: {
+        hostname,
+        ip: preferred?.address || "0.0.0.0",
+        port,
+        uptime: process.uptime(),
+        database: dbOk ? "connected" : "disconnected",
+        socket: { clients: socketClients },
+      },
+    });
+  } catch {
+    res.json({ success: true, message: "API Cafe Pandora funcionando" });
+  }
 });
 
 app.use("/api/auth", authRoutes);
