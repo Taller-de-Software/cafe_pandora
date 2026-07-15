@@ -30,7 +30,7 @@ const corsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
   : ["http://localhost:5173", "http://localhost:3000"];
 
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(cors({ origin: corsOrigins, credentials: true }));
 app.use(express.json({ limit: "1mb" }));
 
@@ -63,7 +63,11 @@ app.use("/api/reservas", reservasRoutes);
 app.use("/api/diagnostico", diagnosticoRoutes);
 app.use("/api/red", redRoutes);
 
-app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "../../uploads"), {
+  setHeaders(res) {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  },
+}));
 
 app.use((req, res) => {
   res.status(404).json({
