@@ -42,7 +42,7 @@ const ICONOS: Record<string, React.ReactNode> = {
 const TRANSFERENCIA_ENTIDADES = ['NEQUI', 'DAVIPLATA', 'NU'] as const
 
 function FacturaModal({ pedido, onClose }: FacturaModalProps) {
-  const { showError, showSuccess } = useError()
+  const { showError, showWarning, showSuccess } = useError()
   const [metodoSeleccionId, setMetodoSeleccionId] = useState<number | null>(null)
   const recibido = useFormattedInput({ type: 'money' })
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
