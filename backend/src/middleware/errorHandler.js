@@ -51,6 +51,9 @@ export const errorHandler = (err, req, res, next) => {
       success: false,
       message: err.message || "Error",
       data: null,
+      ...(err.codigo ? { codigo: err.codigo } : {}),
+      ...(err.sugerencia ? { sugerencia: err.sugerencia } : {}),
+      ...(err.detalleTecnico ? { detalleTecnico: err.detalleTecnico } : {}),
     });
   }
 

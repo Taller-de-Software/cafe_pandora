@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import prisma from "../../config/db.config.js";
-import { connectPrinter, printPago, disconnectPrinter } from "../../utils/printer.js";
+import { connectPrinter, printPago, closePrinterSafely } from "../../utils/printer.js";
 import { ESTADOS_PEDIDO, ESTADOS_MESA } from "../../config/constants.js";
 import { leerModoImpresion } from "../../config/print-config.js";
 
@@ -66,11 +66,15 @@ export const obtenerComprobante = async (id) => {
       propina: factura.propina,
       total: factura.total,
     };
-    await connectPrinter();
-    try {
-      await printPago(data);
-    } finally {
-      disconnectPrinter();
+    const impreso = await printPago(data);
+    if (!impreso) {
+      const { getLastPrinterError } = await import("../../utils/printer.js");
+      const ultimoError = getLastPrinterError();
+      const error = new Error(ultimoError?.mensaje || "No se pudo reimprimir el comprobante");
+      error.statusCode = 503;
+      if (ultimoError?.codigo) error.codigo = ultimoError.codigo;
+      if (ultimoError?.sugerencia) error.sugerencia = ultimoError.sugerencia;
+      throw error;
     }
     return { message: "Recibo reenviado a la impresora" };
   }

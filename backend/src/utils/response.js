@@ -10,11 +10,16 @@ export const created = (res, data, message = 'Creado exitosamente') => {
   return ok(res, data, message, 201);
 };
 
-export const error = (res, message = 'Error interno', status = 500) => {
+export const error = (res, message = 'Error interno', status = 500, extra = null) => {
   return res.status(status).json({
     success: false,
     message,
     data: null,
+    ...(extra ? {
+      codigo: extra.codigo,
+      sugerencia: extra.sugerencia,
+      detalleTecnico: extra.detalleTecnico,
+    } : {}),
   });
 };
 

@@ -130,14 +130,16 @@ export const obtenerDiagnosticoDetallado = async () => {
     printerCheck.mode = mode;
 
     if (mode === "real") {
+      let device;
       try {
-        const { connectPrinter, disconnectPrinter } = await import("../../utils/printer.js");
-        await connectPrinter();
+        const { connectPrinter, closePrinterSafely } = await import("../../utils/printer.js");
+        device = await connectPrinter();
         printerCheck.connected = true;
-        disconnectPrinter();
       } catch (err) {
         printerCheck.connected = false;
         printerCheck.error = err.message;
+      } finally {
+        if (device) await closePrinterSafely(device);
       }
     } else {
       printerCheck.connected = true;
