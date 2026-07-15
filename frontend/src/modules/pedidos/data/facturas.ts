@@ -5,6 +5,7 @@ export interface CrearFacturaData {
   pedidoId: number
   subtotal: number
   impuestoConsumo: number
+  propina: number
   total: number
   metodoPagoId: number
   cajaSesionId: number
@@ -15,6 +16,7 @@ export interface Factura {
   pedidoId: number
   subtotal: number
   impuestoConsumo: number
+  propina: number
   total: number
   metodoPagoId: number
   cajaSesionId: number

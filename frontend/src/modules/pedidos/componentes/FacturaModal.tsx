@@ -47,6 +47,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
   const recibido = useFormattedInput({ type: 'money' })
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
   const [entidadTransferencia, setEntidadTransferencia] = useState<typeof TRANSFERENCIA_ENTIDADES[number]>('NEQUI')
+  const [propina, setPropina] = useState(0)
 
   const { data: metodosPago = [], isPending: metodosLoading } = useQuery({
     queryKey: ['metodos-pago'],
@@ -120,7 +121,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
     [cobrarImpuesto, subtotal]
   )
 
-  const total = useMemo(() => subtotal + impuesto, [subtotal, impuesto])
+  const total = useMemo(() => subtotal + impuesto + propina, [subtotal, impuesto, propina])
 
   const cambio = useMemo(
     () => (recibido.numericValue >= total ? recibido.numericValue - total : 0),
@@ -161,6 +162,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
         pedidoId: pedido.id,
         subtotal,
         impuestoConsumo: impuesto,
+        propina,
         total,
         metodoPagoId: metodoSeleccionId,
         cajaSesionId: sesionCaja.id,
@@ -301,6 +303,23 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
           </div>
         </div>
 
+        <div className={styles.propinaRow}>
+          <div className={styles.propinaField}>
+            <label className={styles.propinaLabel}>PROPINA</label>
+            <input
+              className={styles.propinaInput}
+              type="text"
+              inputMode="decimal"
+              value={propina > 0 ? `$${propina.toLocaleString('es-CO')}` : ''}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9]/g, '')
+                setPropina(raw ? parseInt(raw, 10) : 0)
+              }}
+              placeholder="$0"
+            />
+          </div>
+        </div>
+
         <div className={styles.resumen}>
           {totalAbonado > 0 && (
             <>
@@ -326,6 +345,12 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
             <div className={styles.resumenRow}>
               <span className={styles.resumenLabel}>Impuesto consumo (8%)</span>
               <span className={styles.resumenValor}>${impuesto.toLocaleString('es-CO')}</span>
+            </div>
+          )}
+          {propina > 0 && (
+            <div className={styles.resumenRow}>
+              <span className={styles.resumenLabel}>Propina</span>
+              <span className={styles.resumenValor}>${propina.toLocaleString('es-CO')}</span>
             </div>
           )}
           <div className={`${styles.resumenRow} ${styles.resumenTotal}`}>

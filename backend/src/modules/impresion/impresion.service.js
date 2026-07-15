@@ -91,11 +91,11 @@ export const imprimirReciboPago = async (facturaId) => {
     facturaId: factura.id,
     facturaNumero: `#${factura.id}`,
     mesa,
-    cajero: factura.pedido.usuario?.nombre || factura.pedido.usuario?.rol,
     fecha: new Date(),
     items,
     subtotal,
     impuestoConsumo,
+    propina: factura.propina,
     total: factura.total,
   };
 

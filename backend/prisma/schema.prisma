@@ -204,6 +204,7 @@ model Factura {
   id              Int        @id @default(autoincrement())
   subtotal        Float
   impuestoConsumo Float      @default(0)
+  propina         Float      @default(0)
   total           Float
   creadoEn        DateTime   @default(now())
   pedidoId        Int        @unique

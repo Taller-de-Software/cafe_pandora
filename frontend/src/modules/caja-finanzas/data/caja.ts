@@ -75,6 +75,7 @@ export interface ResumenFactura {
   total: number
   subtotal: number
   impuestoConsumo: number
+  propina: number
   creadoEn: string
   metodoPago: string
   pedido: {

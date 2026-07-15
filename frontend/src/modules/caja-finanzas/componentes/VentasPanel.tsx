@@ -79,6 +79,7 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
       total: p.total,
       subtotal,
       impuestoConsumo: p.total - subtotal,
+      propina: 0,
       creadoEn: p.fechaPago ?? '',
       metodoPago: p.metodoPago,
       pedido: {

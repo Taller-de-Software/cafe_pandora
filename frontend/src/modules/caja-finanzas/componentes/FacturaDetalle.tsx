@@ -92,6 +92,12 @@ function FacturaDetalle({ factura, onClose }: FacturaDetalleProps) {
                 <span>Impuesto Consumo (8%)</span>
                 <span>${formatearNumero(factura.impuestoConsumo)}</span>
               </div>
+              {factura.propina > 0 && (
+                <div className={styles.row}>
+                  <span>Propina</span>
+                  <span>${formatearNumero(factura.propina)}</span>
+                </div>
+              )}
               <div className={`${styles.row} ${styles.total}`}>
                 <span>Total</span>
                 <span>${formatearNumero(factura.total)}</span>
