@@ -85,13 +85,6 @@ export default function VistaAbonar({
           <span className={styles.abonoTotal}>${saldoPendiente.toLocaleString('es-CO')}</span>
         </div>
       </div>
-
-      <div className={styles.footerLeft}>
-        <button className={styles.btnVolverFooter} onClick={onVolver}>VOLVER</button>
-      </div>
-      <button className={styles.btnConfirmar} disabled={disabled || isPending} onClick={onConfirmar}>
-        {isPending ? 'Registrando...' : 'CONFIRMAR ABONO'}
-      </button>
     </>
   )
 }

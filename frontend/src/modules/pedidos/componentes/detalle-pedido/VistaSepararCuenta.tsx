@@ -67,13 +67,6 @@ export default function VistaSepararCuenta({
           {productosActuales.length === 0 && <p className={styles.emptyText}>No hay productos en el pedido</p>}
         </div>
       </div>
-
-      <div className={styles.footerLeft}>
-        <button className={styles.btnVolverFooter} onClick={onVolver}>VOLVER</button>
-      </div>
-      <button className={styles.btnConfirmar} disabled={!hayMovimiento || isPending} onClick={onConfirmar}>
-        {isPending ? 'Procesando...' : 'CONFIRMAR DIVISIÓN'}
-      </button>
     </>
   )
 }

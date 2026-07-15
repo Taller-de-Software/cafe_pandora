@@ -127,13 +127,6 @@ export default function VistaAgregarQuitar({
           ))
         )}
       </div>
-
-      <div className={styles.footerLeft}>
-        <button className={styles.btnVolverFooter} onClick={onVolver}>VOLVER</button>
-      </div>
-      <button className={styles.btnConfirmar} disabled={!hasChanges || isPending} onClick={onConfirmar}>
-        {isPending ? 'Guardando...' : 'CONFIRMAR CAMBIOS'}
-      </button>
     </>
   )
 }
