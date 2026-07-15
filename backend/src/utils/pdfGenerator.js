@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
+import { PassThrough } from "stream";
 import { fileURLToPath } from "url";
 import PNG from "pngjs";
 
@@ -10,17 +11,19 @@ const __dirname = path.dirname(__filename);
 const FACTURAS_DIR = path.join(__dirname, "../../../uploads/facturas");
 const COMANDAS_DIR = path.join(__dirname, "../../../uploads/cocina");
 const LOGO_PATH = path.join(__dirname, "../../../images/logo cafepandora sin fondo.png");
+const LOGO_CHICO_COMANDA_PATH = path.join(__dirname, "../../../images/image-Photoroom (1).png");
 
 const PAPER_WIDTH_PT = 226.77;
-const MARGIN_PT = 11.34;
-const USABLE_WIDTH = PAPER_WIDTH_PT - MARGIN_PT * 2;
+const MARGIN_SIDE_PT = 10;
+const MARGIN_TOP_PT = 20;
+const USABLE_WIDTH = PAPER_WIDTH_PT - MARGIN_SIDE_PT * 2;
 const LOGO_MAX_WIDTH_PT = 113.39;
-const LOGO_CHICO_WIDTH_PT = 25;
+const LOGO_CHICO_WIDTH_PT = 50;
 
 const EMPRESA = {
   nombre: "PANDORA BISTRO CAFE BAR",
   nit: "NIT: 1053784676",
-  ciudad: "Medellín",
+  ciudad: "Mall Combia",
 };
 
 let cachedLogoBuffer = null;
@@ -84,7 +87,7 @@ function formatearMonto(monto) {
 function crearDoc(height = 800) {
   const doc = new PDFDocument({
     size: [PAPER_WIDTH_PT, height],
-    margins: { top: MARGIN_PT, bottom: MARGIN_PT, left: MARGIN_PT, right: MARGIN_PT },
+    margins: { top: MARGIN_SIDE_PT, bottom: MARGIN_SIDE_PT, left: MARGIN_SIDE_PT, right: MARGIN_SIDE_PT },
   });
   return doc;
 }
@@ -96,7 +99,7 @@ function calcularAlturaComanda(data) {
   const LINE_SEP = 3;
   const MARGIN_BOTTOM = 18;
 
-  let h = MARGIN_PT;
+  let h = MARGIN_SIDE_PT;
   h += LINE_H_TITLE + 4;
   h += LINE_H * 4;
   h += 4 + LINE_SEP + 4;
@@ -109,43 +112,16 @@ function calcularAlturaComanda(data) {
       h += notaLines * LINE_H_NOTE;
     }
   }
+  h += 25;
   h += MARGIN_BOTTOM;
   return Math.ceil(Math.max(h, 100));
-}
-
-function calcularAlturaRecibo(data) {
-  const LINE_H = 10;
-  const LINE_H_TITLE = 12;
-  const LINE_SEP = 3;
-  const MARGIN_BOTTOM = 18;
-
-  let h = MARGIN_PT;
-  h += LINE_H_TITLE + 4;
-  h += LINE_H * 2;
-  h += 10 + LINE_SEP + 7;
-  h += LINE_H_TITLE + 6;
-  h += LINE_H * 4 + 7 + LINE_SEP + 7;
-  h += 4 + LINE_H + LINE_SEP + 4;
-  for (const item of data.items) {
-    const nombreLines = Math.max(1, Math.ceil(item.nombre.length / 22));
-    h += nombreLines * LINE_H;
-  }
-  h += 4 + LINE_SEP + 4;
-  h += LINE_H * 2;
-  h += 4 + LINE_SEP + 3 + LINE_H * 2 + 3 + LINE_SEP + 4;
-  h += 14;
-  h += LINE_H * 3 + 6;
-  h += 4 + LINE_H * 2 + 6;
-  h += LINE_H * 2 + 20;
-  h += MARGIN_BOTTOM;
-  return Math.ceil(Math.max(h, 150));
 }
 
 function dibujarLogo(doc) {
   const logoBuffer = procesarLogo();
   if (logoBuffer) {
     const logoW = LOGO_MAX_WIDTH_PT;
-    const logoX = MARGIN_PT + (USABLE_WIDTH - logoW) / 2;
+    const logoX = MARGIN_SIDE_PT + (USABLE_WIDTH - logoW) / 2;
     doc.image(logoBuffer, logoX, doc.y, { width: logoW });
     doc.moveDown(0.5);
   }
@@ -155,7 +131,17 @@ function dibujarLogoChico(doc) {
   const logoBuffer = procesarLogo();
   if (logoBuffer) {
     const logoW = LOGO_CHICO_WIDTH_PT;
-    const logoX = MARGIN_PT + (USABLE_WIDTH - logoW) / 2;
+    const logoX = MARGIN_SIDE_PT + (USABLE_WIDTH - logoW) / 2;
+    doc.image(logoBuffer, logoX, doc.y, { width: logoW });
+    doc.moveDown(0.3);
+  }
+}
+
+function dibujarLogoChicoComanda(doc) {
+  const logoBuffer = procesarLogo();
+  if (logoBuffer) {
+    const logoW = LOGO_CHICO_WIDTH_PT;
+    const logoX = MARGIN_SIDE_PT + (USABLE_WIDTH - logoW) / 2;
     doc.image(logoBuffer, logoX, doc.y, { width: logoW });
     doc.moveDown(0.3);
   }
@@ -164,16 +150,16 @@ function dibujarLogoChico(doc) {
 function dibujarEncabezado(doc) {
   dibujarLogo(doc);
 
-  doc.font("Courier-Bold").fontSize(13).text(EMPRESA.nombre, MARGIN_PT, doc.y, {
+  doc.font("Courier-Bold").fontSize(13).text(EMPRESA.nombre, MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
   doc.moveDown(0.2);
-  doc.font("Courier").fontSize(8).text(EMPRESA.nit, MARGIN_PT, doc.y, {
+  doc.font("Courier").fontSize(8).text(EMPRESA.nit, MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
-  doc.text(EMPRESA.ciudad, MARGIN_PT, doc.y, {
+  doc.text(EMPRESA.ciudad, MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
@@ -183,16 +169,24 @@ function dibujarEncabezado(doc) {
 }
 
 function dibujarEncabezadoRecibo(doc) {
-  doc.font("Courier-Bold").fontSize(13).text(EMPRESA.nombre, MARGIN_PT, doc.y, {
+  doc.font("Courier-Bold").fontSize(13).text(EMPRESA.nombre, MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
   doc.moveDown(0.2);
-  doc.font("Courier").fontSize(8).text(EMPRESA.nit, MARGIN_PT, doc.y, {
+  doc.font("Courier").fontSize(8).text(EMPRESA.nit, MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
-  doc.text(EMPRESA.ciudad, MARGIN_PT, doc.y, {
+  doc.text(EMPRESA.ciudad, MARGIN_SIDE_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
+  doc.text("Correo: 0", MARGIN_SIDE_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
+  doc.text("Telefono: 0", MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
@@ -202,7 +196,7 @@ function dibujarEncabezadoRecibo(doc) {
 }
 
 function dibujarEncabezadoComanda(doc, data) {
-  doc.font("Courier-Bold").fontSize(10).text("COMANDA DE COCINA", MARGIN_PT, doc.y, {
+  doc.font("Courier-Bold").fontSize(10).text("COMANDA DE COCINA", MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
@@ -210,7 +204,7 @@ function dibujarEncabezadoComanda(doc, data) {
 
   doc.font("Courier").fontSize(8);
   textoParLinea(doc, `Mesa: ${data.mesa || "-"}`, "");
-  textoParLinea(doc, `Mesero: ${data.mesero || "-"}`, "");
+  textoParLinea(doc, "Mesero", "");
   textoParLinea(doc, `Fecha: ${formatFecha(data.fecha)}`, `Hora: ${formatHora(data.fecha)}`);
   textoParLinea(doc, `Pedido #${data.pedidoId}`, "");
   doc.moveDown(0.3);
@@ -221,8 +215,8 @@ function dibujarEncabezadoComanda(doc, data) {
 function lineaSeparadora(doc) {
   const y = doc.y;
   doc.lineWidth(0.5)
-     .moveTo(MARGIN_PT, y)
-     .lineTo(MARGIN_PT + USABLE_WIDTH, y)
+     .moveTo(MARGIN_SIDE_PT, y)
+     .lineTo(MARGIN_SIDE_PT + USABLE_WIDTH, y)
      .stroke();
   doc.y = y + 3;
 }
@@ -230,14 +224,14 @@ function lineaSeparadora(doc) {
 function lineaDoble(doc) {
   let y = doc.y;
   doc.lineWidth(0.5)
-     .moveTo(MARGIN_PT, y)
-     .lineTo(MARGIN_PT + USABLE_WIDTH, y)
+     .moveTo(MARGIN_SIDE_PT, y)
+     .lineTo(MARGIN_SIDE_PT + USABLE_WIDTH, y)
      .stroke();
   doc.y = y + 2;
   y = doc.y;
   doc.lineWidth(0.5)
-     .moveTo(MARGIN_PT, y)
-     .lineTo(MARGIN_PT + USABLE_WIDTH, y)
+     .moveTo(MARGIN_SIDE_PT, y)
+     .lineTo(MARGIN_SIDE_PT + USABLE_WIDTH, y)
      .stroke();
   doc.y = y + 3;
 }
@@ -252,7 +246,7 @@ function textoParLinea(doc, izq, der, opciones = {}) {
   const puntosPorChar = doc.widthOfString("M");
   const espaciosNecesarios = Math.max(1, Math.floor((anchoDisponible - doc.widthOfString(izq) - derWidth) / puntosPorChar));
 
-  doc.text(`${izq}${" ".repeat(espaciosNecesarios)}${der}`, MARGIN_PT, doc.y, {
+  doc.text(`${izq}${" ".repeat(espaciosNecesarios)}${der}`, MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "left",
   });
@@ -273,7 +267,7 @@ function wrapText(doc, text, maxChars) {
 
 function dibujarProductosComanda(doc, items) {
   doc.moveDown(0.3);
-  doc.font("Courier-Bold").fontSize(8).text("Cant  Producto", MARGIN_PT, doc.y, {
+  doc.font("Courier-Bold").fontSize(8).text("Cant  Producto", MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
   });
   lineaSeparadora(doc);
@@ -283,18 +277,18 @@ function dibujarProductosComanda(doc, items) {
   for (const item of items) {
     const lineas = wrapText(doc, item.nombre, 28);
     const cantStr = `${item.cantidad}x`;
-    doc.text(`${cantStr.padEnd(5)}${lineas[0]}`, MARGIN_PT, doc.y, {
+    doc.text(`${cantStr.padEnd(5)}${lineas[0]}`, MARGIN_SIDE_PT, doc.y, {
       width: USABLE_WIDTH,
     });
     for (let i = 1; i < lineas.length; i++) {
-      doc.text(`      ${lineas[i]}`, MARGIN_PT, doc.y, {
+      doc.text(`      ${lineas[i]}`, MARGIN_SIDE_PT, doc.y, {
         width: USABLE_WIDTH,
       });
     }
     if (item.nota) {
-      const notaLineas = wrapText(doc, item.nota, 28);
+      const notaLineas = wrapText(doc, item.nota, 26);
       for (const nl of notaLineas) {
-        doc.font("Courier").fontSize(7).text(`      ${nl}`, MARGIN_PT, doc.y, {
+        doc.font("Courier").fontSize(7).text(`      (${nl})`, MARGIN_SIDE_PT, doc.y, {
           width: USABLE_WIDTH,
         });
       }
@@ -317,7 +311,7 @@ function dibujarProductosRecibo(doc, items) {
     const cantStr = `${item.cantidad}x`;
     textoParLinea(doc, `${cantStr.padEnd(5)}${lineas[0]}`, totalItem);
     for (let i = 1; i < lineas.length; i++) {
-      doc.text(`      ${lineas[i]}`, MARGIN_PT, doc.y, {
+      doc.text(`      ${lineas[i]}`, MARGIN_SIDE_PT, doc.y, {
         width: USABLE_WIDTH,
       });
     }
@@ -329,9 +323,6 @@ function dibujarInfoVenta(doc, data) {
   textoParLinea(doc, `Fecha: ${formatFecha(data.fecha)}`, `Hora: ${formatHora(data.fecha)}`);
   if (data.mesa) {
     textoParLinea(doc, `Mesa: ${data.mesa}`, "");
-  }
-  if (data.cajero) {
-    textoParLinea(doc, `Cajero: ${data.cajero}`, "");
   }
   if (data.metodoPago) {
     textoParLinea(doc, `Pago: ${data.metodoPago}`, "");
@@ -352,6 +343,9 @@ function dibujarResumen(doc, data) {
   if (data.impuestoConsumo != null) {
     textoParLinea(doc, "Imp. Consumo 8%", formatearMonto(data.impuestoConsumo));
   }
+  if (data.propina != null && data.propina > 0) {
+    textoParLinea(doc, "Propina", formatearMonto(data.propina));
+  }
   if (data.subtotal == null && data.total != null) {
     textoParLinea(doc, "Total", formatearMonto(data.total));
   }
@@ -367,16 +361,33 @@ function dibujarResumen(doc, data) {
   lineaSeparadora(doc);
 }
 
-function dibujarPie(doc, mensaje) {
-  doc.moveDown(1);
-  doc.font("Courier").fontSize(7).fillColor("#555555");
-  const lineas = wrapText(doc, mensaje || "Más que un lugar, una experiencia para tus sentidos.", 36);
+function dibujarAdvertenciaPropina(doc) {
+  doc.moveDown(0.5);
+  doc.font("Courier").fontSize(6).fillColor("#555555");
+  doc.text("ADVERTENCIA PROPINA", MARGIN_SIDE_PT, doc.y, {
+    width: USABLE_WIDTH,
+    align: "center",
+  });
+  const lineas = wrapText(doc, "Se sugiere una propina correspondiente al 10% del valor de la cuenta, la cual podra ser aceptada, modificada o rechazada por usted.", 42);
   for (const l of lineas) {
-    doc.text(l, MARGIN_PT, doc.y, { width: USABLE_WIDTH, align: "center" });
+    doc.text(l, MARGIN_SIDE_PT, doc.y, {
+      width: USABLE_WIDTH,
+      align: "center",
+    });
+  }
+  doc.fillColor("#000000");
+}
+
+function dibujarPie(doc, mensaje) {
+  doc.moveDown(0.5);
+  doc.font("Courier").fontSize(7).fillColor("#555555");
+  const lineas = wrapText(doc, mensaje || "Mas que un lugar, una experiencia para tus sentidos.", 36);
+  for (const l of lineas) {
+    doc.text(l, MARGIN_SIDE_PT, doc.y, { width: USABLE_WIDTH, align: "center" });
   }
   doc.moveDown(0.5);
   doc.font("Courier-Bold").fontSize(8).fillColor("#000000");
-  doc.text("¡Gracias por su compra!", MARGIN_PT, doc.y, {
+  doc.text("¡Gracias por su compra!", MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
@@ -398,6 +409,7 @@ export function generarPDFComanda(data) {
 
   dibujarEncabezadoComanda(doc, data);
   dibujarProductosComanda(doc, data.items);
+  dibujarLogoChicoComanda(doc);
 
   doc.end();
 
@@ -407,21 +419,10 @@ export function generarPDFComanda(data) {
   });
 }
 
-export function generarPDFRecibo(data) {
-  if (!fs.existsSync(FACTURAS_DIR)) {
-    fs.mkdirSync(FACTURAS_DIR, { recursive: true });
-  }
-
-  const filename = `pago-${data.facturaId}-${formatTimestamp()}.pdf`;
-  const filepath = path.join(FACTURAS_DIR, filename);
-  const height = calcularAlturaRecibo(data);
-  const doc = crearDoc(height);
-  const stream = fs.createWriteStream(filepath);
-  doc.pipe(stream);
-
+function renderReciboContent(doc, data) {
   dibujarEncabezadoRecibo(doc);
 
-  doc.font("Courier-Bold").fontSize(10).text("RECIBO DE PAGO", MARGIN_PT, doc.y, {
+  doc.font("Courier-Bold").fontSize(10).text("RECIBO DE PAGO", MARGIN_SIDE_PT, doc.y, {
     width: USABLE_WIDTH,
     align: "center",
   });
@@ -430,9 +431,41 @@ export function generarPDFRecibo(data) {
   dibujarInfoVenta(doc, data);
   dibujarProductosRecibo(doc, data.items);
   dibujarResumen(doc, data);
+  dibujarAdvertenciaPropina(doc);
   dibujarPie(doc, null);
-  dibujarLogoChico(doc);
+}
 
+function medirAlturaRecibo(data) {
+  const doc = new PDFDocument({
+    size: [PAPER_WIDTH_PT, 5000],
+    margins: { top: MARGIN_TOP_PT, bottom: MARGIN_SIDE_PT, left: MARGIN_SIDE_PT, right: MARGIN_SIDE_PT },
+  });
+  const sink = new PassThrough();
+  doc.pipe(sink);
+  renderReciboContent(doc, data);
+  const altura = doc.y + 15;
+  doc.end();
+  return Math.ceil(altura);
+}
+
+export function generarPDFRecibo(data) {
+  if (!fs.existsSync(FACTURAS_DIR)) {
+    fs.mkdirSync(FACTURAS_DIR, { recursive: true });
+  }
+
+  const altura = medirAlturaRecibo(data);
+
+  const doc = new PDFDocument({
+    size: [PAPER_WIDTH_PT, altura],
+    margins: { top: MARGIN_TOP_PT, bottom: MARGIN_SIDE_PT, left: MARGIN_SIDE_PT, right: MARGIN_SIDE_PT },
+  });
+
+  const filename = `pago-${data.facturaId}-${formatTimestamp()}.pdf`;
+  const filepath = path.join(FACTURAS_DIR, filename);
+  const stream = fs.createWriteStream(filepath);
+  doc.pipe(stream);
+
+  renderReciboContent(doc, data);
   doc.end();
 
   return new Promise((resolve, reject) => {

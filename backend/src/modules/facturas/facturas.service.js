@@ -59,11 +59,11 @@ export const obtenerComprobante = async (id) => {
       facturaId: factura.id,
       facturaNumero: `#${factura.id}`,
       mesa: factura.pedido.mesa?.nombre,
-      cajero: factura.pedido.usuario?.nombre || factura.pedido.usuario?.rol,
       fecha: `${dd}/${mm}/${yyyy} ${hh}:${min}`,
       items,
       subtotal,
       impuestoConsumo: factura.impuestoConsumo,
+      propina: factura.propina,
       total: factura.total,
     };
     await connectPrinter();
@@ -150,6 +150,7 @@ export const crear = async (data) => {
         pedidoId: data.pedidoId,
         subtotal: data.subtotal,
         impuestoConsumo: data.impuestoConsumo,
+        propina: data.propina ?? 0,
         total: data.total,
         metodoPagoId: data.metodoPagoId,
         cajaSesionId: data.cajaSesionId,

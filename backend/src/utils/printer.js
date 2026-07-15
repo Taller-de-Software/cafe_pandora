@@ -83,7 +83,7 @@ function printCocina(data) {
         .text("")
         .align("lt")
         .text(`Mesa: ${data.mesa || "-"}`)
-        .text(`Mesero: ${data.mesero || "-"}`)
+        .text("Mesero")
         .text(`Pedido #${data.pedidoId}`)
         .text(`Fecha: ${fechaStr}`)
         .text("")
@@ -97,7 +97,7 @@ function printCocina(data) {
         const cantStr = `${item.cantidad}x`;
         printer.text(`${cantStr.padEnd(5)}${item.nombre}`);
         if (item.nota) {
-          printer.text(`      ${item.nota}`);
+          printer.text(`      (${item.nota})`);
         }
       }
 
@@ -134,7 +134,9 @@ function printPago(data) {
         .style("normal")
         .size(0, 0)
         .text("NIT: 1053784676")
-        .text("Medellín")
+        .text("Mall Combia")
+        .text("Correo: 0")
+        .text("Telefono: 0")
         .text("")
         .align("lt")
         .text("────────────────────────────────")
@@ -152,7 +154,6 @@ function printPago(data) {
         printer.text(`Fecha: ${fechaStr}`);
       }
       if (data.mesa) printer.text(`Mesa: ${data.mesa}`);
-      if (data.cajero) printer.text(`Cajero: ${data.cajero}`);
       if (data.metodoPago) printer.text(`Pago: ${data.metodoPago}`);
 
       printer
@@ -183,6 +184,10 @@ function printPago(data) {
         const impStr = `$${formatearNumero(data.impuestoConsumo)}`;
         printer.text(`${alignRight(printer, "Imp. Consumo 8%", 28)}${impStr}`);
       }
+      if (data.propina != null && data.propina > 0) {
+        const propStr = `$${formatearNumero(data.propina)}`;
+        printer.text(`${alignRight(printer, "Propina", 28)}${propStr}`);
+      }
 
       if (data.subtotal != null || data.impuestoConsumo != null) {
         printer
@@ -207,7 +212,14 @@ function printPago(data) {
         .text("────────────────────────────────")
         .text("")
         .align("ct")
-        .text("Más que un lugar,")
+        .style("normal")
+        .text("ADVERTENCIA PROPINA")
+        .text("Se sugiere una propina del 10%,")
+        .text("la cual podra ser aceptada,")
+        .text("modificada o rechazada por usted.")
+        .text("")
+        .style("b")
+        .text("Mas que un lugar,")
         .text("una experiencia para tus")
         .text("sentidos.")
         .text("")

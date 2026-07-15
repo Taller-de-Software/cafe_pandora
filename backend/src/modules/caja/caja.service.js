@@ -162,6 +162,7 @@ export const resumenSesion = async (id) => {
       total: f.total,
       subtotal: f.subtotal,
       impuestoConsumo: f.impuestoConsumo,
+      propina: f.propina,
       creadoEn: f.creadoEn,
       metodoPago: f.metodoPago.nombre,
       pedido: {
