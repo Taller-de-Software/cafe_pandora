@@ -6,42 +6,133 @@ const DEFAULT_PRINTER_ENCODING = 'CP858';
 const SAT_VENDOR_IDS = [0x0416, 0x04b8, 0x067b, 0x0fe6, 0x1fc9];
 const PRINTER_CLASS = 0x07;
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+let lastError = null;
+
+function setLastError(details) {
+  lastError = { ...details, timestamp: new Date().toISOString() };
+}
+
+export function getLastPrinterError() {
+  return lastError;
+}
+
+export function clearLastPrinterError() {
+  lastError = null;
+}
+
+export function getPrinterErrorDetails(error, extra = {}) {
+  const modo = extra.modo || null;
+  const device = extra.device || null;
+  const puerto = extra.puerto || null;
+  const tipoConexion = extra.tipoConexion || null;
+  const raw = error?.message || 'Error desconocido';
+
+  const build = (codigo, mensaje, sugerencia) => ({
+    codigo,
+    mensaje,
+    detalleTecnico: raw,
+    tipoConexion,
+    device,
+    puerto,
+    modo,
+    sugerencia,
+  });
+
+  if (raw.includes('Cannot find USB device')) {
+    return build(
+      'USB_NO_ENCONTRADO',
+      `Impresora USB no encontrada${device ? ` (${device})` : ''}.`,
+      'Verifique que la impresora esté encendida y el cable USB conectado.'
+    );
+  }
+
+  if (error?.code === 'EACCES' || raw.includes('Access denied')) {
+    return build(
+      'PERMISO_DENEGADO',
+      `Permiso denegado al dispositivo${puerto ? ` ${puerto}` : ''}.`,
+      'En Linux, revise las reglas udev del dispositivo o los permisos del usuario que corre el servicio.'
+    );
+  }
+
+  if (error?.code === 'ENODEV' || raw.includes('no such device')) {
+    return build(
+      'DISPOSITIVO_NO_DISPONIBLE',
+      `Dispositivo no disponible${puerto ? ` ${puerto}` : ''}. Puede haber sido desconectado.`,
+      'Reconecte el dispositivo físicamente y reintente.'
+    );
+  }
+
+  if (error?.code === 'EBUSY') {
+    return build(
+      'PUERTO_OCUPADO',
+      `El puerto${puerto ? ` ${puerto}` : ''} está en uso por otro proceso o conexión abierta.`,
+      'Cierre otras aplicaciones/servicios que usen la impresora, o reinicie el servicio backend.'
+    );
+  }
+
+  if (error?.code === 'ENOENT') {
+    return build(
+      'PUERTO_NO_EXISTE',
+      `El puerto${puerto ? ` ${puerto}` : ''} configurado no existe en este sistema.`,
+      'Verifique el nombre del puerto (COM3, /dev/ttyUSB0, etc.) en Configuración > Impresión.'
+    );
+  }
+
+  if (error?.code === 'ETIMEOUT' || error?.code === 'ETIMEDOUT') {
+    return build(
+      'TIMEOUT_CONEXION',
+      `Tiempo de espera agotado al conectar${puerto ? ` con ${puerto}` : ''}.`,
+      'Verifique que la impresora esté encendida y accesible.'
+    );
+  }
+
+  if (error?.code === 'ECONNREFUSED') {
+    return build(
+      'TCP_RECHAZADO',
+      `Conexión rechazada${puerto ? ` en ${puerto}` : ''}. Verificar que la impresora esté encendida.`,
+      'Confirme la IP y el puerto configurados, y que la impresora esté encendida y en red.'
+    );
+  }
+
+  if (error?.code === 'ENETUNREACH' || error?.code === 'EHOSTUNREACH') {
+    return build(
+      'RED_INALCANZABLE',
+      `Red inalcanzable${puerto ? ` ${puerto}` : ''}. Verificar conexión de red.`,
+      'Confirme que el servidor y la impresora estén en la misma red/VLAN.'
+    );
+  }
+
+  if (raw.includes('write after end')) {
+    return build(
+      'CONEXION_CERRADA',
+      'Error al escribir: la impresora cerró la conexión.',
+      'Reintente la impresión; si persiste, reinicie la impresora.'
+    );
+  }
+
+  if (raw.includes('No se encontró impresora')) {
+    return build(
+      'SIN_DISPOSITIVO',
+      'No se encontró ninguna impresora conectada al sistema.',
+      'Conecte una impresora compatible o configure manualmente VID/PID, IP o puerto serial.'
+    );
+  }
+
+  return build('ERROR_DESCONOCIDO', `Error: ${raw}`, 'Revise los logs del servidor para más detalle.');
+}
 
 export function getPrinterErrorMessage(error, extra = {}) {
+  const details = getPrinterErrorDetails(error, extra);
   const base = extra.modo ? `[${extra.modo}]` : '[IMPRESORA]';
-  const device = extra.device ? ` (${extra.device})` : '';
-  const puerto = extra.puerto ? ` puerto ${extra.puerto}` : '';
+  return `${base} ${details.mensaje}`;
+}
 
-  if (error.message && error.message.includes('Cannot find USB device')) {
-    return `${base} Impresora USB no encontrada${device}. Verificar conexión.`;
-  }
-
-  if (error.code === 'EACCES' || (error.message && error.message.includes('Access denied'))) {
-    return `${base} Permiso denegado al dispositivo USB${puerto}.`;
-  }
-
-  if (error.code === 'ENODEV' || (error.message && error.message.includes('no such device'))) {
-    return `${base} Dispositivo USB no disponible${puerto}. Puede haber sido desconectado.`;
-  }
-
-  if (error.code === 'ETIMEOUT' || error.code === 'ETIMEDOUT') {
-    return `${base} Tiempo de espera agotado al conectar con${puerto}.`;
-  }
-
-  if (error.code === 'ECONNREFUSED') {
-    return `${base} Conexión rechazada en${puerto}. Verificar que la impresora esté encendida.`;
-  }
-
-  if (error.code === 'ENETUNREACH' || error.code === 'EHOSTUNREACH') {
-    return `${base} Red inalcanzable${puerto}. Verificar conexión de red.`;
-  }
-
-  if (error.message && error.message.includes('write after end')) {
-    return `${base} Error al escribir: la impresora cerró la conexión.`;
-  }
-
-  return `${base} Error: ${error.message || 'Error desconocido'}${puerto}`;
+function buildPrinterError(error, extra) {
+  const details = getPrinterErrorDetails(error, extra);
+  setLastError(details);
+  const err = new Error(`${extra.modo ? `[${extra.modo}] ` : '[IMPRESORA] '}${details.mensaje}`);
+  Object.assign(err, details);
+  return err;
 }
 
 export function getConfigSync() {
@@ -62,12 +153,6 @@ async function getConfigAsync() {
   } catch {
     return null;
   }
-}
-
-// ─── Listado de dispositivos ────────────────────────────────────────────────
-
-export function disconnectPrinter() {
-  // No-op: escpos printers close automatically after each operation
 }
 
 export async function listUsbPrinters() {
@@ -110,8 +195,6 @@ export async function listAllPrinters() {
   return { usb, serial };
 }
 
-// ─── Conexión ───────────────────────────────────────────────────────────────
-
 function openDevice(device) {
   return new Promise((resolve, reject) => {
     device.open(error => {
@@ -124,20 +207,38 @@ function openDevice(device) {
   });
 }
 
+export function disconnectPrinter() {
+  // No-op mantenido por compatibilidad. Usar printer.close() o
+  // closePrinterSafely() para cerrar realmente el dispositivo.
+}
+
+export function closePrinterSafely(printer) {
+  return new Promise((resolve) => {
+    if (!printer || typeof printer.close !== 'function') {
+      resolve();
+      return;
+    }
+    try {
+      printer.close(() => resolve());
+    } catch {
+      resolve();
+    }
+  });
+}
+
 export async function connectPrinter(modo) {
+  const config = await getConfigAsync();
+
   if (!modo) {
-    const config = await getConfigAsync();
     modo = config?.modoImpresion;
   }
 
-  if (modo !== 'directa' && modo !== 'tira') {
+  if (modo !== 'real') {
     return null;
   }
 
-  const config = await getConfigAsync();
   const encoding = config?.printerEncoding || DEFAULT_PRINTER_ENCODING;
 
-  // Network/TCP
   if (config?.printerConnectionType === 'network' && config?.printerAddress) {
     try {
       const device = new escpos.Network(
@@ -149,16 +250,15 @@ export async function connectPrinter(modo) {
       console.log(`✅ [IMPRESORA] Conexión: TCP/IP — ${config.printerAddress}:${config.printerNetPort || 9100}`);
       return printer;
     } catch (error) {
-      const errorMsg = getPrinterErrorMessage(error, {
+      throw buildPrinterError(error, {
         modo,
         device: config.printerName || 'Red',
-        puerto: `${config.printerAddress}:${config.printerNetPort || 9100}`
+        puerto: `${config.printerAddress}:${config.printerNetPort || 9100}`,
+        tipoConexion: 'network',
       });
-      throw new Error(errorMsg);
     }
   }
 
-  // Serial
   if (config?.printerConnectionType === 'serial' && config?.printerSerialPort) {
     try {
       const { default: Serial } = await import('escpos/serial');
@@ -171,16 +271,15 @@ export async function connectPrinter(modo) {
       console.log(`✅ [IMPRESORA] Conexión: Serial — ${config.printerSerialPort} @ ${config.printerBaudRate || 9600}`);
       return printer;
     } catch (error) {
-      const errorMsg = getPrinterErrorMessage(error, {
+      throw buildPrinterError(error, {
         modo,
         device: config.printerName || 'Serial',
-        puerto: config.printerSerialPort
+        puerto: config.printerSerialPort,
+        tipoConexion: 'serial',
       });
-      throw new Error(errorMsg);
     }
   }
 
-  // USB con configuración guardada
   if (config?.printerConnectionType === 'usb' || !config?.printerConnectionType) {
     if (config?.printerVendorId && config?.printerProductId) {
       try {
@@ -191,16 +290,15 @@ export async function connectPrinter(modo) {
         console.log(`✅ [IMPRESORA] Conexión: USB — ${name}`);
         return printer;
       } catch (error) {
-        const errorMsg = getPrinterErrorMessage(error, {
+        throw buildPrinterError(error, {
           modo,
           device: config.printerName || 'USB',
-          puerto: `VID:PID ${config.printerVendorId}:${config.printerProductId}`
+          puerto: `VID:PID ${config.printerVendorId}:${config.printerProductId}`,
+          tipoConexion: 'usb',
         });
-        throw new Error(errorMsg);
       }
     }
 
-    // Fallback: auto-detectar primera impresora SAT
     try {
       const devices = escpos.USB.findPrinters();
       const satPrinter = devices.find(d => SAT_VENDOR_IDS.includes(d.deviceDescriptor.idVendor));
@@ -216,37 +314,39 @@ export async function connectPrinter(modo) {
       console.log(`✅ [IMPRESORA] Conexión: USB auto-detectada`);
       return printer;
     } catch (error) {
-      const errorMsg = getPrinterErrorMessage(error, { modo });
-      throw new Error(errorMsg);
+      throw buildPrinterError(error, { modo, tipoConexion: 'usb' });
     }
   }
 
-  throw new Error('[IMPRESORA] Configuración de impresora inválida.');
+  throw buildPrinterError(new Error('Configuración de impresora inválida.'), { modo });
 }
 
 export async function testPrinterConnection() {
   const config = await getConfigAsync();
   if (!config) {
-    return { ok: false, message: 'No hay configuración de impresora.' };
+    return { success: false, message: 'No hay configuración de impresora.' };
   }
 
+  let printer;
   try {
-    const printer = await connectPrinter();
+    printer = await connectPrinter();
     if (!printer) {
-      return { ok: false, message: 'Modo de impresión no requiere impresora.' };
+      return { success: true, message: 'Modo simulación activo — no requiere impresora física.' };
     }
-    await new Promise((resolve, reject) => {
-      printer.close(error => {
-        if (error) reject(error);
-        else resolve();
-      });
-    });
+    await closePrinterSafely(printer);
+    clearLastPrinterError();
     return {
-      ok: true,
+      success: true,
       message: `Conexión exitosa: ${config.printerConnectionType} — ${config.printerName || 'Sin nombre'}`
     };
   } catch (error) {
-    return { ok: false, message: error.message };
+    return {
+      success: false,
+      message: error.message,
+      code: error.codigo,
+      sugerencia: error.sugerencia,
+      detalleTecnico: error.detalleTecnico,
+    };
   }
 }
 
@@ -273,10 +373,13 @@ export async function printTestSlip(modo) {
         .cut()
         .close(() => {
           console.log(`✅ [IMPRESORA] Ticket de prueba impreso`);
+          clearLastPrinterError();
           resolve(true);
         });
     } catch (error) {
-      console.error(`❌ [IMPRESORA] Error ticket de prueba:`, error.message);
+      const details = getPrinterErrorDetails(error, { modo, tipoConexion: 'desconocido' });
+      setLastError(details);
+      console.error(`❌ [IMPRESORA] Error ticket de prueba:`, details.mensaje);
       try { printer.close(); } catch {}
       resolve(false);
     }
@@ -357,10 +460,13 @@ export async function printCocina(data) {
         .cut()
         .close(() => {
           console.log(`✅ [IMPRESORA] Pedido #${pedidoId} enviado a cocina`);
+          clearLastPrinterError();
           resolve(true);
         });
     } catch (error) {
-      console.error(`❌ [IMPRESORA] Error cocina:`, error.message);
+      const details = getPrinterErrorDetails(error, { modo, tipoConexion: config?.printerConnectionType });
+      setLastError(details);
+      console.error(`❌ [IMPRESORA] Error cocina:`, details.mensaje);
       try { printer.close(); } catch {}
       resolve(false);
     }
@@ -430,10 +536,13 @@ export async function printPago(data) {
         .cut()
         .close(() => {
           console.log(`✅ [IMPRESORA] Comprobante pago #${pedidoId} impreso`);
+          clearLastPrinterError();
           resolve(true);
         });
     } catch (error) {
-      console.error(`❌ [IMPRESORA] Error pago:`, error.message);
+      const details = getPrinterErrorDetails(error, { modo, tipoConexion: config?.printerConnectionType });
+      setLastError(details);
+      console.error(`❌ [IMPRESORA] Error pago:`, details.mensaje);
       try { printer.close(); } catch {}
       resolve(false);
     }
@@ -465,10 +574,13 @@ export async function printCierre(cierreData) {
         .cut()
         .close(() => {
           console.log(`✅ [IMPRESORA] Comprobante de cierre impreso`);
+          clearLastPrinterError();
           resolve(true);
         });
     } catch (error) {
-      console.error(`❌ [IMPRESORA] Error cierre:`, error.message);
+      const details = getPrinterErrorDetails(error, { modo, tipoConexion: config?.printerConnectionType });
+      setLastError(details);
+      console.error(`❌ [IMPRESORA] Error cierre:`, details.mensaje);
       try { printer.close(); } catch {}
       resolve(false);
     }

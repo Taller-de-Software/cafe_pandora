@@ -1,6 +1,6 @@
 import prisma from "../../config/db.config.js";
 import { getNetworkDiagnostics } from "../../config/network.js";
-import { connectPrinter, disconnectPrinter } from "../../utils/printer.js";
+import { connectPrinter, getLastPrinterError, closePrinterSafely } from "../../utils/printer.js";
 
 export const obtenerDiagnosticoCompleto = async () => {
   const network = await getNetworkDiagnostics();
@@ -13,17 +13,28 @@ export const obtenerDiagnosticoCompleto = async () => {
   const modoImpresion = config?.modoImpresion ?? "simulacion";
 
   let printer = { connected: false, error: null };
+
   if (modoImpresion === "real") {
+    let device;
     try {
-      await connectPrinter();
+      device = await connectPrinter();
       printer = { connected: true };
-      disconnectPrinter();
     } catch (err) {
-      printer = { connected: false, error: err.message };
+      printer = {
+        connected: false,
+        error: err.message,
+        codigo: err.codigo,
+        sugerencia: err.sugerencia,
+        detalleTecnico: err.detalleTecnico,
+      };
+    } finally {
+      await closePrinterSafely(device);
     }
   } else {
     printer = { connected: true, simulated: true };
   }
+
+  const ultimoErrorImpresora = getLastPrinterError();
 
   let connectedClients = 0;
   let rooms = {};
@@ -53,6 +64,7 @@ export const obtenerDiagnosticoCompleto = async () => {
       encoding: config?.printerEncoding ?? "CP858",
       vendorId: config?.printerVendorId,
       productId: config?.printerProductId,
+      ultimoError: ultimoErrorImpresora,
     },
     socket: {
       connectedClients,
@@ -79,12 +91,20 @@ export const probarImpresora = async () => {
     };
   }
 
+  let printer;
   try {
-    await connectPrinter();
-    disconnectPrinter();
+    printer = await connectPrinter();
     return { success: true, message: "Impresora conectada exitosamente" };
   } catch (err) {
-    return { success: false, error: err.message };
+    return {
+      success: false,
+      error: err.message,
+      codigo: err.codigo,
+      sugerencia: err.sugerencia,
+      detalleTecnico: err.detalleTecnico,
+    };
+  } finally {
+    await closePrinterSafely(printer);
   }
 };
 
@@ -109,13 +129,28 @@ export const imprimirPrueba = async () => {
   }
 
   try {
-    await connectPrinter();
     const { printCocina } = await import("../../utils/printer.js");
-    await printCocina(testData);
-    disconnectPrinter();
+    const impreso = await printCocina(testData);
+
+    if (!impreso) {
+      const ultimoError = getLastPrinterError();
+      return {
+        success: false,
+        error: ultimoError?.mensaje || "No se pudo imprimir el ticket de prueba.",
+        codigo: ultimoError?.codigo,
+        sugerencia: ultimoError?.sugerencia,
+        detalleTecnico: ultimoError?.detalleTecnico,
+      };
+    }
+
     return { success: true, message: "Prueba impresa correctamente" };
   } catch (err) {
-    try { disconnectPrinter(); } catch {}
-    return { success: false, error: err.message };
+    return {
+      success: false,
+      error: err.message,
+      codigo: err.codigo,
+      sugerencia: err.sugerencia,
+      detalleTecnico: err.detalleTecnico,
+    };
   }
 };

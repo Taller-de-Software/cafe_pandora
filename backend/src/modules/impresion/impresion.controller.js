@@ -7,8 +7,8 @@ export const imprimirFacturaCocina = async (req, res, next) => {
     const message = result.pdfUrl ? "Factura de cocina impresa (simulada)" : "Factura de cocina impresa";
     ok(res, result, message);
   } catch (err) {
-    if (err.message.includes("Impresora no")) {
-      return error(res, err.message, 503);
+    if (err.statusCode) {
+      return error(res, err.message, err.statusCode, err);
     }
     next(err);
   }
@@ -20,8 +20,8 @@ export const imprimirReciboPago = async (req, res, next) => {
     const message = result.pdfUrl ? "Recibo de pago impreso (simulado)" : "Recibo de pago impreso";
     ok(res, result, message);
   } catch (err) {
-    if (err.message.includes("Impresora no")) {
-      return error(res, err.message, 503);
+    if (err.statusCode) {
+      return error(res, err.message, err.statusCode, err);
     }
     next(err);
   }
@@ -33,7 +33,6 @@ export const probarImpresora = async (req, res, next) => {
     const message = result.message?.includes("simulación") ? "Modo simulación activo" : "Impresora conectada correctamente";
     ok(res, result, message);
   } catch (err) {
-    error(res, err.message, 503);
+    error(res, err.message, err.statusCode || 503, err);
   }
 };
-
