@@ -27,6 +27,8 @@
   border: 1px solid var(--color-peligro-borde);
 }
 
+/* ── Info card ── */
+
 .infoCard {
   background: var(--color-tarjeta-fondo);
   border: 1.5px solid var(--color-borde);
@@ -49,6 +51,27 @@
   border-bottom: none;
 }
 
+.infoHighlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: var(--color-acento);
+  border-radius: var(--radius-md);
+  margin-top: 0.25rem;
+}
+
+.infoHighlight .infoLabel {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.infoValueUrl {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  font-family: var(--font-mono);
+}
+
 .infoLabel {
   font-size: 0.8rem;
   font-weight: 600;
@@ -69,6 +92,8 @@
   color: var(--color-acento-secundario);
   font-family: var(--font-mono);
 }
+
+/* ── Actions ── */
 
 .actions {
   display: flex;
@@ -109,6 +134,8 @@
   color: var(--color-acento-secundario);
 }
 
+/* ── QR ── */
+
 .qrSection {
   display: flex;
   flex-direction: column;
@@ -141,6 +168,118 @@
   word-break: break-all;
   text-align: center;
 }
+
+/* ── Port section ── */
+
+.portSection {
+  background: var(--color-hover-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.portTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-atenuado);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.portHint {
+  font-size: 0.7rem;
+  color: var(--color-atenuado);
+  margin: 0 0 0.75rem;
+  line-height: 1.4;
+}
+
+.portRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portPrefix {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--color-cuerpo);
+  white-space: nowrap;
+}
+
+.portInput {
+  width: 80px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-borde);
+  background: var(--color-tarjeta-fondo);
+  color: var(--color-cuerpo);
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  text-align: center;
+  transition: border-color var(--transition-fast);
+}
+
+.portInput:focus {
+  outline: none;
+  border-color: var(--color-acento-secundario);
+}
+
+.portSaveBtn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: var(--color-acento);
+  color: white;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.portSaveBtn:hover {
+  background: var(--color-acento-hover);
+}
+
+.portSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Backend details ── */
+
+.backendDetails {
+  background: var(--color-hover-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-lg);
+}
+
+.backendSummary {
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-atenuado);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.backendSummary:hover {
+  color: var(--color-cuerpo);
+}
+
+.backendInfo {
+  padding: 0 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── Interfaces ── */
 
 .interfacesSection {
   background: var(--color-hover-fondo);
@@ -200,9 +339,13 @@
     flex-direction: column;
   }
 
-  .infoRow {
+  .infoRow, .infoHighlight {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+  }
+
+  .portRow {
+    flex-wrap: wrap;
   }
 }

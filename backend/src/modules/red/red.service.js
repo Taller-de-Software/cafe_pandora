@@ -53,17 +53,28 @@ export const obtenerConfiguracionRed = async () => {
   };
 };
 
+import prisma from "../../config/db.config.js";
+
 export const obtenerNetworkInfo = async () => {
   const hostname = os.hostname();
   const interfaces = await getNetworkInterfaces();
   const preferred = interfaces.find((i) => i.preferred);
   const port = getServerPort();
   const ip = preferred?.address || "0.0.0.0";
+
+  let frontendPort = 5173;
+  try {
+    const config = await prisma.configuracion.findFirst();
+    frontendPort = config?.frontendPort ?? 5173;
+  } catch {}
+
   return {
     hostname,
     ip,
     port,
     url: `http://${ip}:${port}`,
+    frontendPort,
+    frontendUrl: `http://${ip}:${frontendPort}`,
     interfaces: interfaces.filter((i) => !i.internal).map((i) => ({
       name: i.name,
       address: i.address,

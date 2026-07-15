@@ -307,19 +307,36 @@ model Reserva {
 // ============================================================
 
 model Configuracion {
-  id              Int            @id @default(autoincrement())
-  modoImpresion   ModoImpresion  @default(simulacion)
-  serverHost      String         @default("0.0.0.0")
-  serverPort      Int            @default(3001)
-  corsOrigins     String?        @default("http://localhost:5173,http://localhost:3000")
-  sessionTtlMin   Int            @default(600)
-  pinMaxAttempts  Int            @default(5)
-  pinLockoutMin   Int            @default(15)
-  offlineModeEnabled Boolean    @default(true)
-  qrCodeEnabled   Boolean        @default(true)
-  printerVendorId Int?
-  printerProductId Int?
-  printerEncoding String         @default("CP858")
+  id                   Int            @id @default(autoincrement())
+  modoImpresion        ModoImpresion  @default(simulacion)
+  serverHost           String         @default("0.0.0.0")
+  serverPort           Int            @default(3001)
+  corsOrigins          String?        @default("http://localhost:5173,http://localhost:3000")
+  sessionTtlMin        Int            @default(600)
+  pinMaxAttempts       Int            @default(5)
+  pinLockoutMin        Int            @default(15)
+  offlineModeEnabled   Boolean        @default(true)
+  qrCodeEnabled        Boolean        @default(true)
+  frontendPort         Int            @default(5173)
+
+  // Impresora - conexión
+  printerName          String?
+  printerConnectionType String        @default("usb")
+
+  // Impresora - USB
+  printerVendorId      Int?
+  printerProductId     Int?
+
+  // Impresora - Network/TCP
+  printerAddress       String?
+  printerNetPort       Int            @default(9100)
+
+  // Impresora - Serial
+  printerSerialPort    String?
+  printerBaudRate      Int            @default(9600)
+
+  // Impresora - común
+  printerEncoding      String         @default("CP858")
 
   @@map("configuracion")
 }
