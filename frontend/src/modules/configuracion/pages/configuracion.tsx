@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Usuarios from '@modules/usuarios/pages/usuarios'
 import MetodosPagoLista from '../componentes/MetodosPagoLista'
 import ServerInfoSection from '../componentes/ServerInfoSection'
+import ServerConfigSection from '../componentes/ServerConfigSection'
 import NetworkDiagnosticsSection from '../componentes/NetworkDiagnosticsSection'
 import PrintModeSection from '../componentes/PrintModeSection'
 import styles from './configuracion.module.css'
@@ -51,7 +52,12 @@ function Configuracion() {
       <div className={styles.content}>
         {tab === 'usuarios' && <Usuarios />}
         {tab === 'metodos-pago' && <MetodosPagoLista />}
-        {tab === 'servidor' && <ServerInfoSection />}
+        {tab === 'servidor' && (
+          <>
+            <ServerInfoSection />
+            <ServerConfigSection />
+          </>
+        )}
         {tab === 'red' && <NetworkDiagnosticsSection />}
         {tab === 'impresion' && <PrintModeSection />}
       </div>

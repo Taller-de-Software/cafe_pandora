@@ -25,7 +25,7 @@ async function main() {
 
   const files = fs.readdirSync(PRODUCTOS_DIR).filter((f) => {
     const ext = path.extname(f).toLowerCase();
-    return [".png", ".jpg", ".jpeg", ".webp"].includes(ext);
+    return [".png", ".jpg", ".jpeg", ".webp", ".avif"].includes(ext);
   });
 
   const productos = await prisma.producto.findMany({

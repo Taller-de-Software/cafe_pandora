@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '@/services/api'
 import styles from './NetworkDiagnosticsSection.module.css'
 
 interface DiagnosticoDetallado {
   timestamp: string
+  totalLatencyMs: number
   servidor: {
     hostname: string
     ip: string
@@ -18,8 +19,10 @@ interface DiagnosticoDetallado {
   red: {
     internet: boolean
     dns: boolean
+    dnsLatencyMs: number | null
     gateway: string | null
     gatewayReachable: boolean
+    gatewayLatencyMs: number | null
     interfaces: { name: string; address: string; preferred: boolean; reachable: boolean }[]
   }
 }
@@ -28,6 +31,7 @@ interface CheckItem {
   label: string
   ok: boolean
   detail: string
+  latencyMs?: number | null
 }
 
 function buildChecks(d: DiagnosticoDetallado): CheckItem[] {
@@ -43,6 +47,7 @@ function buildChecks(d: DiagnosticoDetallado): CheckItem[] {
       label: 'API respondiendo',
       ok: d.api.ok,
       detail: d.api.ok ? `Latencia: ${d.api.latency}ms` : 'No responde',
+      latencyMs: d.api.latency,
     },
     {
       label: 'Socket.IO',
@@ -53,6 +58,7 @@ function buildChecks(d: DiagnosticoDetallado): CheckItem[] {
       label: 'Base de datos',
       ok: d.baseDeDatos.ok,
       detail: d.baseDeDatos.ok ? `Latencia: ${d.baseDeDatos.latency}ms` : 'Error de conexión',
+      latencyMs: d.baseDeDatos.latency,
     },
     {
       label: 'Impresora',
@@ -71,23 +77,40 @@ function buildChecks(d: DiagnosticoDetallado): CheckItem[] {
     {
       label: 'DNS',
       ok: d.red.dns,
-      detail: d.red.dns ? 'Funcionando' : 'No resuelve nombres',
+      detail: d.red.dns
+        ? `Funcionando${d.red.dnsLatencyMs ? ` (${d.red.dnsLatencyMs}ms)` : ''}`
+        : 'No resuelve nombres',
+      latencyMs: d.red.dnsLatencyMs,
     },
     {
       label: 'Gateway',
       ok: d.red.gatewayReachable,
-      detail: d.red.gateway ? `${d.red.gateway} (${d.red.gatewayReachable ? 'accesible' : 'no accesible'})` : 'No detectado',
+      detail: d.red.gateway
+        ? `${d.red.gateway} (${d.red.gatewayReachable ? 'accesible' : 'no accesible'}${d.red.gatewayLatencyMs ? `, ${d.red.gatewayLatencyMs}ms` : ''})`
+        : 'No detectado',
+      latencyMs: d.red.gatewayLatencyMs,
     },
   ]
 }
 
 function NetworkDiagnosticsSection() {
   const [results, setResults] = useState<CheckItem[] | null>(null)
+  const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null)
+  const [autoRefresh, setAutoRefresh] = useState(false)
 
   const mutation = useMutation({
     mutationFn: () => api.get<DiagnosticoDetallado>('/red/diagnostico-detallado'),
-    onSuccess: (data) => setResults(buildChecks(data)),
+    onSuccess: (data) => {
+      setResults(buildChecks(data))
+      setLastCheckedAt(data.timestamp)
+    },
   })
+
+  useEffect(() => {
+    if (!autoRefresh) return
+    const interval = setInterval(() => mutation.mutate(), 30000)
+    return () => clearInterval(interval)
+  }, [autoRefresh])
 
   const allOk = results?.every((c) => c.ok) ?? false
   const failCount = results ? results.filter((c) => !c.ok).length : 0
@@ -121,6 +144,12 @@ function NetworkDiagnosticsSection() {
 
       {results && (
         <div className={styles.results}>
+          {lastCheckedAt && (
+            <div className={styles.timestamp}>
+              Última verificación: {new Date(lastCheckedAt).toLocaleTimeString()}
+            </div>
+          )}
+
           <div className={`${styles.summary} ${allOk ? styles.summaryOk : styles.summaryFail}`}>
             {allOk ? 'Todos los servicios funcionan correctamente' : `${failCount} problema(s) detectado(s)`}
           </div>
@@ -133,8 +162,22 @@ function NetworkDiagnosticsSection() {
                   <span className={styles.checkLabel}>{check.label}</span>
                   <span className={styles.checkDetail}>{check.detail}</span>
                 </div>
+                {check.latencyMs != null && (
+                  <span className={styles.latency}>{check.latencyMs}ms</span>
+                )}
               </div>
             ))}
+          </div>
+
+          <div className={styles.autoRefreshRow}>
+            <label className={styles.autoRefreshLabel}>
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+              />
+              Auto-actualizar cada 30s
+            </label>
           </div>
         </div>
       )}

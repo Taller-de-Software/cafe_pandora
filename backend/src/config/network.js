@@ -9,7 +9,7 @@ let cachedConfig = null;
 let configCacheTime = 0;
 const CONFIG_CACHE_TTL = 30000;
 
-async function getConfig() {
+export async function getConfig() {
   const now = Date.now();
   if (cachedConfig && now - configCacheTime < CONFIG_CACHE_TTL) {
     return cachedConfig;
@@ -58,8 +58,22 @@ async function checkReachability(host) {
 }
 
 async function checkInternetConnectivity() {
+  // Method 1: Try HTTP fetch (most reliable)
   try {
-    const { stdout } = await execAsync(`ping -c 1 -W 2 8.8.8.8`, { timeout: 3000 });
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 3000)
+    const res = await fetch("http://connectivitycheck.gstatic.com/generate_204", {
+      method: "HEAD",
+      signal: controller.signal,
+      redirect: "follow",
+    })
+    clearTimeout(timeout)
+    if (res.status === 204 || res.status === 200 || res.status === 302) return true
+  } catch { /* continue to fallback */ }
+
+  // Method 2: Fallback to ping
+  try {
+    const { stdout } = await execAsync(`ping -c 1 -W 2 8.8.8.8`, { timeout: 3000 })
     return stdout.includes("1 received");
   } catch {
     return false;
@@ -67,9 +81,17 @@ async function checkInternetConnectivity() {
 }
 
 async function checkDns() {
+  // Method 1: Try Node.js DNS resolution (most portable)
   try {
-    const { stdout } = await execAsync(`nslookup google.com 8.8.8.8`, { timeout: 3000 });
-    return stdout.includes("Name:") || stdout.includes("name =");
+    const { promises: dns } = await import("dns")
+    await dns.resolve4("google.com")
+    return true
+  } catch { /* continue to fallback */ }
+
+  // Method 2: Try nslookup
+  try {
+    const { stdout } = await execAsync(`nslookup google.com 8.8.8.8`, { timeout: 3000 })
+    return stdout.includes("Name:") || stdout.includes("name =")
   } catch {
     return false;
   }
@@ -97,7 +119,7 @@ export async function getNetworkInterfaces() {
       ? true
       : gateway
         ? await checkReachability(gateway)
-        : false;
+        : true;
 
     results.push({
       name: iface.name,
@@ -118,30 +140,49 @@ export async function getNetworkInterfaces() {
       nonInternal.find((i) => i.name.startsWith("eth") || i.name.startsWith("en")) ||
       nonInternal[0];
     preferred.preferred = true;
-  } else if (results.length > 0) {
-    results[0].preferred = true;
+  } else {
+    const anyNonInternal = results.filter((i) => !i.internal);
+    if (anyNonInternal.length > 0) {
+      const preferred =
+        anyNonInternal.find((i) => i.name.startsWith("eth") || i.name.startsWith("en")) ||
+        anyNonInternal[0];
+      preferred.preferred = true;
+    } else if (results.length > 0) {
+      results[0].preferred = true;
+    }
   }
 
   return results;
 }
 
 export async function getNetworkDiagnostics() {
-  const interfaces = await getNetworkInterfaces();
-  const port = getServerPort();
-  const bindAddress = getBindAddress();
-  const clientUrls = buildClientUrls(interfaces, port);
-  const internetConnected = interfaces.some((i) => i.internet);
-  const dnsWorking = await checkDns();
-  const gateway = await getDefaultGateway();
-  const gatewayReachable = gateway ? await checkReachability(gateway) : false;
+  const startTime = Date.now()
+  const interfaces = await getNetworkInterfaces()
+  const port = getServerPort()
+  const bindAddress = getBindAddress()
+  const clientUrls = buildClientUrls(interfaces, port)
+  const internetConnected = interfaces.some((i) => i.internet)
+
+  const dnsStart = Date.now()
+  const dnsWorking = await checkDns()
+  const dnsLatencyMs = Date.now() - dnsStart
+
+  const gateway = await getDefaultGateway()
+
+  const gwStart = Date.now()
+  const gatewayReachable = gateway ? await checkReachability(gateway) : false
+  const gatewayLatencyMs = gateway ? Date.now() - gwStart : null
 
   return {
     timestamp: new Date().toISOString(),
+    totalLatencyMs: Date.now() - startTime,
     interfaces,
     clientUrls,
     internetConnected,
     dnsWorking,
+    dnsLatencyMs,
     gatewayReachable,
+    gatewayLatencyMs,
     bindAddress,
     port,
     gateway,

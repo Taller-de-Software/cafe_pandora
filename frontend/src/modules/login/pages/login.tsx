@@ -17,6 +17,7 @@ interface UsuarioDisponible {
   id: number
   nombre: string
   rol: string
+  hasPin: boolean
 }
 
 function Login() {
@@ -54,7 +55,7 @@ function Login() {
     if (!usuario) return
     setLoading(true)
     try {
-      await login({ nombre: usuario.nombre, rol: usuario.rol as 'administrador' | 'mesero', pin: usuario.rol === 'administrador' ? pin : undefined })
+      await login({ nombre: usuario.nombre, rol: usuario.rol as 'administrador' | 'mesero', pin: usuario.hasPin ? pin : undefined })
       navigate('/dashboard')
     } catch (err) {
       showError(err)
@@ -120,31 +121,25 @@ function Login() {
               <form className={styles.form} onSubmit={handleLogin}>
                 <div className={styles.field}>
                   <label className={styles.label}>Usuario</label>
-                  <div className={styles.inputGroup}>
-                    <svg className={styles.inputIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E6A65" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    <select
-                      className={styles.select}
-                      value={usuarioId}
-                      onChange={(e) => setUsuarioId(e.target.value === '' ? '' : Number(e.target.value))}
-                      disabled={cargandoUsuarios}
-                      required
-                    >
-                      <option value="">Seleccione usuario</option>
-                      {usuariosDisponibles.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.nombre} — {getRolLabel(u.rol)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <select
+                    className={styles.select}
+                    value={usuarioId}
+                    onChange={(e) => setUsuarioId(e.target.value === '' ? '' : Number(e.target.value))}
+                    disabled={cargandoUsuarios}
+                    required
+                  >
+                    <option value="">Seleccione usuario</option>
+                    {usuariosDisponibles.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.nombre} — {getRolLabel(u.rol)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {usuarioId && usuariosDisponibles.find(u => u.id === usuarioId)?.rol === 'administrador' && (
+                {usuarioId && usuariosDisponibles.find(u => u.id === usuarioId)?.hasPin && (
                   <div className={styles.field}>
-                    <label className={styles.label}>Contraseña (PIN)</label>
+                    <label className={styles.label}>PIN</label>
                     <div className={styles.inputGroup}>
                       <svg className={styles.inputIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E6A65" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
