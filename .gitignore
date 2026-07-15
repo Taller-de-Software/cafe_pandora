@@ -1,6 +1,3 @@
-uploads/productos/*
-!uploads/productos/.gitkeep
-
 uploads/facturas/*
 !uploads/facturas/.gitkeep
 
