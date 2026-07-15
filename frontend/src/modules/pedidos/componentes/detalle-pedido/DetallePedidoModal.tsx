@@ -42,7 +42,7 @@ interface Accion {
 }
 
 export function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
-  const { showError, showSuccess } = useError()
+  const { showError, showWarning, showSuccess } = useError()
   const queryClient = useQueryClient()
 
   const cambiarEstadoMut = useMutation({
