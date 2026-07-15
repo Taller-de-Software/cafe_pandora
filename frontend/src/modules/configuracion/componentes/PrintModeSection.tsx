@@ -126,6 +126,23 @@ function PrintModeSection() {
     }
   }, [config])
 
+  // Auto-select first detected printer when no saved config exists
+  useEffect(() => {
+    if (config && printers) {
+      const hasExistingPrinter = config.printerVendorId || config.printerAddress || config.printerSerialPort
+      if (!hasExistingPrinter && printers.usb.length > 0) {
+        const first = printers.usb[0]
+        setSelectedUsb(`${first.vendorId}:${first.productId}`)
+        if (!printerName) setPrinterName(first.name)
+        setConnectionType('usb')
+      } else if (!hasExistingPrinter && printers.serial.length > 0 && !config.printerSerialPort) {
+        const first = printers.serial[0]
+        setSerialPort(first.path)
+        setConnectionType('serial')
+      }
+    }
+  }, [config, printers])
+
   const modeMutation = useMutation({
     mutationFn: setPrintMode,
     onSuccess: () => {
@@ -299,7 +316,30 @@ function PrintModeSection() {
               className={`${styles.connTab} ${connectionType === t ? styles.connTabActive : ''}`}
               onClick={() => setConnectionType(t)}
             >
-              {t === 'usb' ? 'USB' : t === 'network' ? 'Red / Ethernet' : 'Serial'}
+              {t === 'usb' && (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 17h.01" /><path d="M10 7v10" /><path d="M14 17h.01" /><path d="M14 7v10" /><path d="M6 17h.01" /><path d="M6 7v10" /><path d="M18 17h.01" /><path d="M18 7v10" />
+                  </svg>
+                  USB
+                </>
+              )}
+              {t === 'network' && (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2" /><rect x="2" y="14" width="20" height="8" rx="2" ry="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" />
+                  </svg>
+                  Red / Ethernet
+                </>
+              )}
+              {t === 'serial' && (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                  Serial
+                </>
+              )}
             </button>
           ))}
         </div>
@@ -325,6 +365,7 @@ function PrintModeSection() {
                       />
                       <span className={styles.radioLabel}>
                         {p.name}
+                        <span className={styles.detectedBadge}>Detectada</span>
                         <span className={styles.radioSub}>
                           0x{p.vendorId.toString(16).toUpperCase().padStart(4, '0')}:{p.productId.toString(16).toUpperCase().padStart(4, '0')}
                         </span>

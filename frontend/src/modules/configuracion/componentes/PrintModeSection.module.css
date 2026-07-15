@@ -304,6 +304,25 @@
   font-family: var(--font-mono);
 }
 
+.detectedBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-exito-texto);
+  background: var(--color-exito-superficie);
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-left: 0.375rem;
+}
+
+.connTab svg {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 0.25rem;
+}
+
 .configActions {
   display: flex;
   justify-content: flex-end;

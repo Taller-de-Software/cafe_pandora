@@ -102,7 +102,7 @@ app.get("/api/health", async (req, res) => {
       message: "API Cafe Pandora funcionando",
       data: {
         hostname,
-        ip: preferred?.address || "0.0.0.0",
+        ip: preferred?.address || interfaces.find((i) => !i.internal)?.address || hostname,
         port,
         uptime: process.uptime(),
         database: dbOk ? "connected" : "disconnected",

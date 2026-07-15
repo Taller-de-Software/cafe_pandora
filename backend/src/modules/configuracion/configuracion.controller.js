@@ -83,3 +83,34 @@ export const guardarFrontendPort = async (req, res, next) => {
     next(err);
   }
 };
+
+// ─── Database health check ──────────────────────────────────────────────
+
+export const checkDatabaseHealth = async (req, res, next) => {
+  try {
+    const result = await configuracionService.checkDatabaseHealth();
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─── General configuration ─────────────────────────────────────────────
+
+export const obtenerConfigGeneral = async (req, res, next) => {
+  try {
+    const result = await configuracionService.obtenerConfigGeneral();
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const guardarConfigGeneral = async (req, res, next) => {
+  try {
+    const result = await configuracionService.guardarConfigGeneral(req.body);
+    ok(res, result, "Configuración general actualizada");
+  } catch (err) {
+    next(err);
+  }
+};

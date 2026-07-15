@@ -12,8 +12,8 @@ export const login = async ({ nombre, rol, pin }) => {
   const usuario = await prisma.usuario.findFirst({ where: { nombre, rol } });
   if (!usuario) throw crearError(401, "Credenciales inválidas");
 
-  if (usuario.rol === "administrador") {
-    if (!pin) throw crearError(400, "PIN requerido para administrador");
+  if (usuario.pin) {
+    if (!pin) throw crearError(400, "PIN requerido para este usuario");
     const valida = await comparePassword(pin, usuario.pin);
     if (!valida) throw crearError(401, "PIN inválido");
   }
@@ -96,8 +96,11 @@ export const getMe = async (id) => {
 
 export const getUsuariosDisponibles = async () => {
   const usuarios = await prisma.usuario.findMany({
-    select: { id: true, nombre: true, rol: true },
+    select: { id: true, nombre: true, rol: true, pin: true },
     orderBy: [{ rol: "desc" }, { nombre: "asc" }],
   });
-  return usuarios;
+  return usuarios.map(({ pin, ...rest }) => ({
+    ...rest,
+    hasPin: !!pin,
+  }));
 };

@@ -19,3 +19,15 @@ export const guardarPrinterConfigSchema = z.object({
 export const guardarFrontendPortSchema = z.object({
   frontendPort: z.number().int().min(1).max(65535),
 }).strict();
+
+export const guardarConfigGeneralSchema = z.object({
+  serverHost: z.string().max(45).optional(),
+  serverPort: z.number().int().min(1).max(65535).optional(),
+  frontendPort: z.number().int().min(1).max(65535).optional(),
+  corsOrigins: z.string().max(500).optional(),
+  sessionTtlMin: z.number().int().min(5).max(10080).optional(),
+  pinMaxAttempts: z.number().int().min(1).max(100).optional(),
+  pinLockoutMin: z.number().int().min(1).max(1440).optional(),
+  offlineModeEnabled: z.boolean().optional(),
+  qrCodeEnabled: z.boolean().optional(),
+}).strict();

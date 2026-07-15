@@ -60,7 +60,7 @@ export const obtenerNetworkInfo = async () => {
   const interfaces = await getNetworkInterfaces();
   const preferred = interfaces.find((i) => i.preferred);
   const port = getServerPort();
-  const ip = preferred?.address || "0.0.0.0";
+  const ip = preferred?.address || interfaces.find((i) => !i.internal)?.address || hostname;
 
   let frontendPort = 5173;
   try {
@@ -87,7 +87,7 @@ export const obtenerDiagnosticoDetallado = async () => {
   const network = await getNetworkDiagnostics();
   const port = getServerPort();
   const preferred = network.interfaces.find((i) => i.preferred);
-  const ip = preferred?.address || "0.0.0.0";
+  const ip = preferred?.address || network.interfaces.find((i) => !i.internal)?.address || os.hostname();
 
   const serverCheck = await testPortAccessibility(ip, port);
 
