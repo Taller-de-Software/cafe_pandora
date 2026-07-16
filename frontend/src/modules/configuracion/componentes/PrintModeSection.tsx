@@ -585,20 +585,29 @@ function PrintModeSection() {
         )}
       </div>
 
-      {/* ── Info ── */}
-      <div className={styles.infoBox}>
-        <span className={styles.infoTitle}>¿Qué hace cada modo?</span>
-        <div className={styles.infoGrid}>
-          <div className={styles.infoItem}>
-            <span className={styles.infoMode}>Simulación</span>
-            <span className={styles.infoDesc}>Genera un archivo PDF con el diseño del recibo. No necesita impresora conectada.</span>
-          </div>
-          <div className={styles.infoItem}>
-            <span className={styles.infoMode}>Impresora Real</span>
-            <span className={styles.infoDesc}>Envía el comando directo a una impresora térmica por USB, Red o Serial.</span>
+      {/* ── Info (colapsable) ── */}
+      <details className={styles.advancedDetails}>
+        <summary className={styles.advancedSummary}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          Información avanzada
+        </summary>
+        <div className={styles.advancedContent}>
+          <div className={styles.infoGrid}>
+            <div className={styles.infoItem}>
+              <span className={styles.infoMode}>Simulación</span>
+              <span className={styles.infoDesc}>Genera un archivo PDF con el diseño del recibo. No necesita impresora conectada.</span>
+            </div>
+            <div className={styles.infoItem}>
+              <span className={styles.infoMode}>Impresora Real</span>
+              <span className={styles.infoDesc}>Envía el comando directo a una impresora térmica por USB, Red o Serial.</span>
+            </div>
           </div>
         </div>
-      </div>
+      </details>
     </div>
   )
 }

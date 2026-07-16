@@ -40,6 +40,9 @@ export const actualizar = async (id, data) => {
     if (existing) throw crearError(409, "Ya existe un usuario con ese nombre");
     updateData.nombre = data.nombre;
   }
+  if (data.rol) {
+    updateData.rol = data.rol;
+  }
   if (data.pin) {
     updateData.pin = await hashPassword(data.pin);
   }

@@ -8,5 +8,6 @@ export const crearUsuarioSchema = z.object({
 
 export const actualizarUsuarioSchema = z.object({
   nombre: z.string().min(1).optional(),
+  rol: z.enum(["administrador", "mesero"]).optional(),
   pin: z.string().min(4).optional(),
 }).strict();

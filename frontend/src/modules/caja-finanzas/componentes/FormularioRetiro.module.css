@@ -19,7 +19,6 @@
 }
 
 .modalHeader {
-  background: linear-gradient(135deg, #7A3E1D 0%, #A0633D 100%);
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #E8E1D8;
 }
@@ -30,6 +29,24 @@
   font-weight: 700;
   color: #FFFFFF;
   margin: 0;
+}
+
+.headerSalida {
+  background: linear-gradient(135deg, #7A3E1D 0%, #A0633D 100%);
+}
+
+.headerEntrada {
+  background: linear-gradient(135deg, #2D6A4F 0%, #40916C 100%);
+}
+
+.saldoInfo {
+  font-size: 0.8rem;
+  color: #6E6A65;
+  margin: 0 0 0.75rem;
+}
+
+.saldoInfo strong {
+  color: #2D2A26;
 }
 
 .modalBody {
