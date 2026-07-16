@@ -157,7 +157,7 @@ async function getConfigAsync() {
 
 export async function listUsbPrinters() {
   try {
-    const devices = escpos.USB.findPrinters();
+    const devices = escpos.USB.findPrinter();
     return devices
       .filter(d => d.deviceDescriptor && d.deviceDescriptor.bDeviceClass === PRINTER_CLASS)
       .map(d => ({
@@ -300,7 +300,7 @@ export async function connectPrinter(modo) {
     }
 
     try {
-      const devices = escpos.USB.findPrinters();
+      const devices = escpos.USB.findPrinter();
       const satPrinter = devices.find(d => SAT_VENDOR_IDS.includes(d.deviceDescriptor.idVendor));
       if (!satPrinter) {
         throw new Error('No se encontró impresora conectada al sistema.');
