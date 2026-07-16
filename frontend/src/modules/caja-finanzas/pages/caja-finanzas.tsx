@@ -38,6 +38,7 @@ function CajaFinanzas() {
 
   const [periodo, setPeriodo] = useState<PeriodoVentas>('dia')
   const [showApertura, setShowApertura] = useState(false)
+  const [showEntrada, setShowEntrada] = useState(false)
   const [showRetiro, setShowRetiro] = useState(false)
   const [showResumen, setShowResumen] = useState(false)
   const [selectedFactura, setSelectedFactura] = useState<ResumenFactura | null>(null)
@@ -137,7 +138,8 @@ function CajaFinanzas() {
                   <ListaMovimientos
                     facturas={resumenCaja?.facturas ?? []}
                     retiros={retiros}
-                    onAdd={() => setShowRetiro(true)}
+                    onAddEntrada={() => setShowEntrada(true)}
+                    onAddSalida={() => setShowRetiro(true)}
                     onSelectFactura={(f) => setSelectedFactura(f)}
                   />
                 )}
@@ -165,8 +167,18 @@ function CajaFinanzas() {
                 onCancel={() => setShowApertura(false)}
               />
             )}
+            {showEntrada && sesion && (
+              <FormularioRetiro
+                tipo="entrada"
+                totalEnCaja={sesion.totalEnCaja}
+                onSave={async (data) => { await retiroMut.mutateAsync(data) }}
+                onCancel={() => setShowEntrada(false)}
+              />
+            )}
             {showRetiro && sesion && (
               <FormularioRetiro
+                tipo="salida"
+                totalEnCaja={sesion.totalEnCaja}
                 onSave={async (data) => { await retiroMut.mutateAsync(data) }}
                 onCancel={() => setShowRetiro(false)}
               />

@@ -10,9 +10,9 @@ interface BarraSuperiorProps {
 }
 
 const STATUS_CONFIG = {
-  connected: { color: 'var(--color-exito)', label: 'Conectado', dot: '🟢' },
+  connected: { color: 'var(--color-exito)', label: 'Backend: OK', dot: '🟢' },
   reconnecting: { color: 'var(--color-advertencia)', label: 'Reconectando...', dot: '🟡' },
-  disconnected: { color: 'var(--color-peligro)', label: 'Desconectado', dot: '🔴' },
+  disconnected: { color: 'var(--color-peligro)', label: 'Sin conexión', dot: '🔴' },
 } as const
 
 function BarraSuperior({ onToggle }: BarraSuperiorProps) {
@@ -63,7 +63,7 @@ function BarraSuperior({ onToggle }: BarraSuperiorProps) {
         <div className={styles.connectionStatus} style={{ color: STATUS_CONFIG[status].color }}>
           <span className={styles.statusDot}>{STATUS_CONFIG[status].dot}</span>
           <span className={styles.statusLabel}>
-            {status === 'reconnectating' ? `Intento ${attempt}` : STATUS_CONFIG[status].label}
+            {status === 'reconnecting' ? `Intento ${attempt}` : STATUS_CONFIG[status].label}
           </span>
         </div>
         <div className={styles.profileWrapper} ref={menuRef}>

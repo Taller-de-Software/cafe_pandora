@@ -7,7 +7,8 @@ import styles from './ListaMovimientos.module.css'
 interface ListaMovimientosProps {
   facturas: ResumenFactura[]
   retiros: Retiro[]
-  onAdd: () => void
+  onAddEntrada: () => void
+  onAddSalida: () => void
   onSelectFactura: (factura: ResumenFactura) => void
 }
 
@@ -21,7 +22,7 @@ type MovimientoUnificado = {
   factura?: ResumenFactura
 }
 
-function ListaMovimientos({ facturas, retiros, onAdd, onSelectFactura }: ListaMovimientosProps) {
+function ListaMovimientos({ facturas, retiros, onAddEntrada, onAddSalida, onSelectFactura }: ListaMovimientosProps) {
   const [selected, setSelected] = useState<MovimientoUnificado | null>(null)
 
   const movimientos = useMemo(() => {
@@ -65,7 +66,10 @@ function ListaMovimientos({ facturas, retiros, onAdd, onSelectFactura }: ListaMo
       <div className={styles.card}>
         <h3>
           Movimientos
-          <button className={styles.addBtn} onClick={onAdd}>+ Retiro</button>
+          <span className={styles.headerButtons}>
+            <button className={styles.addBtnEntrada} onClick={onAddEntrada}>+ Entrada</button>
+            <button className={styles.addBtnSalida} onClick={onAddSalida}>+ Retiro</button>
+          </span>
         </h3>
 
         {movimientos.length === 0 ? (

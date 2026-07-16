@@ -143,22 +143,6 @@
   flex: none;
 }
 
-.preview {
-  background: var(--color-hover-fondo);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radius-md);
-  padding: 0.625rem 0.875rem;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--color-atenuado);
-  word-break: break-all;
-}
-
-.preview strong {
-  color: var(--color-cuerpo);
-  font-weight: 600;
-}
-
 .testRow {
   display: flex;
   flex-direction: column;
@@ -220,28 +204,6 @@
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--color-borde);
-}
-
-.btnReset {
-  padding: 0.625rem 1rem;
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radius-md);
-  background: var(--color-tarjeta-fondo);
-  color: var(--color-atenuado);
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.btnReset:hover {
-  background: var(--color-hover-fondo);
-  color: var(--color-cuerpo);
-}
-
-.btnReset:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .btnPrimary {
@@ -344,25 +306,6 @@
 .useBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.testPortBtn {
-  margin-top: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radius-sm);
-  background: var(--color-tarjeta-fondo);
-  color: var(--color-cuerpo);
-  font-weight: 500;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.testPortBtn:hover {
-  background: var(--color-hover-fondo);
-  border-color: var(--color-acento-secundario);
-  color: var(--color-acento-secundario);
 }
 
 @keyframes fadeIn {

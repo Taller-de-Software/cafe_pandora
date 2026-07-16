@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   getServerConfig,
   setServerConfig,
-  resetServerConfig,
-  isCustomConfig,
   buildServerConfig,
   testConnection,
 } from '@/services/server-config'
@@ -38,14 +36,6 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
   const [detecting, setDetecting] = useState(false)
   const [detectedUrls, setDetectedUrls] = useState<{ interfaceName: string; interfaceAddress: string; fullUrl: string; apiUrl: string; socketUrl: string }[] | null>(null)
   const [detectError, setDetectError] = useState<string | null>(null)
-
-  const preview = `http://${ip || '...' }:${port || '3001'}/api`
-  const hasCustom = isCustomConfig()
-
-  useEffect(() => {
-    setTestResult(null)
-    setSaved(false)
-  }, [ip, port])
 
   async function handleTest() {
     setTesting(true)
@@ -85,36 +75,11 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
     api.put('/configuracion/red/preferred-interface', { preferredInterfaceName: detected.interfaceName }).catch(() => {})
   }
 
-  async function handleTestPort() {
-    setTesting(true)
-    setTestResult(null)
-    try {
-      const result = await api.post<{ ok: boolean }>('/red/test-port', { host: ip, port: parseInt(port) || 3001 })
-      setTestResult({ ok: result.ok, message: result.ok ? 'Puerto accesible desde el servidor' : 'Puerto bloqueado o no accesible' })
-    } catch (err) {
-      setTestResult({ ok: false, message: 'Error al probar el puerto desde el servidor' })
-    } finally {
-      setTesting(false)
-    }
-  }
-
   function handleSave() {
     const config = buildServerConfig(ip, port)
     setServerConfig(config)
     reconnectSocket()
     setSaved(true)
-    onSaved?.()
-  }
-
-  function handleReset() {
-    resetServerConfig()
-    reconnectSocket()
-    const defaults = getServerConfig()
-    const p = parseUrl(defaults.apiUrl)
-    setIp(p.ip)
-    setPort(p.port)
-    setSaved(false)
-    setTestResult(null)
     onSaved?.()
   }
 
@@ -164,32 +129,6 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
             </div>
           </div>
 
-          <div className={styles.preview}>
-            <strong>URL:</strong> {preview}
-          </div>
-
-          <div className={styles.testRow}>
-            <button
-              className={styles.testBtn}
-              onClick={handleTest}
-              disabled={testing || !ip}
-            >
-              {testing ? 'Probando...' : 'Probar conexión (cliente)'}
-            </button>
-            <button
-              className={styles.testBtn}
-              onClick={handleTestPort}
-              disabled={testing || !ip}
-            >
-              {testing ? 'Probando...' : 'Probar puerto (servidor)'}
-            </button>
-            {testResult && (
-              <span className={`${styles.testResult} ${testResult.ok ? styles.testOk : styles.testError}`}>
-                {testResult.ok ? '✓' : '✕'} {testResult.message}
-              </span>
-            )}
-          </div>
-
           <div className={styles.detectSection}>
             <button
               className={styles.detectBtn}
@@ -216,6 +155,21 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
             )}
           </div>
 
+          <div className={styles.testRow}>
+            <button
+              className={styles.testBtn}
+              onClick={handleTest}
+              disabled={testing || !ip}
+            >
+              {testing ? 'Probando...' : 'Probar conexión'}
+            </button>
+            {testResult && (
+              <span className={`${styles.testResult} ${testResult.ok ? styles.testOk : styles.testError}`}>
+                {testResult.ok ? '✓' : '✕'} {testResult.message}
+              </span>
+            )}
+          </div>
+
           {saved && (
             <span className={`${styles.testResult} ${styles.testOk}`}>
               ✓ Configuración guardada
@@ -224,13 +178,6 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
         </div>
 
         <div className={styles.actions}>
-          <button
-            className={styles.btnReset}
-            onClick={handleReset}
-            disabled={!hasCustom}
-          >
-            Restablecer localhost
-          </button>
           <button className={styles.btnPrimary} onClick={handleSave}>
             Guardar
           </button>

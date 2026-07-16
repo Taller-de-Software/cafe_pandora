@@ -192,6 +192,10 @@ export const crearRetiro = async (cajaSesionId, data) => {
   if (!sesion) throw crearError(404, "Sesión de caja no encontrada");
   if (sesion.cierre) throw crearError(400, "La sesión ya está cerrada");
 
+  if (data.tipo === "salida" && sesion.totalEnCaja < data.monto) {
+    throw crearError(400, `Saldo insuficiente. Disponible: $${sesion.totalEnCaja.toFixed(2)}`);
+  }
+
   const retiro = await prisma.$transaction(async (tx) => {
     const r = await tx.retiroCaja.create({
       data: {

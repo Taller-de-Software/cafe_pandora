@@ -208,66 +208,67 @@ function ServerConfigSection() {
         </div>
       </div>
 
-      {/* ── Avanzado ── */}
-      <div className={styles.groupCard}>
-        <div className={styles.groupHeader}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {/* ── Avanzado (colapsable) ── */}
+      <details className={styles.advancedDetails}>
+        <summary className={styles.advancedSummary}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="12 2 2 7 12 12 22 7 12 2" />
             <polyline points="2 17 12 22 22 17" />
             <polyline points="2 12 12 17 22 12" />
           </svg>
-          <span className={styles.groupTitle}>Avanzado</span>
-        </div>
+          Configuración Avanzada
+        </summary>
+        <div className={styles.advancedContent}>
+          <div className={styles.fieldGrid}>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Host del Backend</label>
+              <input
+                className={styles.inputMono}
+                type="text"
+                placeholder="0.0.0.0"
+                value={serverHost}
+                onChange={(e) => setServerHost(e.target.value)}
+              />
+              <span className={styles.fieldHint}>Dirección de binding del servidor</span>
+            </div>
 
-        <div className={styles.fieldGrid}>
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>Host del Backend</label>
-            <input
-              className={styles.inputMono}
-              type="text"
-              placeholder="0.0.0.0"
-              value={serverHost}
-              onChange={(e) => setServerHost(e.target.value)}
-            />
-            <span className={styles.fieldHint}>Dirección de binding del servidor</span>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Puerto del Backend</label>
+              <input
+                className={styles.inputMono}
+                type="number"
+                min={1}
+                max={65535}
+                value={serverPort}
+                onChange={(e) => setServerPort(e.target.value)}
+              />
+              <span className={styles.fieldHint}>Puerto del servidor Express</span>
+            </div>
           </div>
 
           <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>Puerto del Backend</label>
-            <input
-              className={styles.inputMono}
-              type="number"
-              min={1}
-              max={65535}
-              value={serverPort}
-              onChange={(e) => setServerPort(e.target.value)}
+            <label className={styles.fieldLabel}>Orígenes CORS</label>
+            <textarea
+              className={styles.textarea}
+              placeholder="http://localhost:5173,http://localhost:3000"
+              value={corsOrigins}
+              onChange={(e) => setCorsOrigins(e.target.value)}
+              rows={3}
             />
-            <span className={styles.fieldHint}>Puerto del servidor Express</span>
+            <span className={styles.fieldHint}>URLs permitidas separadas por coma</span>
+          </div>
+
+          <div className={styles.saveRow}>
+            <button
+              className={styles.btnSave}
+              onClick={handleSaveAdvanced}
+              disabled={saveMutation.isPending}
+            >
+              {saveMutation.isPending ? 'Guardando...' : 'Guardar Avanzado'}
+            </button>
           </div>
         </div>
-
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>Orígenes CORS</label>
-          <textarea
-            className={styles.textarea}
-            placeholder="http://localhost:5173,http://localhost:3000"
-            value={corsOrigins}
-            onChange={(e) => setCorsOrigins(e.target.value)}
-            rows={3}
-          />
-          <span className={styles.fieldHint}>URLs permitidas separadas por coma</span>
-        </div>
-
-        <div className={styles.saveRow}>
-          <button
-            className={styles.btnSave}
-            onClick={handleSaveAdvanced}
-            disabled={saveMutation.isPending}
-          >
-            {saveMutation.isPending ? 'Guardando...' : 'Guardar Avanzado'}
-          </button>
-        </div>
-      </div>
+      </details>
     </div>
   )
 }
