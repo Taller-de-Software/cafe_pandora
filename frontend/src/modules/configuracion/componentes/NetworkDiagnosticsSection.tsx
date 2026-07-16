@@ -5,7 +5,6 @@ import styles from './NetworkDiagnosticsSection.module.css'
 
 interface DiagnosticoDetallado {
   timestamp: string
-  totalLatencyMs: number
   servidor: {
     hostname: string
     ip: string
@@ -15,14 +14,19 @@ interface DiagnosticoDetallado {
   api: { ok: boolean; latency: number }
   socket: { clients: number; rooms: string[] }
   baseDeDatos: { ok: boolean; latency: number }
-  impresora: { connected: boolean; mode: string; error: string | null }
+  impresora: {
+    connected: boolean
+    mode: string
+    error: string | null
+    codigo: string | null
+    sugerencia: string | null
+    detalleTecnico: string | null
+  }
   red: {
     internet: boolean
     dns: boolean
-    dnsLatencyMs: number | null
     gateway: string | null
     gatewayReachable: boolean
-    gatewayLatencyMs: number | null
     interfaces: { name: string; address: string; preferred: boolean; reachable: boolean }[]
   }
 }
@@ -35,6 +39,18 @@ interface CheckItem {
 }
 
 function buildChecks(d: DiagnosticoDetallado): CheckItem[] {
+  const printerDetail = d.impresora.mode === 'simulacion'
+    ? 'Modo simulación activo'
+    : d.impresora.connected
+      ? 'Conectada'
+      : d.impresora.codigo
+        ? `${d.impresora.error} (${d.impresora.codigo})`
+        : d.impresora.error || 'Sin conexión'
+
+  const printerSuggestion = !d.impresora.connected && d.impresora.sugerencia
+    ? ` → ${d.impresora.sugerencia}`
+    : ''
+
   return [
     {
       label: 'Servidor encontrado',
@@ -63,11 +79,7 @@ function buildChecks(d: DiagnosticoDetallado): CheckItem[] {
     {
       label: 'Impresora',
       ok: d.impresora.connected,
-      detail: d.impresora.mode === 'simulacion'
-        ? 'Modo simulación activo'
-        : d.impresora.connected
-          ? 'Conectada'
-          : d.impresora.error || 'Sin conexión',
+      detail: printerDetail + printerSuggestion,
     },
     {
       label: 'Internet',
@@ -77,18 +89,14 @@ function buildChecks(d: DiagnosticoDetallado): CheckItem[] {
     {
       label: 'DNS',
       ok: d.red.dns,
-      detail: d.red.dns
-        ? `Funcionando${d.red.dnsLatencyMs ? ` (${d.red.dnsLatencyMs}ms)` : ''}`
-        : 'No resuelve nombres',
-      latencyMs: d.red.dnsLatencyMs,
+      detail: d.red.dns ? 'Funcionando' : 'No resuelve nombres',
     },
     {
       label: 'Gateway',
       ok: d.red.gatewayReachable,
       detail: d.red.gateway
-        ? `${d.red.gateway} (${d.red.gatewayReachable ? 'accesible' : 'no accesible'}${d.red.gatewayLatencyMs ? `, ${d.red.gatewayLatencyMs}ms` : ''})`
+        ? `${d.red.gateway} (${d.red.gatewayReachable ? 'accesible' : 'no accesible'})`
         : 'No detectado',
-      latencyMs: d.red.gatewayLatencyMs,
     },
   ]
 }

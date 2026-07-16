@@ -203,6 +203,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  escpos@2.5.2: 307272a2607a7d6fc956eb54969a58991f94c6fd16349fe0fcb70d4ec804ffa1
+
 importers:
 
   .:
@@ -221,7 +224,7 @@ importers:
         version: 17.4.2
       escpos:
         specifier: ^2.5.2
-        version: 2.5.2
+        version: 2.5.2(patch_hash=307272a2607a7d6fc956eb54969a58991f94c6fd16349fe0fcb70d4ec804ffa1)
       express:
         specifier: ^5.2.1
         version: 5.2.1
@@ -1611,7 +1614,7 @@ snapshots:
 
   escape-html@1.0.3: {}
 
-  escpos@2.5.2:
+  escpos@2.5.2(patch_hash=307272a2607a7d6fc956eb54969a58991f94c6fd16349fe0fcb70d4ec804ffa1):
     dependencies:
       iconv-lite: 0.7.2
       mutable-buffer: 2.2.5

@@ -5,3 +5,5 @@ allowBuilds:
   usb: true
   '@serialport/bindings-cpp': true
   node-bluetooth: true
+patchedDependencies:
+  escpos@2.5.2: patches/escpos@2.5.2.patch
