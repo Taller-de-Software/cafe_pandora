@@ -298,6 +298,13 @@
   margin-bottom: 0.75rem;
 }
 
+.interfacesHint {
+  font-size: 0.7rem;
+  color: var(--color-atenuado);
+  margin: 0 0 0.75rem;
+  line-height: 1.4;
+}
+
 .interfaceItem {
   display: flex;
   align-items: center;
@@ -332,6 +339,30 @@
   border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+.setPreferredBtn {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-acento-secundario);
+  background: transparent;
+  color: var(--color-acento-secundario);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.setPreferredBtn:hover {
+  background: var(--color-acento-secundario);
+  color: white;
+}
+
+.setPreferredBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (max-width: 480px) {

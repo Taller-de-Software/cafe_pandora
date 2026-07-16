@@ -157,6 +157,28 @@ export const checkDatabaseHealth = async () => {
   }
 };
 
+// ─── Preferred network interface ───────────────────────────────────────
+
+export const obtenerPreferredInterface = async () => {
+  try {
+    const config = await prisma.configuracion.findFirst();
+    return { preferredInterfaceName: config?.preferredInterfaceName ?? null };
+  } catch (err) {
+    console.error("Error reading preferred interface, returning default:", err.message);
+    return { preferredInterfaceName: null };
+  }
+};
+
+export const guardarPreferredInterface = async (name) => {
+  await prisma.configuracion.upsert({
+    where: { id: 1 },
+    create: { preferredInterfaceName: name ?? null },
+    update: { preferredInterfaceName: name ?? null },
+  });
+  invalidateConfigCache();
+  return { preferredInterfaceName: name ?? null };
+};
+
 // ─── General configuration ──────────────────────────────────────────────
 
 const DEFAULT_CONFIG = {

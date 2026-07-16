@@ -23,6 +23,10 @@ function saveFrontendPort(port: number): Promise<{ frontendPort: number }> {
   return api.put<{ frontendPort: number }>('/configuracion/frontend', { frontendPort: port })
 }
 
+function savePreferredInterface(name: string | null): Promise<{ preferredInterfaceName: string | null }> {
+  return api.put<{ preferredInterfaceName: string | null }>('/configuracion/red/preferred-interface', { preferredInterfaceName: name })
+}
+
 function ServerInfoSection() {
   const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
@@ -30,7 +34,7 @@ function ServerInfoSection() {
   const [showQR, setShowQR] = useState(false)
   const [frontendPortInput, setFrontendPortInput] = useState('')
 
-  const { data: info, isLoading, error } = useQuery({
+  const { data: info, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['network-info'],
     queryFn: getNetworkInfo,
     staleTime: 30000,
@@ -59,6 +63,15 @@ function ServerInfoSection() {
     onError: showError,
   })
 
+  const preferredMutation = useMutation({
+    mutationFn: (name: string | null) => savePreferredInterface(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['network-info'] })
+      showSuccess('Interfaz principal actualizada')
+    },
+    onError: showError,
+  })
+
   function copyUrl() {
     if (info?.frontendUrl) {
       navigator.clipboard.writeText(info.frontendUrl).catch(() => {})
@@ -70,6 +83,16 @@ function ServerInfoSection() {
     if (port >= 1 && port <= 65535) {
       portMutation.mutate()
     }
+  }
+
+  function handleRefresh() {
+    refetch()
+  }
+
+  function handleSetPreferred(name: string) {
+    const currentPreferred = info?.interfaces.find(i => i.preferred)?.name
+    if (name === currentPreferred) return
+    preferredMutation.mutate(name)
   }
 
   if (isLoading) return <p className={styles.loading}>Cargando información del servidor...</p>
@@ -120,6 +143,18 @@ function ServerInfoSection() {
             <line x1="7" y1="21" x2="7" y2="21.01" />
           </svg>
           {showQR ? 'Ocultar QR' : 'Mostrar QR'}
+        </button>
+        <button
+          className={styles.btnSecondary}
+          onClick={handleRefresh}
+          disabled={isFetching}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <polyline points="1 20 1 14 7 14" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+          {isFetching ? 'Actualizando...' : 'Refrescar'}
         </button>
       </div>
 
@@ -176,11 +211,24 @@ function ServerInfoSection() {
       {info.interfaces.length > 1 && (
         <div className={styles.interfacesSection}>
           <span className={styles.interfacesTitle}>Interfaces de red</span>
+          <p className={styles.interfacesHint}>
+            Selecciona cuál interfaz usar como principal para el servidor. La interfaz principal determina la IP que se usa para acceder al sistema desde otros dispositivos.
+          </p>
           {info.interfaces.map((iface) => (
             <div key={iface.name} className={styles.interfaceItem}>
               <span className={styles.interfaceName}>{iface.name}</span>
               <span className={styles.interfaceAddr}>{iface.address}</span>
-              {iface.preferred && <span className={styles.preferredBadge}>Principal</span>}
+              {iface.preferred ? (
+                <span className={styles.preferredBadge}>Principal</span>
+              ) : (
+                <button
+                  className={styles.setPreferredBtn}
+                  onClick={() => handleSetPreferred(iface.name)}
+                  disabled={preferredMutation.isPending}
+                >
+                  Usar
+                </button>
+              )}
             </div>
           ))}
         </div>

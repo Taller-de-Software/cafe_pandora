@@ -25,9 +25,13 @@ export const guardarConfigGeneralSchema = z.object({
   serverPort: z.number().int().min(1).max(65535).optional(),
   frontendPort: z.number().int().min(1).max(65535).optional(),
   corsOrigins: z.string().max(500).optional(),
-  sessionTtlMin: z.number().int().min(5).max(10080).optional(),
-  pinMaxAttempts: z.number().int().min(1).max(100).optional(),
-  pinLockoutMin: z.number().int().min(1).max(1440).optional(),
+  sessionTtlMin: z.number().int().min(1).max(1440).optional(),
+  pinMaxAttempts: z.number().int().min(1).max(20).optional(),
+  pinLockoutMin: z.number().int().min(1).max(120).optional(),
   offlineModeEnabled: z.boolean().optional(),
   qrCodeEnabled: z.boolean().optional(),
+}).strict();
+
+export const guardarPreferredInterfaceSchema = z.object({
+  preferredInterfaceName: z.string().nullable().optional(),
 }).strict();

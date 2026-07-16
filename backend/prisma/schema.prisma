@@ -338,6 +338,9 @@ model Configuracion {
   // Impresora - común
   printerEncoding      String         @default("CP858")
 
+  // Red - interfaz preferida
+  preferredInterfaceName String?
+
   @@map("configuracion")
 }
 

@@ -112,6 +112,9 @@ export async function getNetworkInterfaces() {
   const gateway = await getDefaultGateway();
   const internet = await checkInternetConnectivity();
 
+  const config = await getConfig();
+  const preferredName = config?.preferredInterfaceName || null;
+
   const results = [];
 
   for (const iface of interfaces) {
@@ -132,6 +135,14 @@ export async function getNetworkInterfaces() {
       internet,
       preferred: false,
     });
+  }
+
+  if (preferredName) {
+    const chosen = results.find((i) => i.name === preferredName);
+    if (chosen) {
+      chosen.preferred = true;
+      return results;
+    }
   }
 
   const nonInternal = results.filter((i) => !i.internal && i.reachable);
