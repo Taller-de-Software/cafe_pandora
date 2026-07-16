@@ -76,12 +76,13 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
     }
   }
 
-  function useDetectedUrl(detected: { apiUrl: string }) {
+  function useDetectedUrl(detected: { apiUrl: string; interfaceName: string }) {
     const p = parseUrl(detected.apiUrl)
     setIp(p.ip)
     setPort(p.port)
     setDetectedUrls(null)
     setDetectError(null)
+    api.put('/configuracion/red/preferred-interface', { preferredInterfaceName: detected.interfaceName }).catch(() => {})
   }
 
   async function handleTestPort() {

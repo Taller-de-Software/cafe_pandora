@@ -84,6 +84,27 @@ export const guardarFrontendPort = async (req, res, next) => {
   }
 };
 
+// ─── Preferred network interface ───────────────────────────────────────
+
+export const obtenerPreferredInterface = async (req, res, next) => {
+  try {
+    const result = await configuracionService.obtenerPreferredInterface();
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const guardarPreferredInterface = async (req, res, next) => {
+  try {
+    const { preferredInterfaceName } = req.body;
+    const result = await configuracionService.guardarPreferredInterface(preferredInterfaceName);
+    ok(res, result, "Interfaz de red principal actualizada");
+  } catch (err) {
+    next(err);
+  }
+};
+
 // ─── Database health check ──────────────────────────────────────────────
 
 export const checkDatabaseHealth = async (req, res, next) => {

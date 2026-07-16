@@ -66,15 +66,31 @@ app.use(cors({
 }));
 app.use(express.json({ limit: "1mb" }));
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, message: "Demasiadas peticiones. Intenta de nuevo en 15 minutos." },
-});
-app.use("/api/auth/login", authLimiter);
-app.use("/api/auth/register", authLimiter);
+export function setupAuthRateLimiter(prismaInstance) {
+  return async function applyRateLimiter() {
+    let rateLimitMax = 30;
+    let rateLimitWindowMs = 15 * 60 * 1000;
+    try {
+      const config = await prismaInstance.configuracion.findFirst();
+      if (config) {
+        rateLimitMax = config.pinMaxAttempts || 5;
+        rateLimitWindowMs = (config.pinLockoutMin || 15) * 60 * 1000;
+      }
+    } catch {
+      // fallback a defaults
+    }
+
+    const authLimiter = rateLimit({
+      windowMs: rateLimitWindowMs,
+      max: rateLimitMax,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { success: false, message: "Demasiadas peticiones. Intenta de nuevo en 15 minutos." },
+    });
+    app.use("/api/auth/login", authLimiter);
+    app.use("/api/auth/register", authLimiter);
+  };
+}
 
 app.get("/api/health", async (req, res) => {
   try {

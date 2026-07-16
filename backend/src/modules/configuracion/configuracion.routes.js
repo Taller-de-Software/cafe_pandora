@@ -8,6 +8,7 @@ import {
   guardarPrinterConfigSchema,
   guardarFrontendPortSchema,
   guardarConfigGeneralSchema,
+  guardarPreferredInterfaceSchema,
 } from "./configuracion.validation.js";
 import { ROLES } from "../../config/constants.js";
 
@@ -37,5 +38,9 @@ router.get("/health", configuracionController.checkDatabaseHealth);
 // General configuration
 router.get("/general", configuracionController.obtenerConfigGeneral);
 router.put("/general", authorize(ROLES.ADMIN), validate(guardarConfigGeneralSchema), configuracionController.guardarConfigGeneral);
+
+// Preferred network interface
+router.get("/red/preferred-interface", configuracionController.obtenerPreferredInterface);
+router.put("/red/preferred-interface", authorize(ROLES.ADMIN), validate(guardarPreferredInterfaceSchema), configuracionController.guardarPreferredInterface);
 
 export default router;
