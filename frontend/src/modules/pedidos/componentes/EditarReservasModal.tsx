@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { cancelarReserva } from '@modules/pedidos/data/pos'
+import { cancelarReserva, actualizarReserva } from '@modules/pedidos/data/pos'
 import { useReservas, type ReservaLocal } from '../context/ReservasContext'
 import { useError } from '@/context/ErrorContext'
 import styles from './modal.module.css'
@@ -34,7 +34,7 @@ interface EditarReservasModalProps {
 function EditarReservasModal({ onClose }: EditarReservasModalProps) {
   const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
-  const { reservas, actualizarReserva, cancelarReserva: cancelarLocal } = useReservas()
+  const { reservas, actualizarReserva: actualizarLocal, cancelarReserva: cancelarLocal } = useReservas()
 
   const [editando, setEditando] = useState<ReservaLocal | null>(null)
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
@@ -46,6 +46,16 @@ function EditarReservasModal({ onClose }: EditarReservasModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
       showSuccess('Reserva cancelada exitosamente')
+    },
+    onError: showError,
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof actualizarReserva>[1] }) =>
+      actualizarReserva(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      showSuccess('Reserva actualizada exitosamente')
     },
     onError: showError,
   })
@@ -68,9 +78,25 @@ function EditarReservasModal({ onClose }: EditarReservasModalProps) {
     return (
       <EditForm
         reserva={editando}
-        onSave={(data) => {
-          actualizarReserva(editando.id, data)
-          setEditando(null)
+        onSave={async (data) => {
+          try {
+            if (editando.apiId) {
+              await updateMutation.mutateAsync({
+                id: editando.apiId,
+                data: {
+                  cliente: data.nombreCliente,
+                  telefono: data.telefono || undefined,
+                  fecha: data.fecha,
+                  hora: data.hora,
+                  personas: data.numeroPersonas,
+                },
+              })
+            }
+            actualizarLocal(editando.id, data)
+            setEditando(null)
+          } catch {
+            /* error handled by mutation's onError */
+          }
         }}
         onCancel={() => setEditando(null)}
       />

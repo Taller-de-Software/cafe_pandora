@@ -65,6 +65,29 @@
   transform: translateY(-1px);
 }
 
+.mesaCardBloqueada {
+  background: #fef2f2;
+  border-color: #fecaca;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.mesaCardBloqueada:hover {
+  border-color: #fecaca;
+  box-shadow: none;
+  transform: none;
+}
+
+.mesaCardHabilitada {
+  border-color: #3D8B5F;
+  background: #f0fdf4;
+}
+
+.mesaCardHabilitada:hover {
+  border-color: #3D8B5F;
+  box-shadow: 0 4px 12px rgba(61, 139, 95, 0.12);
+}
+
 .mesaName {
   font-size: 1rem;
   font-weight: 700;

@@ -105,7 +105,10 @@ export function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps)
   const abonoMut = useMutation({
     mutationFn: ({ id, monto, metodoPagoId }: { id: number; monto: number; metodoPagoId: number }) =>
       registrarAbonoPedido(id, { monto, metodoPagoId }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data?.pedido?.totalAbonado !== undefined) {
+        setTotalAbonadoLocal(data.pedido.totalAbonado)
+      }
       queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
       queryClient.invalidateQueries({ queryKey: ['mesas'] })
@@ -124,6 +127,7 @@ export function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps)
   const [mesaSeleccionada, setMesaSeleccionada] = useState<string | null>(null)
   const [montoIngresado, setMontoIngresado] = useState(0)
   const [metodoPagoAbono, setMetodoPagoAbono] = useState<number | null>(null)
+  const [totalAbonadoLocal, setTotalAbonadoLocal] = useState(pedido.totalAbonado || 0)
 
   const { data: mesasDisponibles = [] } = useQuery({
     queryKey: ['mesas'],
@@ -192,7 +196,7 @@ export function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps)
   const mesero = getMesero(pedido)
   const productosActuales = getProductos(pedido)
 
-  const totalAbonado = pedido.totalAbonado || 0
+  const totalAbonado = totalAbonadoLocal
   const saldoPendiente = (pedido.total ?? 0) - totalAbonado
 
   const montoValido = montoIngresado > 0 && montoIngresado <= saldoPendiente && metodoPagoAbono !== null
@@ -233,6 +237,7 @@ export function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps)
   }, [productosActuales])
 
   const volverAcciones = useCallback(() => {
+    setTotalAbonadoLocal(pedido.totalAbonado || 0)
     setDraftItems([])
     setAsignaciones({})
     setMaxCuenta(1)
@@ -240,7 +245,7 @@ export function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps)
     setMontoIngresado(0)
     setMetodoPagoAbono(null)
     setModo('acciones')
-  }, [])
+  }, [pedido.totalAbonado])
 
   const agregarProducto = useCallback((producto: Producto) => {
     setDraftItems((prev) => {
@@ -374,10 +379,11 @@ const confirmarUnion = useCallback(() => {
   const otrasMesas = mesasDisponibles.filter((m) => m.nombre !== mesaNombre)
 
   const entrarAbonarDinero = useCallback(() => {
+    setTotalAbonadoLocal(pedido.totalAbonado || 0)
     setMontoIngresado(0)
     setMetodoPagoAbono(metodosPago.length > 0 ? metodosPago[0].id : null)
     setModo('abonar-dinero')
-  }, [metodosPago])
+  }, [metodosPago, pedido.totalAbonado])
 
   const confirmarAbono = useCallback(() => {
     if (!montoValido || !metodoPagoAbono) return

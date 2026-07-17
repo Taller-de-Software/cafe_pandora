@@ -97,6 +97,30 @@ export const cancelar = async (id) => {
   });
 };
 
+export const actualizar = async (id, data) => {
+  const reserva = await prisma.reserva.findUnique({
+    where: { id },
+    include: { mesa: true },
+  });
+  if (!reserva) throw crearError(404, "Reserva no encontrada");
+  if (reserva.estado === "cancelada" || reserva.estado === "completada") {
+    throw crearError(400, "No se puede editar una reserva cancelada o completada");
+  }
+
+  const updateData = {};
+  if (data.cliente !== undefined) updateData.cliente = data.cliente;
+  if (data.telefono !== undefined) updateData.telefono = data.telefono || null;
+  if (data.fecha !== undefined) updateData.fecha = new Date(data.fecha);
+  if (data.hora !== undefined) updateData.hora = data.hora;
+  if (data.personas !== undefined) updateData.personas = data.personas;
+
+  return prisma.reserva.update({
+    where: { id },
+    data: updateData,
+    include: { mesa: true },
+  });
+};
+
 export const convertir = async (id, data, usuarioId) => {
   const reserva = await prisma.reserva.findUnique({
     where: { id },

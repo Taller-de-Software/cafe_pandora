@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useFormattedInput } from '@/hooks/useFormattedInput'
 import styles from './VistaAbonar.module.css'
 
@@ -33,6 +34,10 @@ export default function VistaAbonar({
   disabled,
 }: VistaAbonarProps) {
   const recibido = useFormattedInput({ type: 'money', initialValue: String(montoIngresado) })
+
+  useEffect(() => {
+    setMontoIngresado(recibido.numericValue)
+  }, [recibido.numericValue, setMontoIngresado])
 
   const montoValido = montoIngresado > 0 && montoIngresado <= saldoPendiente && metodoPagoAbono !== null
 
