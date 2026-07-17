@@ -5,6 +5,9 @@
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  content-visibility: auto;
+  contain-intrinsic-size: 200px;
+  will-change: transform;
 }
 
 .card:hover {
