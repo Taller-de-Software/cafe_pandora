@@ -73,23 +73,25 @@ export const cancelar = async (id) => {
       data: { estado: "cancelada" },
     });
 
-    const activas = await tx.reserva.count({
-      where: { mesaId: reserva.mesaId, estado: { in: ["pendiente", "confirmada"] } },
-    });
-
-    if (activas === 0) {
-      const pedidosActivos = await tx.pedido.count({
-        where: {
-          mesaId: reserva.mesaId,
-          estado: { notIn: ["finalizado", "cancelado"] },
-        },
+    if (reserva.mesa) {
+      const activas = await tx.reserva.count({
+        where: { mesaId: reserva.mesaId, estado: { in: ["pendiente", "confirmada"] } },
       });
 
-      if (pedidosActivos === 0) {
-        await tx.mesa.update({
-          where: { id: reserva.mesaId },
-          data: { estado: ESTADOS_MESA.VACIA },
+      if (activas === 0) {
+        const pedidosActivos = await tx.pedido.count({
+          where: {
+            mesaId: reserva.mesaId,
+            estado: { notIn: ["finalizado", "cancelado"] },
+          },
         });
+
+        if (pedidosActivos === 0) {
+          await tx.mesa.update({
+            where: { id: reserva.mesaId },
+            data: { estado: ESTADOS_MESA.VACIA },
+          });
+        }
       }
     }
 

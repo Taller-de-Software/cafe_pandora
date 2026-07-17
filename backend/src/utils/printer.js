@@ -303,7 +303,25 @@ export async function connectPrinter(modo) {
       const devices = escpos.USB.findPrinter();
       const satPrinter = devices.find(d => SAT_VENDOR_IDS.includes(d.deviceDescriptor.idVendor));
       if (!satPrinter) {
-        throw new Error('No se encontró impresora conectada al sistema.');
+        console.log('🔍 [IMPRESORA] Dispositivos USB detectados en el sistema:');
+        devices.forEach(d => {
+          const desc = d.deviceDescriptor;
+          console.log(
+            `  VendorID=0x${desc.idVendor.toString(16).toUpperCase()}, ` +
+            `ProductID=0x${desc.idProduct.toString(16).toUpperCase()}, ` +
+            `bDeviceClass=${desc.bDeviceClass}`
+          );
+        });
+
+        const dispositivosDetectados = devices.map(d => ({
+          idVendor: `0x${d.deviceDescriptor.idVendor.toString(16).toUpperCase()}`,
+          idProduct: `0x${d.deviceDescriptor.idProduct.toString(16).toUpperCase()}`,
+          bDeviceClass: d.deviceDescriptor.bDeviceClass,
+        }));
+
+        const err = new Error('No se encontró impresora conectada al sistema.');
+        err.dispositivosDetectados = dispositivosDetectados;
+        throw err;
       }
       const device = new escpos.USB(
         satPrinter.deviceDescriptor.idVendor,
@@ -314,7 +332,11 @@ export async function connectPrinter(modo) {
       console.log(`✅ [IMPRESORA] Conexión: USB auto-detectada`);
       return printer;
     } catch (error) {
-      throw buildPrinterError(error, { modo, tipoConexion: 'usb' });
+      const printerError = buildPrinterError(error, { modo, tipoConexion: 'usb' });
+      if (error.dispositivosDetectados) {
+        printerError.dispositivosDetectados = error.dispositivosDetectados;
+      }
+      throw printerError;
     }
   }
 
