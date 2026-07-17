@@ -241,6 +241,7 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
 
       {showEditarReservas && (
         <EditarReservasModal
+          mesas={mesas}
           onClose={() => setShowEditarReservas(false)}
         />
       )}

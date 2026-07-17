@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { cancelarReserva, actualizarReserva } from '@modules/pedidos/data/pos'
 import { useReservas, type ReservaLocal } from '../context/ReservasContext'
 import { useError } from '@/context/ErrorContext'
+import type { MesaCompleta } from '../data/pos'
 import styles from './modal.module.css'
 import localStyles from './EditarReservasModal.module.css'
 
@@ -28,10 +29,11 @@ function formatHora(hora: string): string {
 }
 
 interface EditarReservasModalProps {
+  mesas: MesaCompleta[]
   onClose: () => void
 }
 
-function EditarReservasModal({ onClose }: EditarReservasModalProps) {
+function EditarReservasModal({ mesas, onClose }: EditarReservasModalProps) {
   const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
   const { reservas, actualizarReserva: actualizarLocal, cancelarReserva: cancelarLocal } = useReservas()
@@ -39,7 +41,8 @@ function EditarReservasModal({ onClose }: EditarReservasModalProps) {
   const [editando, setEditando] = useState<ReservaLocal | null>(null)
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
 
-  const reservasActivas = reservas.filter((r) => r.estado === 'activa')
+  const mesaIdsExistentes = new Set(mesas.map((m) => m.id))
+  const reservasActivas = reservas.filter((r) => r.estado === 'activa' && mesaIdsExistentes.has(r.mesaId))
 
   const cancelMutation = useMutation({
     mutationFn: (apiId: number) => cancelarReserva(apiId),
