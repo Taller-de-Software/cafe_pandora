@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo, useMemo } from 'react'
 import type { Producto } from '../../api/productos'
 import TarjetaProducto from './TarjetaProducto'
 import EncabezadoGrupo from './EncabezadoGrupo'
@@ -21,18 +21,7 @@ interface ListaProductosProps {
   onEliminar: (id: number) => void
 }
 
-function renderTarjetas(productos: Producto[], onEditar: (p: Producto) => void, onEliminar: (id: number) => void) {
-  return productos.map((p) => (
-    <TarjetaProducto
-      key={p.id}
-      producto={p}
-      onEditar={onEditar}
-      onEliminar={onEliminar}
-    />
-  ))
-}
-
-function ListaProductos({
+const ListaProductos = memo(function ListaProductos({
   productos,
   grupos,
   categoriaNombre,
@@ -43,6 +32,13 @@ function ListaProductos({
   onEliminar,
 }: ListaProductosProps) {
   const [searchFocused, setSearchFocused] = useState(false)
+
+  const tarjetas = useMemo(
+    () => productos.map((p) => (
+      <TarjetaProducto key={p.id} producto={p} onEditar={onEditar} onEliminar={onEliminar} />
+    )),
+    [productos, onEditar, onEliminar]
+  )
 
   if (!categoriaNombre) {
     return <p className={styles.noCategory}>Selecciona una categoría para ver sus productos</p>
@@ -86,7 +82,9 @@ function ListaProductos({
               <div key={grupo.subcategoriaId ?? '__otros__'} className={styles.grupoSection}>
                 <EncabezadoGrupo nombre={grupo.nombre} total={grupo.productos.length} />
                 <div className={styles.grid}>
-                  {renderTarjetas(grupo.productos, onEditar, onEliminar)}
+                  {grupo.productos.map((p) => (
+                    <TarjetaProducto key={p.id} producto={p} onEditar={onEditar} onEliminar={onEliminar} />
+                  ))}
                 </div>
               </div>
             ))}
@@ -96,12 +94,12 @@ function ListaProductos({
             {productos.length === 0 && (
               <p className={styles.vacio}>Sin productos en esta categoría</p>
             )}
-            {renderTarjetas(productos, onEditar, onEliminar)}
+            {tarjetas}
           </div>
         )}
       </div>
     </div>
   )
-}
+})
 
 export default ListaProductos

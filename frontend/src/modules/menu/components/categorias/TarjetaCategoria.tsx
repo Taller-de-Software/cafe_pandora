@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { Categoria } from '../../api/categorias'
 import styles from './TarjetaCategoria.module.css'
 
@@ -7,7 +8,7 @@ interface TarjetaCategoriaProps {
   onSeleccionar: () => void
 }
 
-function TarjetaCategoria({ categoria, activa, onSeleccionar }: TarjetaCategoriaProps) {
+const TarjetaCategoria = memo(function TarjetaCategoria({ categoria, activa, onSeleccionar }: TarjetaCategoriaProps) {
   return (
     <button
       className={`${styles.pill} ${activa ? styles.pillActiva : ''}`}
@@ -16,6 +17,6 @@ function TarjetaCategoria({ categoria, activa, onSeleccionar }: TarjetaCategoria
       {categoria.nombre}
     </button>
   )
-}
+})
 
 export default TarjetaCategoria

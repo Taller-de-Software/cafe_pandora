@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { Subcategoria } from '../../api/subcategorias'
 import styles from './TarjetaSubcategoria.module.css'
 
@@ -7,7 +8,7 @@ interface TarjetaSubcategoriaProps {
   onSeleccionar: () => void
 }
 
-function TarjetaSubcategoria({ subcategoria, activa, onSeleccionar }: TarjetaSubcategoriaProps) {
+const TarjetaSubcategoria = memo(function TarjetaSubcategoria({ subcategoria, activa, onSeleccionar }: TarjetaSubcategoriaProps) {
   return (
     <button
       className={`${styles.pill} ${activa ? styles.pillActiva : ''}`}
@@ -16,6 +17,6 @@ function TarjetaSubcategoria({ subcategoria, activa, onSeleccionar }: TarjetaSub
       {subcategoria.nombre}
     </button>
   )
-}
+})
 
 export default TarjetaSubcategoria

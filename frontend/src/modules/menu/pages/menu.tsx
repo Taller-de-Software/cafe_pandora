@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useError } from '@/context/ErrorContext'
 import ListaCategorias from '../components/categorias/ListaCategorias'
@@ -53,52 +53,58 @@ function Menu() {
   })
 
   const mostrarInhabilitados = categoriaActivaId === null && subcategoriaActivaId === null
-  const productosBase = subcategoriaActivaId
-    ? productos.filter((p) => p.subcategoriaId === subcategoriaActivaId && (mostrarInhabilitados || p.habilitado !== false))
-    : productos.filter((p) => mostrarInhabilitados || p.habilitado !== false)
 
-  const productosFiltrados = busqueda.trim()
-    ? productosBase.filter((p) => {
-        const term = normalizar(busqueda)
-        return (
-          normalizar(p.nombre).includes(term) ||
-          normalizar(p.descripcion || '').includes(term) ||
-          normalizar(p.categoria?.nombre || '').includes(term) ||
-          normalizar(p.subcategoria?.nombre || '').includes(term)
-        )
-      })
-    : productosBase
+  const termBusqueda = useMemo(() => busqueda.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''), [busqueda])
 
-  const selectedCategoria = categorias.find((c) => c.id === categoriaActivaId)
+  const productosBase = useMemo(() => {
+    const filtro = subcategoriaActivaId
+      ? productos.filter((p) => p.subcategoriaId === subcategoriaActivaId && (mostrarInhabilitados || p.habilitado !== false))
+      : productos.filter((p) => mostrarInhabilitados || p.habilitado !== false)
+    return filtro
+  }, [productos, subcategoriaActivaId, mostrarInhabilitados])
+
+  const productosFiltrados = useMemo(() => {
+    if (!termBusqueda) return productosBase
+    return productosBase.filter((p) => {
+      const nombre = normalizar(p.nombre)
+      const desc = normalizar(p.descripcion || '')
+      const cat = normalizar(p.categoria?.nombre || '')
+      const sub = normalizar(p.subcategoria?.nombre || '')
+      return nombre.includes(termBusqueda) || desc.includes(termBusqueda) || cat.includes(termBusqueda) || sub.includes(termBusqueda)
+    })
+  }, [productosBase, termBusqueda])
+
+  const selectedCategoria = useMemo(
+    () => categorias.find((c) => c.id === categoriaActivaId),
+    [categorias, categoriaActivaId]
+  )
   const categoriaNombre = selectedCategoria?.nombre ?? (categoriaActivaId === null ? 'Todos los productos' : null)
 
-  const grupos: GrupoProductos[] | null =
-    categoriaActivaId === null && subcategoriaActivaId === null
-      ? (() => {
-          const map = new Map<number | null, Producto[]>()
-          for (const p of productosFiltrados) {
-            const key = p.subcategoriaId ?? null
-            if (!map.has(key)) map.set(key, [])
-            map.get(key)!.push(p)
-          }
-          return Array.from(map.entries())
-            .map(([id, prods]) => ({
-              subcategoriaId: id,
-              nombre: prods[0]?.subcategoria?.nombre ?? 'OTROS',
-              productos: prods,
-            }))
-            .sort((a, b) => {
-              if (a.subcategoriaId === null) return 1
-              if (b.subcategoriaId === null) return -1
-              return a.nombre.localeCompare(b.nombre)
-            })
-        })()
-      : null
+  const grupos: GrupoProductos[] | null = useMemo(() => {
+    if (categoriaActivaId !== null || subcategoriaActivaId !== null) return null
+    const map = new Map<number | null, Producto[]>()
+    for (const p of productosFiltrados) {
+      const key = p.subcategoriaId ?? null
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(p)
+    }
+    return Array.from(map.entries())
+      .map(([id, prods]) => ({
+        subcategoriaId: id,
+        nombre: prods[0]?.subcategoria?.nombre ?? 'OTROS',
+        productos: prods,
+      }))
+      .sort((a, b) => {
+        if (a.subcategoriaId === null) return 1
+        if (b.subcategoriaId === null) return -1
+        return a.nombre.localeCompare(b.nombre)
+      })
+  }, [categoriaActivaId, subcategoriaActivaId, productosFiltrados])
 
-  function handleSelectCategoria(id: number | null) {
+  const handleSelectCategoria = useCallback((id: number | null) => {
     setCategoriaActivaId(id)
     setSubcategoriaActivaId(null)
-  }
+  }, [])
 
   const crearCat = useMutation({
     mutationFn: crearCategoria,
@@ -197,21 +203,21 @@ function Menu() {
     onError: showError,
   })
 
-  function abrirFormProducto(producto: Producto) {
+  const abrirFormProducto = useCallback((producto: Producto) => {
     setProductoEditando(producto)
     setShowProdForm(true)
-  }
+  }, [])
 
   if (catCargando) return <div className={styles.layout}><p>Cargando categorías...</p></div>
   if (catError) return <div className={styles.layout}><p>Error al cargar categorías</p></div>
 
-  async function handleEliminarProducto(id: number) {
+  const handleEliminarProducto = useCallback(async (id: number) => {
     try {
       await eliminarProd.mutateAsync(id)
     } catch {
       // Error manejado por onError en useMutation
     }
-  }
+  }, [eliminarProd])
 
   return (
     <div className={styles.layout}>

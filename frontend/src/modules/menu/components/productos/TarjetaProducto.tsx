@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import type { Producto } from '../../api/productos'
 import { formatearNumero } from '@/utils/formatear'
 import { imagenUrlCompleta } from '@/utils/imagen'
@@ -10,7 +10,7 @@ interface TarjetaProductoProps {
   onEliminar: (id: number) => void
 }
 
-function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProps) {
+const TarjetaProducto = memo(function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProps) {
   const [expandido, setExpandido] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
   const [descExpandida, setDescExpandida] = useState(false)
@@ -24,6 +24,7 @@ function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProp
           className={styles.imagen}
           src={imgUrl}
           alt={producto.nombre}
+          loading="lazy"
         />
       )}
       {!imgUrl && (
@@ -117,6 +118,6 @@ function TarjetaProducto({ producto, onEditar, onEliminar }: TarjetaProductoProp
       </div>
     </div>
   )
-}
+})
 
 export default TarjetaProducto
