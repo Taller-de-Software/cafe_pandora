@@ -32,6 +32,15 @@ export const cancelar = async (req, res, next) => {
   }
 };
 
+export const actualizar = async (req, res, next) => {
+  try {
+    const reserva = await reservasService.actualizar(Number(req.params.id), req.body);
+    ok(res, reserva, "Reserva actualizada");
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const convertir = async (req, res, next) => {
   try {
     const pedido = await reservasService.convertir(req.params.id, req.body, req.user.id);

@@ -52,6 +52,19 @@ export async function crearReserva(data: {
   return api.post<Reserva>('/reservas', data)
 }
 
+export async function actualizarReserva(
+  id: number,
+  data: {
+    cliente?: string
+    telefono?: string
+    fecha?: string
+    hora?: string
+    personas?: number
+  }
+): Promise<Reserva> {
+  return api.put<Reserva>(`/reservas/${id}`, data)
+}
+
 export async function cancelarReserva(id: number): Promise<Reserva> {
   return api.post<Reserva>(`/reservas/${id}/cancelar`)
 }

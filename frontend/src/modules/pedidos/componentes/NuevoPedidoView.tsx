@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarMesasCompletas, crearReserva, type MesaCompleta } from '../data/pos'
+import { getEstadoReservaTiming } from '../types/estados-mesa'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { useError } from '@/context/ErrorContext'
 import { useReservas } from '../context/ReservasContext'
@@ -45,6 +46,12 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
   const [showReservarMesa, setShowReservarMesa] = useState(false)
   const [showEditarReservas, setShowEditarReservas] = useState(false)
   const [detailPedido, setDetailPedido] = useState<MesaCompleta['pedidoActivo']>(null)
+  const [, forceRender] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => forceRender(n => n + 1), 30_000)
+    return () => clearInterval(id)
+  }, [])
 
   const { data: mesas = [], isLoading, isError } = useQuery({
     queryKey: ['mesas-completas'],
@@ -75,11 +82,21 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
   const mesasVacias = mesas.filter((m) => m.estado === 'vacia')
 
   function handleMesaClick(mesa: MesaCompleta) {
+    if (mesa.estado === 'fuera_de_servicio') return
+
+    if (mesa.estado === 'reservada' && mesa.reserva) {
+      const timing = getEstadoReservaTiming(mesa.reserva)
+      if (timing === 'bloqueada') return
+      if (timing === 'habilitada') {
+        setSelectedMesa(mesa)
+        return
+      }
+    }
+
     if (mesa.estado === 'reservada') {
       setReservaMesa(mesa)
       return
     }
-    if (mesa.estado === 'fuera_de_servicio') return
     if (mesa.estado === 'vacia') {
       setSelectedMesa(mesa)
       return
@@ -139,12 +156,28 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
       {!isLoading && !isError && (
         <div className={`${styles.mesasContainer} ${mesas.length > 0 ? styles.mesasContainerFilled : ''}`}>
           {mesas.map((m) => {
-            const statusLabel = STATUS_LABELS[m.estado] ?? m.estado.toUpperCase()
-            const statusColor = STATUS_COLORS[m.estado] ?? '#9B9792'
+            const reservaTiming = m.estado === 'reservada' && m.reserva
+              ? getEstadoReservaTiming(m.reserva)
+              : null
+
+            let statusLabel = STATUS_LABELS[m.estado] ?? m.estado.toUpperCase()
+            let statusColor = STATUS_COLORS[m.estado] ?? '#9B9792'
+            let cardClassName = styles.mesaCard
+
+            if (reservaTiming === 'bloqueada') {
+              statusLabel = 'BLOQUEADA'
+              statusColor = '#DC2626'
+              cardClassName = `${styles.mesaCard} ${styles.mesaCardBloqueada}`
+            } else if (reservaTiming === 'habilitada') {
+              statusLabel = STATUS_LABELS.vacia
+              statusColor = STATUS_COLORS.vacia
+              cardClassName = `${styles.mesaCard} ${styles.mesaCardHabilitada}`
+            }
+
             return (
               <div
                 key={m.id}
-                className={styles.mesaCard}
+                className={cardClassName}
                 onClick={() => handleMesaClick(m)}
               >
                 <span className={styles.mesaName}>{m.nombre}</span>

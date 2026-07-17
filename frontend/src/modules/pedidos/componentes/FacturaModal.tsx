@@ -39,14 +39,11 @@ const ICONOS: Record<string, React.ReactNode> = {
   TARJETA: SVG_TARJETA,
 }
 
-const TRANSFERENCIA_ENTIDADES = ['NEQUI', 'DAVIPLATA', 'NU'] as const
-
 function FacturaModal({ pedido, onClose }: FacturaModalProps) {
   const { showError, showWarning, showSuccess } = useError()
   const [metodoSeleccionId, setMetodoSeleccionId] = useState<number | null>(null)
   const recibido = useFormattedInput({ type: 'money' })
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
-  const [entidadTransferencia, setEntidadTransferencia] = useState<typeof TRANSFERENCIA_ENTIDADES[number]>('NEQUI')
   const [propina, setPropina] = useState(0)
 
   const { data: metodosPago = [], isPending: metodosLoading } = useQuery({
@@ -87,25 +84,23 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
     return metodosPago.find((m) => m.id === metodoSeleccionId) ?? null
   }, [metodosPago, metodoSeleccionId])
 
+  const transferenciaEntidades = useMemo(
+    () => metodosPago.filter((m) => m.nombre.toUpperCase() === 'TRANSFERENCIA'),
+    [metodosPago]
+  )
+
   const handleMetodoClick = useCallback((metodo: MetodoPago) => {
     if (metodo.nombre.toUpperCase() === 'TRANSFERENCIA') {
-      setEntidadTransferencia('NEQUI')
-      const match = metodosPago.find(
-        (m) => m.nombre.toUpperCase() === 'TRANSFERENCIA' && m.entidad?.toUpperCase() === 'NEQUI'
-      )
-      setMetodoSeleccionId(match?.id ?? null)
+      const first = metodosPago.find((m) => m.nombre.toUpperCase() === 'TRANSFERENCIA')
+      setMetodoSeleccionId(first?.id ?? null)
     } else {
       setMetodoSeleccionId(metodo.id)
     }
   }, [metodosPago])
 
-  const handleEntidadTransferenciaClick = useCallback((entidad: string) => {
-    setEntidadTransferencia(entidad as typeof TRANSFERENCIA_ENTIDADES[number])
-    const match = metodosPago.find(
-      (m) => m.nombre.toUpperCase() === 'TRANSFERENCIA' && m.entidad?.toUpperCase() === entidad
-    )
-    setMetodoSeleccionId(match?.id ?? null)
-  }, [metodosPago])
+  const handleEntidadTransferenciaClick = useCallback((metodo: MetodoPago) => {
+    setMetodoSeleccionId(metodo.id)
+  }, [])
 
   const totalPedido = useMemo(() => {
     return pedido.total ?? pedido.detalles.reduce((acc, d) => acc + d.precioUnitario * d.cantidad, 0)
@@ -243,17 +238,17 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
           )}
         </div>
 
-        {metodoSeleccionado?.nombre.toUpperCase() === 'TRANSFERENCIA' && (
+        {metodoSeleccionado?.nombre.toUpperCase() === 'TRANSFERENCIA' && transferenciaEntidades.length > 0 && (
           <div className={styles.section}>
             <span className={styles.sectionTitle}>ENTIDAD DE TRANSFERENCIA</span>
             <div className={styles.entidadGrid}>
-              {TRANSFERENCIA_ENTIDADES.map((entidad) => (
+              {transferenciaEntidades.map((m) => (
                 <button
-                  key={entidad}
-                  className={`${styles.entidadCard} ${entidadTransferencia === entidad ? styles.entidadActiva : ''}`}
-                  onClick={() => handleEntidadTransferenciaClick(entidad)}
+                  key={m.id}
+                  className={`${styles.entidadCard} ${metodoSeleccionId === m.id ? styles.entidadActiva : ''}`}
+                  onClick={() => handleEntidadTransferenciaClick(m)}
                 >
-                  {entidad}
+                  {m.entidad}
                 </button>
               ))}
             </div>

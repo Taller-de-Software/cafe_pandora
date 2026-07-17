@@ -25,4 +25,4 @@ export const ICONOS = {
   TARJETA: SVG_TARJETA,
 } as const
 
-export const TRANSFERENCIA_ENTIDADES = ['NEQUI', 'DAVIPLATA', 'NU'] as const
+// Entidades de transferencia se cargan dinámicamente desde el API (/metodos-pago)
