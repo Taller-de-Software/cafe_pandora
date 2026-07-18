@@ -1,6 +1,7 @@
 import escpos from 'escpos';
 import { execSync } from 'child_process';
 import prisma from '../config/db.config.js';
+import usb from 'usb';
 
 const DEFAULT_PRINTER_ENCODING = 'CP858';
 const SAT_VENDOR_IDS = [0x0416, 0x04b8, 0x067b, 0x0fe6, 0x1fc9];
@@ -118,6 +119,22 @@ export function getPrinterErrorDetails(error, extra = {}) {
     );
   }
 
+  if (raw.includes('No se encontró endpoint OUT')) {
+    return build(
+      'USB_SIN_ENDPOINT',
+      `El dispositivo USB no tiene un endpoint de salida (OUT) disponible.`,
+      'Verifique que el dispositivo sea compatible o use otra conexión (Serial/Red).'
+    );
+  }
+
+  if (raw.includes('LIBUSB_ERROR_NOT_FOUND') || raw.includes('libusb_open failed')) {
+    return build(
+      'USB_LIBUSB_ERROR',
+      `Error de librería USB al abrir el dispositivo.`,
+      'Verifique que el driver WinUSB esté instalado correctamente (Zadig) y reinicie el servicio.'
+    );
+  }
+
   return build('ERROR_DESCONOCIDO', `Error: ${raw}`, 'Revise los logs del servidor para más detalle.');
 }
 
@@ -156,19 +173,61 @@ async function getConfigAsync() {
 }
 
 export async function listUsbPrinters() {
+  const seen = new Set();
+  const result = [];
+
   try {
     const devices = escpos.USB.findPrinter();
-    return devices
-      .filter(d => d.deviceDescriptor && d.deviceDescriptor.bDeviceClass === PRINTER_CLASS)
-      .map(d => ({
-        vendorId: d.deviceDescriptor.idVendor,
-        productId: d.deviceDescriptor.idProduct,
-        name: `Printer ${d.deviceDescriptor.idVendor.toString(16).toUpperCase()}:${d.deviceDescriptor.idProduct.toString(16).toUpperCase()}`,
-        connectionType: 'usb'
-      }));
+    for (const d of devices) {
+      if (d.deviceDescriptor && d.deviceDescriptor.bDeviceClass === PRINTER_CLASS) {
+        const key = `${d.deviceDescriptor.idVendor}:${d.deviceDescriptor.idProduct}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          result.push({
+            vendorId: d.deviceDescriptor.idVendor,
+            productId: d.deviceDescriptor.idProduct,
+            name: `Printer ${d.deviceDescriptor.idVendor.toString(16).toUpperCase()}:${d.deviceDescriptor.idProduct.toString(16).toUpperCase()}`,
+            connectionType: 'usb'
+          });
+        }
+      }
+    }
   } catch {
-    return [];
   }
+
+  try {
+    const allDevices = usb.getDeviceList();
+    for (const d of allDevices) {
+      const desc = d.deviceDescriptor;
+      if (!desc) continue;
+      if (desc.bDeviceClass === PRINTER_CLASS) {
+        const key = `${desc.idVendor}:${desc.idProduct}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          result.push({
+            vendorId: desc.idVendor,
+            productId: desc.idProduct,
+            name: `Printer ${desc.idVendor.toString(16).toUpperCase()}:${desc.idProduct.toString(16).toUpperCase()}`,
+            connectionType: 'usb'
+          });
+        }
+      } else if (SAT_VENDOR_IDS.includes(desc.idVendor)) {
+        const key = `${desc.idVendor}:${desc.idProduct}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          result.push({
+            vendorId: desc.idVendor,
+            productId: desc.idProduct,
+            name: `USB Device ${desc.idVendor.toString(16).toUpperCase()}:${desc.idProduct.toString(16).toUpperCase()}`,
+            connectionType: 'usb'
+          });
+        }
+      }
+    }
+  } catch {
+  }
+
+  return result;
 }
 
 export async function listSerialPorts() {
@@ -224,6 +283,110 @@ export function closePrinterSafely(printer) {
       resolve();
     }
   });
+}
+
+const USB_CHUNK_SIZE = 48;
+const USB_CHUNK_TIMEOUT = 8000;
+
+function chunkedTransfer(outEndpoint, data, callback) {
+  let offset = 0;
+  let anySuccess = false;
+
+  function sendNext() {
+    if (offset >= data.length) {
+      callback(anySuccess ? null : new Error('No se pudo enviar ningún chunk al dispositivo USB.'));
+      return;
+    }
+    const chunk = data.slice(offset, offset + USB_CHUNK_SIZE);
+    offset += USB_CHUNK_SIZE;
+
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      sendNext();
+    }, USB_CHUNK_TIMEOUT);
+
+    try {
+      outEndpoint.transfer(chunk, (err) => {
+        clearTimeout(timer);
+        if (timedOut) return;
+        if (!err) anySuccess = true;
+        sendNext();
+      });
+    } catch (e) {
+      clearTimeout(timer);
+      sendNext();
+    }
+  }
+
+  sendNext();
+}
+
+function createUsbRawDeviceAdapter(vid, pid) {
+  const device = usb.findByIds(vid, pid);
+  if (!device) return null;
+
+  let outEndpoint = null;
+  let claimedIface = null;
+
+  return {
+    open(callback) {
+      try {
+        device.open();
+        for (const iface of device.interfaces) {
+          try {
+            iface.claim();
+            claimedIface = iface;
+            for (const ep of iface.endpoints) {
+              if (ep.direction === 'out') {
+                outEndpoint = ep;
+                break;
+              }
+            }
+            if (outEndpoint) break;
+          } catch {
+            if (claimedIface) {
+              try { claimedIface.release(true, () => {}); } catch {}
+              claimedIface = null;
+            }
+          }
+        }
+        if (!outEndpoint) {
+          callback(new Error('No se encontró endpoint OUT en el dispositivo USB.'));
+          return;
+        }
+        callback(null);
+      } catch (e) {
+        callback(e);
+      }
+    },
+    write(data, callback) {
+      if (!outEndpoint) {
+        callback(new Error('Dispositivo USB no abierto.'));
+        return;
+      }
+      try {
+        chunkedTransfer(outEndpoint, data, callback);
+      } catch (e) {
+        callback(e);
+      }
+    },
+    close(callback) {
+      try {
+        if (claimedIface) {
+          claimedIface.release(true, () => {
+            try { device.close(); } catch {}
+            if (callback) callback();
+          });
+        } else {
+          device.close();
+          if (callback) callback();
+        }
+      } catch {
+        if (callback) callback();
+      }
+    }
+  };
 }
 
 export async function connectPrinter(modo) {
@@ -282,18 +445,34 @@ export async function connectPrinter(modo) {
 
   if (config?.printerConnectionType === 'usb' || !config?.printerConnectionType) {
     if (config?.printerVendorId && config?.printerProductId) {
+      const vid = config.printerVendorId;
+      const pid = config.printerProductId;
+
+      const rawDevice = createUsbRawDeviceAdapter(vid, pid);
+      if (rawDevice) {
+        try {
+          await openDevice(rawDevice);
+          const printer = new escpos.Printer(rawDevice, { encoding });
+          const name = config.printerName || `USB Raw ${vid.toString(16).toUpperCase()}:${pid.toString(16).toUpperCase()}`;
+          console.log(`✅ [IMPRESORA] Conexión: USB (raw adapter) — ${name}`);
+          return printer;
+        } catch (rawError) {
+          console.log(`⚠️ [IMPRESORA] Falló raw adapter, intentando escpos.USB...`);
+        }
+      }
+
       try {
-        const device = new escpos.USB(config.printerVendorId, config.printerProductId);
+        const device = new escpos.USB(vid, pid);
         await openDevice(device);
         const printer = new escpos.Printer(device, { encoding });
-        const name = config.printerName || `USB ${config.printerVendorId.toString(16).toUpperCase()}:${config.printerProductId.toString(16).toUpperCase()}`;
-        console.log(`✅ [IMPRESORA] Conexión: USB — ${name}`);
+        const name = config.printerName || `USB ${vid.toString(16).toUpperCase()}:${pid.toString(16).toUpperCase()}`;
+        console.log(`✅ [IMPRESORA] Conexión: USB (escpos) — ${name}`);
         return printer;
-      } catch (error) {
-        throw buildPrinterError(error, {
+      } catch (escposError) {
+        throw buildPrinterError(escposError, {
           modo,
           device: config.printerName || 'USB',
-          puerto: `VID:PID ${config.printerVendorId}:${config.printerProductId}`,
+          puerto: `VID:PID ${vid}:${pid}`,
           tipoConexion: 'usb',
         });
       }
@@ -301,7 +480,19 @@ export async function connectPrinter(modo) {
 
     try {
       const devices = escpos.USB.findPrinter();
-      const satPrinter = devices.find(d => SAT_VENDOR_IDS.includes(d.deviceDescriptor.idVendor));
+      let satPrinter = devices.find(d => SAT_VENDOR_IDS.includes(d.deviceDescriptor.idVendor));
+
+      if (!satPrinter) {
+        const allDevices = usb.getDeviceList();
+        for (const d of allDevices) {
+          const desc = d.deviceDescriptor;
+          if (desc && SAT_VENDOR_IDS.includes(desc.idVendor)) {
+            satPrinter = { deviceDescriptor: desc };
+            break;
+          }
+        }
+      }
+
       if (!satPrinter) {
         console.log('🔍 [IMPRESORA] Dispositivos USB detectados en el sistema:');
         devices.forEach(d => {
@@ -313,6 +504,20 @@ export async function connectPrinter(modo) {
           );
         });
 
+        try {
+          const allDevices = usb.getDeviceList();
+          allDevices.forEach(d => {
+            const desc = d.deviceDescriptor;
+            if (desc) {
+              console.log(
+                `  [usb raw] VendorID=0x${desc.idVendor.toString(16).toUpperCase()}, ` +
+                `ProductID=0x${desc.idProduct.toString(16).toUpperCase()}, ` +
+                `bDeviceClass=${desc.bDeviceClass}`
+              );
+            }
+          });
+        } catch {}
+
         const dispositivosDetectados = devices.map(d => ({
           idVendor: `0x${d.deviceDescriptor.idVendor.toString(16).toUpperCase()}`,
           idProduct: `0x${d.deviceDescriptor.idProduct.toString(16).toUpperCase()}`,
@@ -323,14 +528,31 @@ export async function connectPrinter(modo) {
         err.dispositivosDetectados = dispositivosDetectados;
         throw err;
       }
-      const device = new escpos.USB(
-        satPrinter.deviceDescriptor.idVendor,
-        satPrinter.deviceDescriptor.idProduct
-      );
-      await openDevice(device);
-      const printer = new escpos.Printer(device, { encoding });
-      console.log(`✅ [IMPRESORA] Conexión: USB auto-detectada`);
-      return printer;
+
+      const vid = satPrinter.deviceDescriptor.idVendor;
+      const pid = satPrinter.deviceDescriptor.idProduct;
+
+      const rawDevice = createUsbRawDeviceAdapter(vid, pid);
+      if (rawDevice) {
+        try {
+          await openDevice(rawDevice);
+          const printer = new escpos.Printer(rawDevice, { encoding });
+          console.log(`✅ [IMPRESORA] Conexión: USB auto-detectada (raw adapter)`);
+          return printer;
+        } catch (rawError) {
+          console.log(`⚠️ [IMPRESORA] Falló raw adapter en auto-detección, intentando escpos.USB...`);
+        }
+      }
+
+      try {
+        const device = new escpos.USB(vid, pid);
+        await openDevice(device);
+        const printer = new escpos.Printer(device, { encoding });
+        console.log(`✅ [IMPRESORA] Conexión: USB auto-detectada (escpos)`);
+        return printer;
+      } catch (escposError) {
+        throw escposError;
+      }
     } catch (error) {
       const printerError = buildPrinterError(error, { modo, tipoConexion: 'usb' });
       if (error.dispositivosDetectados) {
@@ -455,25 +677,23 @@ export async function printCocina(data) {
 
       printer
         .font('a')
-        .align('lt')
+        .align('ct')
+        .style('bu')
         .size(1, 1)
-        .style('bold')
-        .text(`PEDIDO #${pedidoId}`)
+        .text('COMANDA DE COCINA')
         .style('normal')
+        .align('lt')
         .text(`Mesa: ${mesa}`)
-        .text(`Mozo: ${mozo}`)
         .text(`${fechaStr} ${horaStr}`)
+        .text(`Pedido #${pedidoId}`)
         .text('--------------------------------');
 
       for (const item of items) {
         const cantidad = item.cantidad?.toString() || '1';
         const nombre = item.nombre || item.producto?.toString() || 'Item';
-        const obs = item.observaciones || '';
-        printer
-          .style('bold')
-          .text(`${cantidad} x ${nombre}`)
-          .style('normal');
-        if (obs) printer.text(`   Obs: ${obs}`);
+        const obs = item.nota || '';
+        printer.size(2, 1).text(`${cantidad}x  ${nombre}`).size(1, 1);
+        if (obs) printer.text(`   (${obs})`);
       }
 
       printer
@@ -506,27 +726,36 @@ export async function printPago(data) {
   return new Promise((resolve) => {
     try {
       const {
-        pedidoId, subtotal, propina, total,
-        medioPago, mesero, items, numeroMesa
+        pedidoId, subtotal, propina, total, items, mesa, impuestoConsumo
       } = data;
 
       const ahora = new Date();
       const fechaStr = ahora.toLocaleDateString('es-AR');
       const horaStr = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      const fmt = (n) => Math.round(Number(n || 0)).toLocaleString("es-CO");
 
       printer
         .font('a')
         .align('ct')
-        .size(2, 2)
         .style('bu')
-        .text('CAFE PANDORA')
-        .size(1, 1)
+        .text('PANDORA BISTRO CAFE BAR')
+        .style('bold')
+        .text('NIT: 1053784676')
+        .style('normal')
+        .text('Mall Combia')
+        .text('Correo: 0')
+        .text('Telefono: 0')
+        .text('--------------------------------')
+        .style('bu')
+        .text('RECIBO DE PAGO')
         .style('normal')
         .align('lt')
         .text(`Fecha: ${fechaStr}  Hora: ${horaStr}`)
-        .text(`Mesa: ${numeroMesa || '-'}`)
-        .text(`Pedido: #${pedidoId || '-'}`)
-        .text(`Mesero: ${mesero || '-'}`)
+        .text(`Mesa: ${mesa || '-'}`)
+        .text('--------------------------------')
+        .style('bold')
+        .text('Cant  Producto           Total')
+        .style('normal')
         .text('--------------------------------');
 
       if (items && items.length > 0) {
@@ -535,25 +764,49 @@ export async function printPago(data) {
           const nombre = item.nombre || item.producto?.toString() || '';
           const precio = item.precioUnitario || item.precio || 0;
           const lineTotal = Number(precio) * Number(cant);
-          printer.text(`${cant} x ${nombre}`);
-          printer.align('rt').text(`$${lineTotal.toFixed(2)}`).align('lt');
+          const line = `${cant}x  ${nombre}`;
+          const priceStr = `$${fmt(lineTotal)}`;
+          const pad = 32 - line.length - priceStr.length;
+          printer.text(pad > 0 ? line + ' '.repeat(pad) + priceStr : line + ' ' + priceStr);
         }
-        printer.text('--------------------------------');
       }
 
       printer
+        .text('--------------------------------')
         .align('rt')
         .style('normal')
-        .text(`Subtotal:  $${Number(subtotal || 0).toFixed(2)}`)
-        .text(`Propina:   $${Number(propina || 0).toFixed(2)}`)
+        .size(2, 1)
+        .text(`Subtotal:        $${fmt(subtotal)}`);
+
+      if (impuestoConsumo != null && impuestoConsumo > 0) {
+        printer.size(2, 1).text(`Imp. Consumo 8%: $${fmt(impuestoConsumo)}`);
+      }
+
+      if (propina && propina > 0) {
+        printer.size(2, 1).text(`Propina:         $${fmt(propina)}`);
+      }
+
+      printer
+        .size(2, 1)
         .style('bu')
-        .size(1, 1)
-        .text(`TOTAL:     $${Number(total || 0).toFixed(2)}`)
+        .text(`TOTAL:           $${fmt(total)}`)
         .size(1, 1)
         .style('normal')
-        .align('lt')
-        .text(`Metodo de pago: ${medioPago || 'No especificado'}`)
+        .align('ct')
         .text('--------------------------------')
+        .text('ADVERTENCIA PROPINA')
+        .text('Se sugiere una propina')
+        .text('correspondiente al 10% del')
+        .text('valor de la cuenta, la cual')
+        .text('podra ser aceptada,')
+        .text('modificada o rechazada por')
+        .text('usted.')
+        .text('')
+        .text('Mas que un lugar, una experiencia')
+        .text('para tus sentidos.')
+        .style('bu')
+        .text('Gracias por su compra!')
+        .style('normal')
         .feed(4)
         .cut()
         .close(() => {

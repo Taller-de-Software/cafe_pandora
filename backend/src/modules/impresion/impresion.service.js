@@ -71,6 +71,10 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     throw crearErrorImpresionFallida();
   }
 
+  generarPDFComanda(data).catch(err => {
+    console.error("⚠️ [PDF] No se pudo guardar el PDF de cocina:", err.message);
+  });
+
   return { message: "Comanda de cocina impresa", pedidoId };
 };
 
@@ -121,6 +125,10 @@ export const imprimirReciboPago = async (facturaId) => {
   if (!impreso) {
     throw crearErrorImpresionFallida();
   }
+
+  generarPDFRecibo(data).catch(err => {
+    console.error("⚠️ [PDF] No se pudo guardar el PDF de pago:", err.message);
+  });
 
   return { message: "Recibo de pago impreso", facturaId: factura.id };
 };
