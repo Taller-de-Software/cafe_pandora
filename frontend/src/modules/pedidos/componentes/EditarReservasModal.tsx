@@ -1,9 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { cancelarReserva, actualizarReserva } from '@modules/pedidos/data/pos'
-import { useReservas, type ReservaLocal } from '../context/ReservasContext'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { cancelarReserva, actualizarReserva, listarReservas } from '@modules/pedidos/data/pos'
 import { useError } from '@/context/ErrorContext'
-import type { MesaCompleta } from '../data/pos'
+import type { MesaCompleta, Reserva } from '../data/pos'
 import styles from './modal.module.css'
 import localStyles from './EditarReservasModal.module.css'
 
@@ -36,18 +35,28 @@ interface EditarReservasModalProps {
 function EditarReservasModal({ mesas, onClose }: EditarReservasModalProps) {
   const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
-  const { reservas, actualizarReserva: actualizarLocal, cancelarReserva: cancelarLocal } = useReservas()
 
-  const [editando, setEditando] = useState<ReservaLocal | null>(null)
-  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+  const [editando, setEditando] = useState<Reserva | null>(null)
+  const [confirmCancelId, setConfirmCancelId] = useState<number | null>(null)
 
-  const mesaIdsExistentes = new Set(mesas.map((m) => m.id))
-  const reservasActivas = reservas.filter((r) => r.estado === 'activa' && mesaIdsExistentes.has(r.mesaId))
+  const mesaMap = new Map(mesas.map((m) => [m.id, m]))
+
+  const { data: reservas = [], isLoading } = useQuery({
+    queryKey: ['reservas-activas'],
+    queryFn: () => listarReservas({ estado: 'pendiente,confirmada' }),
+  })
+
+  const hoyStr = new Date().toISOString().split('T')[0]
+  const reservasFiltradas = reservas.filter((r) => {
+    const fechaReserva = r.fecha.split('T')[0] || r.fecha
+    return fechaReserva >= hoyStr
+  })
 
   const cancelMutation = useMutation({
     mutationFn: (apiId: number) => cancelarReserva(apiId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      queryClient.refetchQueries({ queryKey: ['reservas-activas'] })
+      queryClient.refetchQueries({ queryKey: ['mesas-completas'] })
       showSuccess('Reserva cancelada exitosamente')
     },
     onError: showError,
@@ -57,24 +66,23 @@ function EditarReservasModal({ mesas, onClose }: EditarReservasModalProps) {
     mutationFn: ({ id, data }: { id: number; data: Parameters<typeof actualizarReserva>[1] }) =>
       actualizarReserva(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      queryClient.refetchQueries({ queryKey: ['reservas-activas'] })
+      queryClient.refetchQueries({ queryKey: ['mesas-completas'] })
       showSuccess('Reserva actualizada exitosamente')
     },
     onError: showError,
   })
 
-  function handleCancel(reserva: ReservaLocal) {
-    if (reserva.apiId) {
-      cancelMutation.mutate(reserva.apiId, {
-        onSuccess: () => {
-          cancelarLocal(reserva.id)
-          setConfirmCancelId(null)
-        },
-      })
-    } else {
-      cancelarLocal(reserva.id)
-      setConfirmCancelId(null)
-    }
+  function handleCancel(reserva: Reserva) {
+    cancelMutation.mutate(reserva.id, {
+      onSuccess: () => {
+        setConfirmCancelId(null)
+      },
+    })
+  }
+
+  function getMesaNombre(mesaId: number): string {
+    return mesaMap.get(mesaId)?.nombre ?? `Mesa #${mesaId}`
   }
 
   if (editando) {
@@ -83,19 +91,17 @@ function EditarReservasModal({ mesas, onClose }: EditarReservasModalProps) {
         reserva={editando}
         onSave={async (data) => {
           try {
-            if (editando.apiId) {
-              await updateMutation.mutateAsync({
-                id: editando.apiId,
-                data: {
-                  cliente: data.nombreCliente,
-                  telefono: data.telefono || undefined,
-                  fecha: data.fecha,
-                  hora: data.hora,
-                  personas: data.numeroPersonas,
-                },
-              })
-            }
-            actualizarLocal(editando.id, data)
+            await updateMutation.mutateAsync({
+              id: editando.id,
+              data: {
+                cliente: data.nombreCliente,
+                telefono: data.telefono || undefined,
+                fecha: data.fecha,
+                hora: data.hora,
+                personas: data.numeroPersonas,
+                observaciones: data.observaciones || undefined,
+              },
+            })
             setEditando(null)
           } catch {
             /* error handled by mutation's onError */
@@ -111,16 +117,18 @@ function EditarReservasModal({ mesas, onClose }: EditarReservasModalProps) {
       <div className={`${styles.modal} ${localStyles.modalWider}`} onClick={(e) => e.stopPropagation()}>
         <h3 className={localStyles.modalTitle}>EDITAR RESERVAS</h3>
 
-        {reservasActivas.length === 0 ? (
+        {isLoading ? (
+          <p className={localStyles.emptyText}>Cargando reservas...</p>
+        ) : reservasFiltradas.length === 0 ? (
           <p className={localStyles.emptyText}>No hay reservas activas en este momento.</p>
         ) : (
           <div className={localStyles.list}>
-            {reservasActivas.map((r) => (
+            {reservasFiltradas.map((r) => (
               <div key={r.id} className={localStyles.item}>
                 <div className={localStyles.itemInfo}>
-                  <span className={localStyles.mesaName}>{r.mesaNombre}</span>
+                  <span className={localStyles.mesaName}>{getMesaNombre(r.mesaId)}</span>
                   <span className={localStyles.itemDetail}>
-                    {r.nombreCliente} &middot; {formatDate(r.fecha)} - {formatHora(r.hora)} &middot; {r.numeroPersonas} {r.numeroPersonas === 1 ? 'persona' : 'personas'}
+                    {r.cliente} &middot; {formatDate(r.fecha)} - {formatHora(r.hora)} &middot; {r.personas} {r.personas === 1 ? 'persona' : 'personas'}
                   </span>
                 </div>
                 <div className={localStyles.itemActions}>
@@ -161,17 +169,17 @@ function EditForm({
   onSave,
   onCancel,
 }: {
-  reserva: ReservaLocal
-  onSave: (data: Partial<Omit<ReservaLocal, 'id' | 'apiId'>>) => void
+  reserva: Reserva
+  onSave: (data: { nombreCliente: string; telefono: string; fecha: string; hora: string; numeroPersonas: number; observaciones: string }) => void
   onCancel: () => void
 }) {
   const { showWarning } = useError()
-  const [cliente, setCliente] = useState(reserva.nombreCliente)
-  const [telefono, setTelefono] = useState(reserva.telefono)
-  const [fecha, setFecha] = useState(reserva.fecha)
+  const [cliente, setCliente] = useState(reserva.cliente)
+  const [telefono, setTelefono] = useState(reserva.telefono ?? '')
+  const [fecha, setFecha] = useState(reserva.fecha.split('T')[0] ?? reserva.fecha)
   const [hora, setHora] = useState(reserva.hora)
-  const [personas, setPersonas] = useState(reserva.numeroPersonas)
-  const [notas, setNotas] = useState(reserva.notas)
+  const [personas, setPersonas] = useState(reserva.personas)
+  const [observaciones, setObservaciones] = useState(reserva.observaciones ?? '')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -185,14 +193,14 @@ function EditForm({
       fecha,
       hora,
       numeroPersonas: personas,
-      notas: notas.trim(),
+      observaciones: observaciones.trim(),
     })
   }
 
   return (
     <div className={styles.overlay} onClick={onCancel}>
       <div className={`${styles.modal} ${localStyles.modalWider}`} onClick={(e) => e.stopPropagation()}>
-        <h3 className={localStyles.modalTitle}>EDITAR RESERVA — {reserva.mesaNombre}</h3>
+        <h3 className={localStyles.modalTitle}>EDITAR RESERVA</h3>
 
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
@@ -222,8 +230,8 @@ function EditForm({
           </div>
 
           <div className={styles.field}>
-            <label>Notas (opcional)</label>
-            <textarea className={`${styles.input} ${localStyles.textarea}`} value={notas} onChange={(e) => setNotas(e.target.value)} rows={3} />
+            <label>Observaciones (opcional)</label>
+            <textarea className={`${styles.input} ${localStyles.textarea}`} value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={3} />
           </div>
 
           <div className={styles.actions}>

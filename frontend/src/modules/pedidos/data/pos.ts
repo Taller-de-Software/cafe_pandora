@@ -11,8 +11,10 @@ export interface Reserva {
   fecha: string
   hora: string
   personas: number
+  observaciones?: string
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada'
   mesaId: number
+  mesa?: { id: number; nombre: string; ubicacion: string }
 }
 
 export interface MesaCompleta {
@@ -41,12 +43,26 @@ export async function obtenerMesa(id: number): Promise<MesaCompleta> {
   return api.get<MesaCompleta>(`/mesas/${id}`)
 }
 
+export async function listarReservas(params?: {
+  mesaId?: number
+  fecha?: string
+  estado?: string
+}): Promise<Reserva[]> {
+  const searchParams = new URLSearchParams()
+  if (params?.mesaId) searchParams.set('mesaId', String(params.mesaId))
+  if (params?.fecha) searchParams.set('fecha', params.fecha)
+  if (params?.estado) searchParams.set('estado', params.estado)
+  const qs = searchParams.toString()
+  return api.get<Reserva[]>(`/reservas${qs ? `?${qs}` : ''}`)
+}
+
 export async function crearReserva(data: {
   cliente: string
   telefono?: string
   fecha: string
   hora: string
   personas: number
+  observaciones?: string
   mesaId: number
 }): Promise<Reserva> {
   return api.post<Reserva>('/reservas', data)
@@ -60,6 +76,7 @@ export async function actualizarReserva(
     fecha?: string
     hora?: string
     personas?: number
+    observaciones?: string
   }
 ): Promise<Reserva> {
   return api.put<Reserva>(`/reservas/${id}`, data)

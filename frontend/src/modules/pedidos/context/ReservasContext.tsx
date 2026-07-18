@@ -12,7 +12,7 @@ export interface ReservaLocal {
   fecha: string
   hora: string
   numeroPersonas: number
-  notas: string
+  observaciones: string
   estado: 'activa' | 'cancelada' | 'completada'
 }
 

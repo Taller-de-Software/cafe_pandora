@@ -287,15 +287,16 @@ enum EstadoReserva {
 }
 
 model Reserva {
-  id        Int           @id @default(autoincrement())
-  cliente   String
-  telefono  String?
-  fecha     DateTime
-  hora      String
-  personas  Int           @default(1)
-  estado    EstadoReserva @default(pendiente)
-  mesaId    Int
-  mesa      Mesa          @relation(fields: [mesaId], references: [id])
+  id            Int           @id @default(autoincrement())
+  cliente       String
+  telefono      String?
+  fecha         DateTime
+  hora          String
+  personas      Int           @default(1)
+  observaciones String?
+  estado        EstadoReserva @default(pendiente)
+  mesaId        Int
+  mesa          Mesa          @relation(fields: [mesaId], references: [id])
 
   creadoEn DateTime @default(now())
 

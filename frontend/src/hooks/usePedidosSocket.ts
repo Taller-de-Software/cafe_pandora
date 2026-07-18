@@ -62,6 +62,22 @@ export function usePedidosSocket() {
       queryClient.invalidateQueries({ queryKey: ['mesas'] })
     }
 
+    function onReservaNueva() {
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas'] })
+      queryClient.invalidateQueries({ queryKey: ['reservas-activas'] })
+    }
+
+    function onReservaEliminada() {
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+      queryClient.invalidateQueries({ queryKey: ['mesas'] })
+      queryClient.invalidateQueries({ queryKey: ['reservas-activas'] })
+    }
+
+    function onReservaActualizada() {
+      queryClient.invalidateQueries({ queryKey: ['reservas-activas'] })
+    }
+
     socket.on('pedido:estado', onEstado)
     socket.on('pedido:nuevo', onNuevo)
     socket.on('pedido:fusionado', onFusionado)
@@ -70,6 +86,9 @@ export function usePedidosSocket() {
     socket.on('caja:apertura', onCajaApertura)
     socket.on('caja:cierre', onCajaCierre)
     socket.on('caja:retiro', onCajaRetiro)
+    socket.on('reserva:nueva', onReservaNueva)
+    socket.on('reserva:eliminada', onReservaEliminada)
+    socket.on('reserva:actualizada', onReservaActualizada)
 
     return () => {
       socket.off('pedido:estado', onEstado)
@@ -80,6 +99,9 @@ export function usePedidosSocket() {
       socket.off('caja:apertura', onCajaApertura)
       socket.off('caja:cierre', onCajaCierre)
       socket.off('caja:retiro', onCajaRetiro)
+      socket.off('reserva:nueva', onReservaNueva)
+      socket.off('reserva:eliminada', onReservaEliminada)
+      socket.off('reserva:actualizada', onReservaActualizada)
     }
   }, [queryClient])
 }
