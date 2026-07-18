@@ -6,8 +6,8 @@ function crearError(statusCode, message) {
   return error;
 }
 
-const ESTADOS_ACTIVOS = ["recibido", "pendiente", "hecho", "finalizado"];
-const ESTADOS_NO_CANCELADOS = ["recibido", "pendiente", "hecho", "finalizado"];
+const ESTADOS_ACTIVOS = ["recibido", "pendiente", "hecho"];
+const ESTADOS_NO_CANCELADOS = ["recibido", "pendiente", "hecho"];
 
 const mesaInclude = {
   _count: { select: { pedidos: { where: { estado: { in: ESTADOS_ACTIVOS } } } } },

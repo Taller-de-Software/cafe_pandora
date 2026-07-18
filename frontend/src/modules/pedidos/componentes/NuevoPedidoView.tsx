@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarMesasCompletas, crearReserva, type MesaCompleta } from '../data/pos'
-import { getEstadoReservaTiming } from '../types/estados-mesa'
+import { isReservaProxima } from '../types/estados-mesa'
 import { useAuth } from '@modules/auth/context/useAuth'
 import { useError } from '@/context/ErrorContext'
 import { useReservas } from '../context/ReservasContext'
@@ -33,8 +33,23 @@ interface NuevoPedidoViewProps {
   onConfirmarPedido?: (mesa: string, items: { nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[], mesero: string) => void
 }
 
+const NOTIFICACION_COOLDOWN_MS = 3 * 60 * 1000
+const TIMER_INTERVAL_MS = 30_000
+
+function formatearHora(hora: string): string {
+  try {
+    const [hh, mm] = hora.split(':')
+    const h = Number(hh)
+    const ampm = h >= 12 ? 'PM' : 'AM'
+    const h12 = h % 12 || 12
+    return `${h12}:${mm} ${ampm}`
+  } catch {
+    return hora
+  }
+}
+
 function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
-  const { showError, showSuccess } = useError()
+  const { showError, showSuccess, showInfo } = useError()
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const { agregarReserva } = useReservas()
@@ -47,27 +62,55 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
   const [showEditarReservas, setShowEditarReservas] = useState(false)
   const [detailPedido, setDetailPedido] = useState<MesaCompleta['pedidoActivo']>(null)
   const [, forceRender] = useState(0)
+  const notificadasRef = useRef<Set<string>>(new Set())
+  const mesasRef = useRef<MesaCompleta[]>([])
 
   useEffect(() => {
-    const id = setInterval(() => forceRender(n => n + 1), 30_000)
+    const id = setInterval(() => {
+      forceRender((n) => n + 1)
+      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+    }, TIMER_INTERVAL_MS)
     return () => clearInterval(id)
-  }, [])
+  }, [queryClient])
 
   const { data: mesas = [], isLoading, isError } = useQuery({
     queryKey: ['mesas-completas'],
     queryFn: listarMesasCompletas,
   })
+  mesasRef.current = mesas
 
   const reservaMutation = useMutation({
     mutationFn: crearReserva,
-    onSuccess: (result, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
+    onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: ['mesas-completas'] })
       showSuccess('Reserva creada exitosamente')
       setReservaMesa(null)
       setShowReservarMesa(false)
     },
     onError: showError,
   })
+
+  useEffect(() => {
+    function checkReservas() {
+      const ms = mesasRef.current
+      if (!ms.length) return
+      ms.forEach((m) => {
+        if (!m.reserva) return
+        if (!isReservaProxima(m.reserva)) return
+        const key = `mesa-${m.id}-${m.reserva.id}`
+        if (notificadasRef.current.has(key)) return
+        notificadasRef.current.add(key)
+        showInfo(
+          `Tienes una reserva próxima.\n${m.nombre}\n${m.reserva.cliente}\n${formatearHora(m.reserva.hora)}\nFaltan 20 minutos.`
+        )
+        setTimeout(() => notificadasRef.current.delete(key), NOTIFICACION_COOLDOWN_MS)
+      })
+    }
+
+    checkReservas()
+    const id = setInterval(checkReservas, TIMER_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [showInfo])
 
   if (selectedMesa) {
     return (
@@ -79,29 +122,11 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
     )
   }
 
-  const mesasVacias = mesas.filter((m) => m.estado === 'vacia')
+  const mesasDisponibles = mesas.filter((m) => m.estado !== 'fuera_de_servicio')
 
   function handleMesaClick(mesa: MesaCompleta) {
     if (mesa.estado === 'fuera_de_servicio') return
-
-    if (mesa.estado === 'reservada' && mesa.reserva) {
-      const timing = getEstadoReservaTiming(mesa.reserva)
-      if (timing === 'bloqueada') return
-      if (timing === 'habilitada') {
-        setSelectedMesa(mesa)
-        return
-      }
-    }
-
-    if (mesa.estado === 'reservada') {
-      setReservaMesa(mesa)
-      return
-    }
-    if (mesa.estado === 'vacia') {
-      setSelectedMesa(mesa)
-      return
-    }
-    if (mesa.pedidoActivo) {
+    if (mesa.estado !== 'vacia' && mesa.pedidoActivo) {
       setDetailPedido(mesa.pedidoActivo)
       return
     }
@@ -115,7 +140,7 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
     fecha: string
     hora: string
     personas: number
-    notas?: string
+    observaciones?: string
   }) {
     const mesa = mesas.find((m) => m.id === data.mesaId)
     try {
@@ -125,8 +150,10 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
         fecha: data.fecha,
         hora: data.hora,
         personas: data.personas,
+        observaciones: data.observaciones,
         mesaId: data.mesaId,
       })
+      await queryClient.refetchQueries({ queryKey: ['mesas-completas'] })
       agregarReserva({
         apiId: result.id,
         mesaId: data.mesaId,
@@ -136,7 +163,7 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
         fecha: data.fecha,
         hora: data.hora,
         numeroPersonas: data.personas,
-        notas: data.notas ?? '',
+        observaciones: data.observaciones ?? '',
       })
     } catch (err) {
       showError(err)
@@ -156,28 +183,20 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
       {!isLoading && !isError && (
         <div className={`${styles.mesasContainer} ${mesas.length > 0 ? styles.mesasContainerFilled : ''}`}>
           {mesas.map((m) => {
-            const reservaTiming = m.estado === 'reservada' && m.reserva
-              ? getEstadoReservaTiming(m.reserva)
-              : null
+            const mostrarReservada = m.estado === 'vacia' && m.reserva && isReservaProxima(m.reserva)
 
             let statusLabel = STATUS_LABELS[m.estado] ?? m.estado.toUpperCase()
             let statusColor = STATUS_COLORS[m.estado] ?? '#9B9792'
-            let cardClassName = styles.mesaCard
 
-            if (reservaTiming === 'bloqueada') {
-              statusLabel = 'BLOQUEADA'
-              statusColor = '#DC2626'
-              cardClassName = `${styles.mesaCard} ${styles.mesaCardBloqueada}`
-            } else if (reservaTiming === 'habilitada') {
-              statusLabel = STATUS_LABELS.vacia
-              statusColor = STATUS_COLORS.vacia
-              cardClassName = `${styles.mesaCard} ${styles.mesaCardHabilitada}`
+            if (mostrarReservada) {
+              statusLabel = STATUS_LABELS.reservada
+              statusColor = STATUS_COLORS.reservada
             }
 
             return (
               <div
                 key={m.id}
-                className={cardClassName}
+                className={styles.mesaCard}
                 onClick={() => handleMesaClick(m)}
               >
                 <span className={styles.mesaName}>{m.nombre}</span>
@@ -193,7 +212,12 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
                     Pedido #{m.pedidoActivo.id} — ${m.pedidoActivo.total ?? 0}
                   </span>
                 )}
-                {m.reserva && (
+                {mostrarReservada && m.reserva && (
+                  <span className={styles.mesaReserva}>
+                    {m.reserva.cliente} — {m.reserva.hora}
+                  </span>
+                )}
+                {m.estado !== 'vacia' && !mostrarReservada && m.reserva && isReservaProxima(m.reserva) && (
                   <span className={styles.mesaReserva}>
                     Reserva: {m.reserva.cliente} — {m.reserva.hora}
                   </span>
@@ -233,7 +257,7 @@ function NuevoPedidoView({ onConfirmarPedido }: NuevoPedidoViewProps) {
 
       {showReservarMesa && (
         <ReservarMesaModal
-          mesasVacias={mesasVacias}
+          mesas={mesasDisponibles}
           onSave={handleReservarMesaSave}
           onClose={() => setShowReservarMesa(false)}
         />

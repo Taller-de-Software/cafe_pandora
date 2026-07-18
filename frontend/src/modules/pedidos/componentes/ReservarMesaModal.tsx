@@ -5,20 +5,20 @@ import styles from './modal.module.css'
 import localStyles from './ReservarMesaModal.module.css'
 
 interface ReservarMesaModalProps {
-  mesasVacias: MesaCompleta[]
-  onSave: (data: { mesaId: number; cliente: string; telefono?: string; fecha: string; hora: string; personas: number; notas?: string }) => Promise<void>
+  mesas: MesaCompleta[]
+  onSave: (data: { mesaId: number; cliente: string; telefono?: string; fecha: string; hora: string; personas: number; observaciones?: string }) => Promise<void>
   onClose: () => void
 }
 
-function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalProps) {
+function ReservarMesaModal({ mesas, onSave, onClose }: ReservarMesaModalProps) {
   const { showError, showWarning } = useError()
-  const [mesaId, setMesaId] = useState(mesasVacias[0]?.id ?? 0)
+  const [mesaId, setMesaId] = useState(mesas[0]?.id ?? 0)
   const [cliente, setCliente] = useState('')
   const [telefono, setTelefono] = useState('')
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0])
   const [hora, setHora] = useState('19:00')
   const [personas, setPersonas] = useState(2)
-  const [notas, setNotas] = useState('')
+  const [observaciones, setObservaciones] = useState('')
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
@@ -36,7 +36,7 @@ function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalPr
         fecha,
         hora,
         personas,
-        notas: notas.trim() || undefined,
+        observaciones: observaciones.trim() || undefined,
       })
     } catch (err) {
       showError(err)
@@ -44,8 +44,6 @@ function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalPr
       setSaving(false)
     }
   }
-
-  const selectedMesa = mesasVacias.find((m) => m.id === mesaId)
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -56,8 +54,8 @@ function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalPr
           <div className={styles.field}>
             <label>Mesa a reservar</label>
             <select className={styles.select} value={mesaId} onChange={(e) => setMesaId(Number(e.target.value))}>
-              {mesasVacias.length === 0 && <option value={0}>No hay mesas vacías disponibles</option>}
-              {mesasVacias.map((m) => (
+              {mesas.length === 0 && <option value={0}>No hay mesas disponibles</option>}
+              {mesas.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.nombre} ({m.ubicacion}) — Capacidad: {m.capacidad} pers.
                 </option>
@@ -92,13 +90,13 @@ function ReservarMesaModal({ mesasVacias, onSave, onClose }: ReservarMesaModalPr
           </div>
 
           <div className={styles.field}>
-            <label>Notas (opcional)</label>
-            <textarea className={`${styles.input} ${localStyles.textarea}`} value={notas} onChange={(e) => setNotas(e.target.value)} rows={3} />
+            <label>Observaciones (opcional)</label>
+            <textarea className={`${styles.input} ${localStyles.textarea}`} value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={3} />
           </div>
 
           <div className={styles.actions}>
             <button type="button" className={styles.cancelBtn} onClick={onClose}>CANCELAR</button>
-            <button type="submit" className={styles.saveBtn} disabled={saving || mesasVacias.length === 0}>
+            <button type="submit" className={styles.saveBtn} disabled={saving || mesas.length === 0}>
               CONFIRMAR RESERVA
             </button>
           </div>

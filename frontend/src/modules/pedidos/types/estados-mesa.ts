@@ -21,31 +21,28 @@ export function getEstadoMesaClass(estado: EstadoMesa): string {
   return ESTADO_MESA_MAPA[estado]?.className ?? 'estado-vacia'
 }
 
-export const MINUTOS_BLOQUEO_RESERVA = 20
-export const MINUTOS_HABILITACION_RESERVA = 10
+export const MINUTOS_AVISO_RESERVA = 20
 
-export type EstadoReservaTiming = 'normal' | 'bloqueada' | 'habilitada'
+export function isReservaProxima(reserva: { fecha: string; hora: string }): boolean {
+  const now = new Date()
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(now)
+  const colombiaDateStr = `${parts.find(p => p.type === 'year')!.value}-${parts.find(p => p.type === 'month')!.value}-${parts.find(p => p.type === 'day')!.value}`
 
-export function getEstadoReservaTiming(
-  reserva: { fecha: string; hora: string }
-): EstadoReservaTiming | null {
-  const nowUtc = Date.now()
-  const COLOMBIA_OFFSET_MS = -5 * 3600_000
-
-  const colombiaNow = new Date(nowUtc + COLOMBIA_OFFSET_MS)
-  const colombiaDateStr = colombiaNow.toISOString().split('T')[0]
-
-  const [year, month, day] = reserva.fecha.split('-').map(Number)
+  const fechaStr = reserva.fecha.split('T')[0]
+  const [year, month, day] = fechaStr.split('-').map(Number)
   const [hours, minutes] = reserva.hora.split(':').map(Number)
   const reservaTimestamp = Date.UTC(year, month - 1, day, hours + 5, minutes, 0)
 
-  const diffMs = reservaTimestamp - nowUtc
+  const diffMs = reservaTimestamp - Date.now()
   const diffMin = Math.floor(diffMs / 60_000)
 
-  if (diffMin < 0) return null
-  if (reserva.fecha !== colombiaDateStr) return null
+  if (diffMin < 0) return false
+  if (fechaStr !== colombiaDateStr) return false
 
-  if (diffMin <= MINUTOS_HABILITACION_RESERVA) return 'habilitada'
-  if (diffMin <= MINUTOS_BLOQUEO_RESERVA) return 'bloqueada'
-  return 'normal'
+  return diffMin <= MINUTOS_AVISO_RESERVA
 }

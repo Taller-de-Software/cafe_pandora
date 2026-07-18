@@ -84,6 +84,19 @@ export const crear = async (data, usuarioId) => {
       data: { estado: ESTADOS_MESA.OCUPADA },
     });
 
+    const reservaActiva = await tx.reserva.findFirst({
+      where: {
+        mesaId: data.mesaId,
+        estado: { in: ["pendiente", "confirmada"] },
+      },
+    });
+    if (reservaActiva) {
+      await tx.reserva.update({
+        where: { id: reservaActiva.id },
+        data: { estado: "completada" },
+      });
+    }
+
     return p;
   });
 

@@ -7,7 +7,7 @@ import styles from './modal.module.css'
 
 interface ReservationModalProps {
   mesa: MesaCompleta
-  onSave: (data: { cliente: string; telefono?: string; fecha: string; hora: string; personas: number; mesaId: number }) => Promise<void>
+  onSave: (data: { cliente: string; telefono?: string; fecha: string; hora: string; personas: number; observaciones?: string; mesaId: number }) => Promise<void>
   onClose: () => void
 }
 
@@ -20,6 +20,7 @@ function ReservationModal({ mesa, onSave, onClose }: ReservationModalProps) {
   const [fecha, setFecha] = useState(reserva?.fecha?.split('T')[0] ?? new Date().toISOString().split('T')[0])
   const [hora, setHora] = useState(reserva?.hora ?? '19:00')
   const [personas, setPersonas] = useState(reserva?.personas ?? 2)
+  const [observaciones, setObservaciones] = useState(reserva?.observaciones ?? '')
   const [saving, setSaving] = useState(false)
 
   const cancelMutation = useMutation({
@@ -46,6 +47,7 @@ function ReservationModal({ mesa, onSave, onClose }: ReservationModalProps) {
         fecha,
         hora,
         personas,
+        observaciones: observaciones.trim() || undefined,
         mesaId: mesa.id,
       })
     } catch (err) {
@@ -67,6 +69,7 @@ function ReservationModal({ mesa, onSave, onClose }: ReservationModalProps) {
             <p><strong>Fecha:</strong> {new Date(reserva.fecha).toLocaleDateString()}</p>
             <p><strong>Hora:</strong> {reserva.hora}</p>
             <p><strong>Personas:</strong> {reserva.personas}</p>
+            {reserva.observaciones && <p><strong>Observaciones:</strong> {reserva.observaciones}</p>}
             <div className={styles.actions}>
               <button
                 className={styles.cancelBtn}
@@ -99,6 +102,10 @@ function ReservationModal({ mesa, onSave, onClose }: ReservationModalProps) {
             <div className={styles.field}>
               <label>Personas</label>
               <input className={styles.input} type="number" min={1} value={personas} onChange={(e) => setPersonas(Number(e.target.value))} />
+            </div>
+            <div className={styles.field}>
+              <label>Observaciones (opcional)</label>
+              <textarea className={styles.input} value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={3} />
             </div>
             <div className={styles.actions}>
               <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancelar</button>

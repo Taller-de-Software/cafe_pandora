@@ -17,6 +17,10 @@ export const listar = async (req, res, next) => {
 export const crear = async (req, res, next) => {
   try {
     const reserva = await reservasService.crear(req.body);
+    const io = req.app.get("io");
+    if (io) {
+      io.to("room:all").emit("reserva:nueva", reserva);
+    }
     created(res, reserva, "Reserva creada");
   } catch (err) {
     next(err);
@@ -26,6 +30,10 @@ export const crear = async (req, res, next) => {
 export const cancelar = async (req, res, next) => {
   try {
     const reserva = await reservasService.cancelar(req.params.id);
+    const io = req.app.get("io");
+    if (io) {
+      io.to("room:all").emit("reserva:eliminada", { id: reserva.id, mesaId: reserva.mesaId });
+    }
     ok(res, reserva, "Reserva cancelada");
   } catch (err) {
     next(err);
@@ -35,6 +43,10 @@ export const cancelar = async (req, res, next) => {
 export const actualizar = async (req, res, next) => {
   try {
     const reserva = await reservasService.actualizar(Number(req.params.id), req.body);
+    const io = req.app.get("io");
+    if (io) {
+      io.to("room:all").emit("reserva:actualizada", reserva);
+    }
     ok(res, reserva, "Reserva actualizada");
   } catch (err) {
     next(err);
@@ -44,6 +56,10 @@ export const actualizar = async (req, res, next) => {
 export const convertir = async (req, res, next) => {
   try {
     const pedido = await reservasService.convertir(req.params.id, req.body, req.user.id);
+    const io = req.app.get("io");
+    if (io) {
+      io.to("room:all").emit("reserva:eliminada", { id: Number(req.params.id), mesaId: pedido.mesaId });
+    }
     created(res, pedido, "Reserva convertida a pedido");
   } catch (err) {
     next(err);
