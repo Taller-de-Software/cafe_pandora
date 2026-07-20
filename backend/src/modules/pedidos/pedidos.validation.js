@@ -11,6 +11,7 @@ export const crearPedidoSchema = z.object({
   mesaId: z.number().int().positive("Debe seleccionar una mesa"),
   turno: z.number().int().positive().optional(),
   mesaOrigenId: z.number().int().positive().optional(),
+  nombreCliente: z.string().min(1, "Debe ingresar el nombre del cliente para continuar"),
   items: z.array(itemSchema).min(1, "Debe incluir al menos un item"),
 }).strict();
 

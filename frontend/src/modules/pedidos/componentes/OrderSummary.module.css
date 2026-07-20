@@ -74,6 +74,25 @@
   margin-bottom: 0;
 }
 
+.clienteInput {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.clienteInput:focus {
+  border-color: var(--color-acento-secundario);
+}
+
+.clienteInput::placeholder {
+  color: var(--color-atenuado);
+}
+
 .notasBtn {
   width: 100%;
   padding: 0.5rem;

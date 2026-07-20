@@ -41,6 +41,7 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(true)
   const [comanda, setComanda] = useState<ItemComanda[]>([])
+  const [nombreCliente, setNombreCliente] = useState('')
   const [showVaciarConfirm, setShowVaciarConfirm] = useState(false)
   const [showNotasModal, setShowNotasModal] = useState(false)
 
@@ -49,6 +50,7 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
       showSuccess('Pedido creado exitosamente')
+      setNombreCliente('')
       onBack()
     },
     onError: showError,
@@ -151,9 +153,14 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
       showWarning('Agrega al menos un producto al pedido.')
       return
     }
+    if (!nombreCliente.trim()) {
+      showWarning('Debe ingresar el nombre del cliente para continuar.')
+      return
+    }
     try {
       await createPedidoMut.mutateAsync({
         mesaId: mesa.id,
+        nombreCliente: nombreCliente.trim(),
         items: comanda.map((item) => ({
           productoId: item.id,
           cantidad: item.cantidad,
@@ -290,6 +297,13 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
               <span>TOTAL PEDIDO:</span>
               <span>${formatearNumero(subtotal)}</span>
             </div>
+            <input
+              className={styles.clienteInput}
+              type="text"
+              placeholder="Nombre del cliente"
+              value={nombreCliente}
+              onChange={(e) => setNombreCliente(e.target.value)}
+            />
             <div className={styles.notasRow}>
               <button
                 className={styles.notasBtn}
@@ -307,7 +321,7 @@ function TomaPedidoView({ mesa, onBack }: TomaPedidoViewProps) {
               </button>
               <button
                 className={styles.confirmBtn}
-                disabled={comanda.length === 0 || createPedidoMut.isPending}
+                disabled={comanda.length === 0 || createPedidoMut.isPending || !nombreCliente.trim()}
                 onClick={confirmarPedido}
               >
                 {createPedidoMut.isPending ? 'Enviando...' : 'Confirmar Pedido'}

@@ -44,7 +44,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
   const [metodoSeleccionId, setMetodoSeleccionId] = useState<number | null>(null)
   const recibido = useFormattedInput({ type: 'money' })
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
-  const [propina, setPropina] = useState(0)
+  const [cobrarPropina, setCobrarPropina] = useState(false)
 
   const { data: metodosPago = [], isPending: metodosLoading } = useQuery({
     queryKey: ['metodos-pago'],
@@ -116,7 +116,12 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
     [cobrarImpuesto, subtotal]
   )
 
-  const total = useMemo(() => subtotal + impuesto + propina, [subtotal, impuesto, propina])
+  const propinaCalculada = useMemo(
+    () => (cobrarPropina ? subtotal * 0.10 : 0),
+    [cobrarPropina, subtotal]
+  )
+
+  const total = useMemo(() => subtotal + impuesto + propinaCalculada, [subtotal, impuesto, propinaCalculada])
 
   const cambio = useMemo(
     () => (recibido.numericValue >= total ? recibido.numericValue - total : 0),
@@ -157,7 +162,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
         pedidoId: pedido.id,
         subtotal,
         impuestoConsumo: impuesto,
-        propina,
+        propina: propinaCalculada,
         total,
         metodoPagoId: metodoSeleccionId,
         cajaSesionId: sesionCaja.id,
@@ -298,20 +303,18 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
           </div>
         </div>
 
-        <div className={styles.propinaRow}>
-          <div className={styles.propinaField}>
-            <label className={styles.propinaLabel}>PROPINA</label>
+        <div className={styles.impuestoRow}>
+          <label className={styles.switch}>
             <input
-              className={styles.propinaInput}
-              type="text"
-              inputMode="decimal"
-              value={propina > 0 ? `$${propina.toLocaleString('es-CO')}` : ''}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^0-9]/g, '')
-                setPropina(raw ? parseInt(raw, 10) : 0)
-              }}
-              placeholder="$0"
+              type="checkbox"
+              checked={cobrarPropina}
+              onChange={(e) => setCobrarPropina(e.target.checked)}
             />
+            <span className={styles.switchSlider} />
+          </label>
+          <div className={styles.impuestoText}>
+            <span className={styles.impuestoTitle}>COBRAR PROPINA (10%)</span>
+            <span className={styles.impuestoDesc}>Calcula y suma el 10% sobre el valor total del pedido.</span>
           </div>
         </div>
 
@@ -342,10 +345,10 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
               <span className={styles.resumenValor}>${impuesto.toLocaleString('es-CO')}</span>
             </div>
           )}
-          {propina > 0 && (
+          {cobrarPropina && (
             <div className={styles.resumenRow}>
-              <span className={styles.resumenLabel}>Propina</span>
-              <span className={styles.resumenValor}>${propina.toLocaleString('es-CO')}</span>
+              <span className={styles.resumenLabel}>Propina (10%)</span>
+              <span className={styles.resumenValor}>${propinaCalculada.toLocaleString('es-CO')}</span>
             </div>
           )}
           <div className={`${styles.resumenRow} ${styles.resumenTotal}`}>

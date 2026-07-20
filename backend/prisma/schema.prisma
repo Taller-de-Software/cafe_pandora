@@ -160,12 +160,13 @@ model Mesa {
 // ============================================================
 
 model Pedido {
-  id           Int          @id @default(autoincrement())
-  turno        Int
-  estado       EstadoPedido @default(recibido)
-  total        Float?
-  totalAbonado Float        @default(0)
-  mesaId       Int
+  id             Int          @id @default(autoincrement())
+  turno          Int
+  estado         EstadoPedido @default(recibido)
+  total          Float?
+  totalAbonado   Float        @default(0)
+  nombreCliente  String       @default("")
+  mesaId         Int
   mesa         Mesa         @relation("MesaActual", fields: [mesaId], references: [id])
   mesaOrigenId Int?
   mesaOrigen   Mesa?        @relation("MesaOrigen", fields: [mesaOrigenId], references: [id])
