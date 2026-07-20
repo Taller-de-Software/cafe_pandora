@@ -19,6 +19,7 @@ function PosScreen() {
   const [items, setItems] = useState<ItemCarrito[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState<number | null>(null)
   const [search, setSearch] = useState('')
+  const [nombreCliente, setNombreCliente] = useState('')
   const [showNotasModal, setShowNotasModal] = useState(false)
 
   const { data: productos = [] } = useQuery({
@@ -37,6 +38,7 @@ function PosScreen() {
       queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
       showSuccess('Pedido creado exitosamente')
       setItems([])
+      setNombreCliente('')
       setSelectedMesa(null)
     },
     onError: showError,
@@ -83,9 +85,14 @@ function PosScreen() {
       showWarning('Selecciona una mesa y agrega productos al pedido.')
       return
     }
+    if (!nombreCliente.trim()) {
+      showWarning('Debe ingresar el nombre del cliente para continuar.')
+      return
+    }
     try {
       await createPedidoMut.mutateAsync({
         mesaId: selectedMesa.id,
+        nombreCliente: nombreCliente.trim(),
         items: items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad, notas: i.notas || undefined })),
       })
     } catch {
@@ -128,6 +135,8 @@ function PosScreen() {
           items={items}
           onCambiarCantidad={cambiarCantidad}
           onEliminar={eliminarItem}
+          nombreCliente={nombreCliente}
+          onNombreClienteChange={setNombreCliente}
           onNotasClick={() => setShowNotasModal(true)}
           onConfirmar={confirmarPedido}
           onChangeMesa={cambiarMesa}

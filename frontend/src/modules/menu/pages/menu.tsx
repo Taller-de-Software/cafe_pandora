@@ -208,9 +208,6 @@ function Menu() {
     setShowProdForm(true)
   }, [])
 
-  if (catCargando) return <div className={styles.layout}><p>Cargando categorías...</p></div>
-  if (catError) return <div className={styles.layout}><p>Error al cargar categorías</p></div>
-
   const handleEliminarProducto = useCallback(async (id: number) => {
     try {
       await eliminarProd.mutateAsync(id)
@@ -218,6 +215,9 @@ function Menu() {
       // Error manejado por onError en useMutation
     }
   }, [eliminarProd])
+
+  if (catCargando) return <div className={styles.layout}><p>Cargando categorías...</p></div>
+  if (catError) return <div className={styles.layout}><p>Error al cargar categorías</p></div>
 
   return (
     <div className={styles.layout}>

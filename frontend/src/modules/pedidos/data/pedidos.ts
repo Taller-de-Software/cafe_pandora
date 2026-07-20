@@ -26,6 +26,7 @@ export interface Pedido {
   estado: EstadoPedido
   total?: number
   totalAbonado?: number
+  nombreCliente: string
   mesaId: number
   mesa: { id: number; nombre: string; ubicacion?: string }
   usuario: { id: number; nombre?: string; rol: string }
@@ -57,6 +58,7 @@ export async function obtenerPedido(id: number): Promise<Pedido> {
 export async function crearPedido(data: {
   mesaId: number
   turno?: number
+  nombreCliente: string
   items: { productoId: number; cantidad: number; notas?: string }[]
 }): Promise<Pedido> {
   return api.post<Pedido>('/pedidos', data)

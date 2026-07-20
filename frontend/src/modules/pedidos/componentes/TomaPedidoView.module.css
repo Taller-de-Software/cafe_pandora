@@ -355,6 +355,26 @@
   margin-top: 4px;
 }
 
+.clienteInput {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.15s;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.clienteInput:focus {
+  border-color: #b45309;
+}
+
+.clienteInput::placeholder {
+  color: #9ca3af;
+}
+
 .notasRow {
   margin-top: 8px;
 }

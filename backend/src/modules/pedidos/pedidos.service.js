@@ -74,6 +74,7 @@ export const crear = async (data, usuarioId) => {
         usuarioId,
         total: totalItems,
         estado: ESTADOS_PEDIDO.RECIBIDO,
+        nombreCliente: data.nombreCliente,
         detalles: { create: items },
       },
       include: pedidoInclude,
@@ -275,6 +276,7 @@ export const separarCuenta = async (id, cuentasData) => {
           usuarioId: pedido.usuarioId,
           total,
           estado: ESTADOS_PEDIDO.RECIBIDO,
+          nombreCliente: pedido.nombreCliente || "",
         },
         include: pedidoInclude,
       });

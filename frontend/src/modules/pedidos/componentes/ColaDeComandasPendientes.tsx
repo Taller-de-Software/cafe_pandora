@@ -162,19 +162,18 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
             onClick={() => setDetailPedido(pedido)}
           >
             <div className={styles.cardHeader}>
-              <div className={styles.headerLeft}>
-                <span className={styles.mesaName}>
-                  {pedido.mesa?.nombre?.toUpperCase() ?? `MESA ${pedido.mesaId}`}
-                  {(pedido as any).esCuentaSeparada ? <span className={styles.separadaLabel}>SEPARADA</span> : null}
-                  {(pedido as any).esFusion ? <span className={styles.separadaLabel}>FUSIONADA</span> : null}
-                </span>
-                <span className={styles.hora}>&#x1F550; {new Date(pedido.creadoEn).toLocaleTimeString()}</span>
-              </div>
+              <span className={styles.mesaName}>
+                {pedido.mesa?.nombre?.toUpperCase() ?? `MESA ${pedido.mesaId}`}
+                {(pedido as any).esCuentaSeparada ? <span className={styles.separadaLabel}>SEPARADA</span> : null}
+                {(pedido as any).esFusion ? <span className={styles.separadaLabel}>FUSIONADA</span> : null}
+              </span>
               <span className={BADGE_CLASS[pedido.estado] ?? styles.badge}>{BADGE_LABEL[pedido.estado] ?? pedido.estado.toUpperCase()}</span>
-              <div className={styles.headerRight}>
-                <span className={styles.turno}>Turno #{pedido.turno}</span>
-                <span className={styles.id}>ID: #{pedido.id}</span>
-              </div>
+              <span className={styles.turno}>Turno #{pedido.turno}</span>
+              <span className={styles.hora}>&#x1F550; {new Date(pedido.creadoEn).toLocaleTimeString()}</span>
+              {pedido.nombreCliente ? (
+                <span className={styles.clienteName}>{pedido.nombreCliente}</span>
+              ) : <span />}
+              <span className={styles.id}>ID: #{pedido.id}</span>
             </div>
 
             <div className={styles.cardDivider} />

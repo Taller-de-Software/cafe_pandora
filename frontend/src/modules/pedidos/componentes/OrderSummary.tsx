@@ -8,13 +8,15 @@ interface OrderSummaryProps {
   items: ItemCarrito[]
   onCambiarCantidad: (productoId: number, delta: number) => void
   onEliminar: (productoId: number) => void
+  nombreCliente: string
+  onNombreClienteChange: (value: string) => void
   onNotasClick?: () => void
   onConfirmar: () => void
   onChangeMesa: () => void
   saving: boolean
 }
 
-function OrderSummary({ mesa, items, onCambiarCantidad, onEliminar, onNotasClick, onConfirmar, onChangeMesa, saving }: OrderSummaryProps) {
+function OrderSummary({ mesa, items, onCambiarCantidad, onEliminar, nombreCliente, onNombreClienteChange, onNotasClick, onConfirmar, onChangeMesa, saving }: OrderSummaryProps) {
   const subtotal = items.reduce((sum, i) => sum + i.producto.precio * i.cantidad, 0)
   const total = subtotal
 
@@ -54,6 +56,13 @@ function OrderSummary({ mesa, items, onCambiarCantidad, onEliminar, onNotasClick
         </div>
       </div>
 
+      <input
+        className={styles.clienteInput}
+        type="text"
+        placeholder="Nombre del cliente"
+        value={nombreCliente}
+        onChange={(e) => onNombreClienteChange(e.target.value)}
+      />
       {onNotasClick && (
         <button
           className={styles.notasBtn}
@@ -66,7 +75,7 @@ function OrderSummary({ mesa, items, onCambiarCantidad, onEliminar, onNotasClick
       <button
         className={styles.confirmBtn}
         onClick={onConfirmar}
-        disabled={items.length === 0 || saving}
+        disabled={items.length === 0 || saving || !nombreCliente.trim()}
       >
         {saving ? 'Confirmando...' : 'Confirmar Pedido'}
       </button>
