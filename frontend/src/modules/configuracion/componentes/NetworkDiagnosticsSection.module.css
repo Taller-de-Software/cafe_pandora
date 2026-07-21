@@ -24,7 +24,7 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   background: var(--color-acento-secundario);
-  color: white;
+  color: var(--color-texto-blanco);
   border: none;
 }
 
@@ -40,8 +40,8 @@
 .spinner {
   width: 1rem;
   height: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 2px solid var(--color-texto-blanco-30);
+  border-top-color: var(--color-texto-blanco);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -143,7 +143,7 @@
 .latency {
   font-size: 0.65rem;
   font-weight: 600;
-  color: var(--color-acento-secundario);
+  color: var(--color-atenuado);
   font-family: var(--font-mono);
   margin-left: auto;
   flex-shrink: 0;

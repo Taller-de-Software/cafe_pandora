@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--color-acento-secundario);
+  color: var(--color-cuerpo);
 }
 
 .groupTitle {
@@ -124,8 +124,13 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem;
-  background: var(--color-hover-fondo);
+  background: transparent;
   border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.toggleRow:hover {
+  background: var(--color-hover-fondo);
 }
 
 .toggleInfo {
@@ -170,9 +175,9 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: white;
+  background: var(--color-texto-blanco);
   transition: transform var(--transition-fast);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-toggle-knob);
 }
 
 .toggleActive .toggleKnob {
@@ -196,7 +201,7 @@
   cursor: pointer;
   border: none;
   background: var(--color-acento);
-  color: white;
+  color: var(--color-texto-blanco);
   transition: all var(--transition-fast);
 }
 
@@ -261,7 +266,7 @@
 }
 
 .advancedSummary svg {
-  color: var(--color-acento-secundario);
+  color: var(--color-atenuado);
   flex-shrink: 0;
 }
 

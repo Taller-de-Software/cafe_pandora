@@ -1,5 +1,10 @@
 import * as configuracionService from "./configuracion.service.js";
-import { testPrinterConnection, listAllPrinters } from "../../utils/printer.js";
+import {
+  getDiagnostics,
+  detectPrinters,
+  listWindowsPrintersList,
+  testConnection,
+} from "../../services/printer/index.js";
 import { ok } from "../../utils/response.js";
 
 // ─── Modo impresión ─────────────────────────────────────────────────────────
@@ -47,8 +52,8 @@ export const guardarPrinterConfig = async (req, res, next) => {
 
 export const listarPrinters = async (req, res, next) => {
   try {
-    const result = await listAllPrinters();
-    ok(res, result);
+    const result = await detectPrinters();
+    ok(res, { printers: result });
   } catch (err) {
     next(err);
   }
@@ -56,7 +61,7 @@ export const listarPrinters = async (req, res, next) => {
 
 export const probarConexion = async (req, res, next) => {
   try {
-    const result = await testPrinterConnection();
+    const result = await testConnection();
     ok(res, result);
   } catch (err) {
     next(err);
@@ -131,6 +136,35 @@ export const guardarConfigGeneral = async (req, res, next) => {
   try {
     const result = await configuracionService.guardarConfigGeneral(req.body);
     ok(res, result, "Configuración general actualizada");
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─── Printer Diagnostics & Detection (new system) ────────────────────────
+
+export const obtenerDiagnostico = async (req, res, next) => {
+  try {
+    const result = await getDiagnostics();
+    ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const detectarPrinters = async (req, res, next) => {
+  try {
+    const result = await detectPrinters();
+    ok(res, { printers: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const listarWindowsPrinters = async (req, res, next) => {
+  try {
+    const result = await listWindowsPrintersList();
+    ok(res, { printers: result });
   } catch (err) {
     next(err);
   }

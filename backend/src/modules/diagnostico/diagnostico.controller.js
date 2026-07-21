@@ -16,7 +16,7 @@ export const probarImpresora = async (req, res, next) => {
     if (result.success) {
       ok(res, result);
     } else {
-      error(res, result.error, 503);
+      error(res, result.error, 503, { codigo: result.codigo, sugerencia: result.sugerencia });
     }
   } catch (err) {
     next(err);
@@ -29,7 +29,7 @@ export const imprimirPrueba = async (req, res, next) => {
     if (result.success) {
       ok(res, result);
     } else {
-      error(res, result.error, 503);
+      error(res, result.error, 503, { codigo: result.codigo, sugerencia: result.sugerencia });
     }
   } catch (err) {
     next(err);

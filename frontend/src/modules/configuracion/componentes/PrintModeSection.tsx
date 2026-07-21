@@ -4,7 +4,7 @@ import { api } from '@/services/api'
 import { useError } from '@/context/ErrorContext'
 import styles from './PrintModeSection.module.css'
 
-type ConnectionType = 'usb' | 'network' | 'serial'
+type ConnectionType = 'usb' | 'network' | 'serial' | 'cups' | 'windows-spooler'
 type Encoding = 'CP437' | 'CP850' | 'CP852' | 'CP858' | 'CP860' | 'CP863' | 'CP866' | 'CP1252' | 'CP932' | 'UTF8'
 
 interface PrinterConfig {
@@ -20,36 +20,84 @@ interface PrinterConfig {
   printerEncoding?: string
 }
 
-interface UsbPrinter {
-  vendorId: number
-  productId: number
+interface DetectedPrinter {
+  id: string
   name: string
-  connectionType: 'usb'
+  connectionType: ConnectionType
+  vendorId?: number
+  productId?: number
+  address?: string
+  port?: number
+  serialPort?: string
+  driverType?: string
+  driverName?: string
+  compatibleMethods: ConnectionType[]
+  recommendedMethod: ConnectionType
+  status: string
 }
 
-interface SerialPort {
-  path: string
-  manufacturer: string
-  vendorId: string
-  productId: string
-  connectionType: 'serial'
-}
-
-interface AvailablePrinters {
-  usb: UsbPrinter[]
-  serial: SerialPort[]
+interface DiagnosticsReport {
+  os: string
+  platform: string
+  nodeVersion: string
+  timestamp: string
+  totalUsbDevices: number
+  usbDevices: Array<{
+    vendorId: string
+    productId: string
+    driverType: string
+    compatibleWithSpooler: boolean
+    compatibleWithRawUsb: boolean
+    recommendedMethod: string
+    reason: string
+  }>
+  installedPrinters: Array<{
+    name: string
+    portName: string
+    driverName: string
+    pnpDeviceID: string
+    canPrintEscPos: boolean
+  }>
+  serialPorts: Array<{ path: string; manufacturer?: string }>
+  networkPrinters: Array<{ address: string; port: number }>
+  cupsPrinters: Array<{ name: string; status: string }> | null
+  recommendation: {
+    method: ConnectionType | null
+    device?: string
+    reason: string
+  }
 }
 
 interface TestResult {
   success: boolean
   message: string
+  method?: string
   simulated?: boolean
   error?: string
   code?: string
+  sugerencia?: string
 }
 
 const ENCODINGS: Encoding[] = ['CP437', 'CP850', 'CP852', 'CP858', 'CP860', 'CP863', 'CP866', 'CP1252', 'CP932', 'UTF8']
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200]
+
+const CONNECTION_LABELS: Record<ConnectionType, string> = {
+  'usb': 'USB',
+  'network': 'Red / Ethernet',
+  'serial': 'Serial',
+  'cups': 'CUPS (Linux)',
+  'windows-spooler': 'Windows Print Spooler',
+}
+
+const DRIVER_LABELS: Record<string, string> = {
+  'usbprint': 'Driver nativo Windows (usbprint.sys)',
+  'winusb': 'WinUSB (Zadig)',
+  'libusbk': 'libusbK (Zadig)',
+  'libusb0': 'libusb-win32 (Zadig)',
+  'unknown': 'Driver desconocido',
+}
+
+// ─── API Calls ───────────────────────────────────────────────────────────────
 
 function getConfig(): Promise<PrinterConfig> {
   return api.get<PrinterConfig>('/configuracion/impresion/config')
@@ -59,24 +107,30 @@ function setPrintMode(mode: 'simulacion' | 'real'): Promise<PrinterConfig> {
   return api.put<PrinterConfig>('/configuracion/impresion', { modoImpresion: mode })
 }
 
-function getAvailablePrinters(): Promise<AvailablePrinters> {
-  return api.get<AvailablePrinters>('/configuracion/impresion/printers')
+function getDiagnostics(): Promise<DiagnosticsReport> {
+  return api.get<DiagnosticsReport>('/configuracion/impresion/diagnostics')
+}
+
+function getDetectedPrinters(): Promise<{ printers: DetectedPrinter[] }> {
+  return api.get<{ printers: DetectedPrinter[] }>('/configuracion/impresion/detect')
 }
 
 function savePrinterConfig(data: Record<string, unknown>): Promise<PrinterConfig> {
   return api.put<PrinterConfig>('/configuracion/impresion/printer', data)
 }
 
-async function testPrinter(): Promise<TestResult> {
+function testPrinter(): Promise<TestResult> {
   return api.post('/configuracion/impresion/test')
 }
 
-async function printTestReceipt(): Promise<TestResult> {
+function printTestReceipt(): Promise<TestResult> {
   return api.post('/diagnostico/impresora/imprimir-prueba')
 }
 
+// ─── Component ───────────────────────────────────────────────────────────────
+
 function PrintModeSection() {
-  const { showError, showSuccess } = useError()
+  const { showError, showSuccess, showInfo } = useError()
   const queryClient = useQueryClient()
 
   const { data: config, isLoading } = useQuery({
@@ -84,17 +138,26 @@ function PrintModeSection() {
     queryFn: getConfig,
   })
 
-  const { data: printers } = useQuery({
-    queryKey: ['available-printers'],
-    queryFn: getAvailablePrinters,
+  const { data: diagnostics, refetch: refetchDiagnostics } = useQuery({
+    queryKey: ['printer-diagnostics'],
+    queryFn: getDiagnostics,
+    refetchOnWindowFocus: true,
+  })
+
+  const { data: detectedPrinters, refetch: refetchDetected } = useQuery({
+    queryKey: ['detected-printers'],
+    queryFn: getDetectedPrinters,
     refetchOnWindowFocus: true,
   })
 
   const mode = config?.modoImpresion ?? 'simulacion'
 
-  // Form state
+  // ── State ──
+  const [selectedPrinterId, setSelectedPrinterId] = useState<string>('')
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
+  // Advanced form state
   const [connectionType, setConnectionType] = useState<ConnectionType>('usb')
-  const [selectedUsb, setSelectedUsb] = useState<string>('')
   const [customVendorId, setCustomVendorId] = useState('')
   const [customProductId, setCustomProductId] = useState('')
   const [networkAddress, setNetworkAddress] = useState('')
@@ -104,45 +167,35 @@ function PrintModeSection() {
   const [printerName, setPrinterName] = useState('')
   const [encoding, setEncoding] = useState<string>('CP858')
 
-  // Populate form from saved config
+  // ── Populate form from saved config ──
   useEffect(() => {
     if (!config) return
-    setConnectionType(config.printerConnectionType || 'usb')
+    setConnectionType((config.printerConnectionType as ConnectionType) || 'usb')
     setPrinterName(config.printerName || '')
     setEncoding(config.printerEncoding || 'CP858')
     setNetworkPort(String(config.printerNetPort || 9100))
     setSerialBaudRate(config.printerBaudRate || 9600)
 
     if (config.printerVendorId && config.printerProductId) {
-      setSelectedUsb(`custom`)
       setCustomVendorId(String(config.printerVendorId))
       setCustomProductId(String(config.printerProductId))
     }
-    if (config.printerAddress) {
-      setNetworkAddress(config.printerAddress)
-    }
-    if (config.printerSerialPort) {
-      setSerialPort(config.printerSerialPort)
-    }
-  }, [config])
+    if (config.printerAddress) setNetworkAddress(config.printerAddress)
+    if (config.printerSerialPort) setSerialPort(config.printerSerialPort)
 
-  // Auto-select first detected printer when no saved config exists
-  useEffect(() => {
-    if (config && printers) {
-      const hasExistingPrinter = config.printerVendorId || config.printerAddress || config.printerSerialPort
-      if (!hasExistingPrinter && printers.usb.length > 0) {
-        const first = printers.usb[0]
-        setSelectedUsb(`${first.vendorId}:${first.productId}`)
-        if (!printerName) setPrinterName(first.name)
-        setConnectionType('usb')
-      } else if (!hasExistingPrinter && printers.serial.length > 0 && !config.printerSerialPort) {
-        const first = printers.serial[0]
-        setSerialPort(first.path)
-        setConnectionType('serial')
-      }
+    // Try to match saved config to a detected printer
+    if (detectedPrinters?.printers) {
+      const match = detectedPrinters.printers.find((p) => {
+        if (config.printerVendorId && config.printerProductId && p.vendorId === config.printerVendorId && p.productId === config.printerProductId) return true
+        if (config.printerAddress && p.address === config.printerAddress) return true
+        if (config.printerSerialPort && p.serialPort === config.printerSerialPort) return true
+        return false
+      })
+      if (match) setSelectedPrinterId(match.id)
     }
-  }, [config, printers])
+  }, [config, detectedPrinters])
 
+  // ── Mutations ──
   const modeMutation = useMutation({
     mutationFn: setPrintMode,
     onSuccess: () => {
@@ -156,6 +209,7 @@ function PrintModeSection() {
     mutationFn: savePrinterConfig,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['print-mode'] })
+      queryClient.invalidateQueries({ queryKey: ['printer-diagnostics'] })
       showSuccess('Configuración de impresora guardada')
     },
     onError: showError,
@@ -167,7 +221,7 @@ function PrintModeSection() {
       if (result.success) {
         showSuccess(result.message || 'Impresora conectada correctamente')
       } else {
-        showError(result.error || result.message || 'Error al probar la impresora')
+        showError(result.message || 'Error al probar la impresora')
       }
     },
     onError: showError,
@@ -177,40 +231,69 @@ function PrintModeSection() {
     mutationFn: printTestReceipt,
     onSuccess: (result) => {
       if (result.success) {
-        showSuccess(result.message || 'Prueba de impresión enviada')
+        showSuccess(result.message || 'Prueba de impresion enviada')
       } else {
-        showError(result.error || result.message || 'Error al imprimir prueba')
+        showError(result.message || 'Error al imprimir prueba')
       }
     },
     onError: showError,
   })
 
+  // ── Handlers ──
   function handleToggle() {
     const next = mode === 'simulacion' ? 'real' : 'simulacion'
     modeMutation.mutate(next)
   }
 
-  function handleSave() {
+  function handleSelectPrinter(printer: DetectedPrinter) {
+    setSelectedPrinterId(printer.id)
+    setConnectionType(printer.connectionType)
+    setPrinterName(printer.name)
+
+    if (printer.vendorId) setCustomVendorId(printer.vendorId.toString(16).toUpperCase())
+    if (printer.productId) setCustomProductId(printer.productId.toString(16).toUpperCase())
+    if (printer.address) setNetworkAddress(printer.address)
+    if (printer.port) setNetworkPort(String(printer.port))
+    if (printer.serialPort) setSerialPort(printer.serialPort)
+  }
+
+  function handleSaveFromDetection() {
+    const printer = detectedPrinters?.printers.find((p) => p.id === selectedPrinterId)
+    if (!printer) {
+      showError('Seleccione una impresora de la lista')
+      return
+    }
+
+    const payload: Record<string, unknown> = {
+      printerConnectionType: printer.connectionType,
+      printerName: printer.name,
+      printerEncoding: encoding,
+    }
+
+    if (printer.vendorId) payload.printerVendorId = printer.vendorId
+    if (printer.productId) payload.printerProductId = printer.productId
+    if (printer.address) {
+      payload.printerAddress = printer.address
+      payload.printerNetPort = printer.port || 9100
+    }
+    if (printer.serialPort) {
+      payload.printerSerialPort = printer.serialPort
+      payload.printerBaudRate = serialBaudRate
+    }
+
+    saveMutation.mutate(payload)
+  }
+
+  function handleSaveAdvanced() {
     const payload: Record<string, unknown> = {
       printerConnectionType: connectionType,
       printerName: printerName || null,
       printerEncoding: encoding,
     }
 
-    if (connectionType === 'usb') {
-      if (selectedUsb === 'custom') {
-        payload.printerVendorId = customVendorId ? parseInt(customVendorId, 16) : null
-        payload.printerProductId = customProductId ? parseInt(customProductId, 16) : null
-      } else if (selectedUsb && printers?.usb) {
-        const found = printers.usb.find(
-          (p) => `${p.vendorId}:${p.productId}` === selectedUsb
-        )
-        if (found) {
-          payload.printerVendorId = found.vendorId
-          payload.printerProductId = found.productId
-          if (!printerName) payload.printerName = found.name
-        }
-      }
+    if (connectionType === 'usb' || connectionType === 'windows-spooler') {
+      payload.printerVendorId = customVendorId ? parseInt(customVendorId, 16) : null
+      payload.printerProductId = customProductId ? parseInt(customProductId, 16) : null
     }
 
     if (connectionType === 'network') {
@@ -228,36 +311,37 @@ function PrintModeSection() {
 
   if (isLoading) return <p className={styles.loading}>Cargando configuración...</p>
 
+  const printers = detectedPrinters?.printers || []
+  const selectedPrinter = printers.find((p) => p.id === selectedPrinterId)
+
   return (
     <div className={styles.section}>
       <p className={styles.hint}>
-        Define si las impresiones generan <strong>PDF de simulación</strong> o envían datos a una <strong>impresora térmica real</strong>.
+        Define si las impresiones generan <strong>PDF de simulacion</strong> o envian datos a una <strong>impresora termica real</strong>.
       </p>
 
-      {/* ── Toggle de modo ── */}
+      {/* ── Info de impresora + Modo (siempre visible si hay config) ── */}
       <div className={styles.statusCard}>
         <div className={styles.statusRow}>
           <div className={styles.statusInfo}>
             <span className={styles.statusLabel}>Modo actual</span>
             <span className={`${styles.statusValue} ${mode === 'simulacion' ? styles.statusSimulate : styles.statusReal}`}>
-              {mode === 'simulacion' ? 'Simulación (PDF)' : 'Impresora Real'}
+              {mode === 'simulacion' ? 'Simulacion (PDF)' : 'Impresora Real'}
             </span>
           </div>
           <div className={`${styles.indicator} ${mode === 'simulacion' ? styles.indicatorSimulate : styles.indicatorReal}`} />
         </div>
 
-        {mode === 'real' && config && (
+        {config?.printerName && (
           <div className={styles.printerInfo}>
-            {config.printerName && (
-              <div className={styles.printerInfoRow}>
-                <span className={styles.printerInfoLabel}>Nombre</span>
-                <span className={styles.printerInfoValue}>{config.printerName}</span>
-              </div>
-            )}
             <div className={styles.printerInfoRow}>
-              <span className={styles.printerInfoLabel}>Conexión</span>
+              <span className={styles.printerInfoLabel}>Nombre</span>
+              <span className={styles.printerInfoValue}>{config.printerName}</span>
+            </div>
+            <div className={styles.printerInfoRow}>
+              <span className={styles.printerInfoLabel}>Conexion</span>
               <span className={styles.printerInfoValue}>
-                {config.printerConnectionType === 'network' ? 'Red/TCP' : config.printerConnectionType === 'serial' ? 'Serial' : 'USB'}
+                {CONNECTION_LABELS[(config.printerConnectionType as ConnectionType) || 'usb'] || config.printerConnectionType}
               </span>
             </div>
             {config.printerVendorId && (
@@ -266,22 +350,16 @@ function PrintModeSection() {
                 <span className={styles.printerInfoValue}>0x{config.printerVendorId.toString(16).toUpperCase().padStart(4, '0')}</span>
               </div>
             )}
-            {config.printerProductId && (
-              <div className={styles.printerInfoRow}>
-                <span className={styles.printerInfoLabel}>Product ID</span>
-                <span className={styles.printerInfoValue}>0x{config.printerProductId.toString(16).toUpperCase().padStart(4, '0')}</span>
-              </div>
-            )}
             {config.printerAddress && (
               <div className={styles.printerInfoRow}>
-                <span className={styles.printerInfoLabel}>Dirección</span>
+                <span className={styles.printerInfoLabel}>Direccion</span>
                 <span className={styles.printerInfoValue}>{config.printerAddress}:{config.printerNetPort || 9100}</span>
               </div>
             )}
             {config.printerSerialPort && (
               <div className={styles.printerInfoRow}>
-                <span className={styles.printerInfoLabel}>Puerto serial</span>
-                <span className={styles.printerInfoValue}>{config.printerSerialPort} @ {config.printerBaudRate || 9600}</span>
+                <span className={styles.printerInfoLabel}>Puerto</span>
+                <span className={styles.printerInfoValue}>{config.printerSerialPort}</span>
               </div>
             )}
             <div className={styles.printerInfoRow}>
@@ -300,313 +378,277 @@ function PrintModeSection() {
             ? 'Cambiando...'
             : mode === 'simulacion'
               ? 'Cambiar a Impresora Real'
-              : 'Cambiar a Simulación'}
+              : 'Cambiar a Simulacion'}
         </button>
       </div>
 
-      {/* ── Configurar impresora ── */}
+      {/* ── Deteccion Automatica ── */}
       <div className={styles.configCard}>
-        <h4 className={styles.configTitle}>Configurar Impresora</h4>
-
-        {/* Tabs de tipo de conexión */}
-        <div className={styles.connTabs}>
-          {(['usb', 'network', 'serial'] as ConnectionType[]).map((t) => (
-            <button
-              key={t}
-              className={`${styles.connTab} ${connectionType === t ? styles.connTabActive : ''}`}
-              onClick={() => setConnectionType(t)}
-            >
-              {t === 'usb' && (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10 17h.01" /><path d="M10 7v10" /><path d="M14 17h.01" /><path d="M14 7v10" /><path d="M6 17h.01" /><path d="M6 7v10" /><path d="M18 17h.01" /><path d="M18 7v10" />
-                  </svg>
-                  USB
-                </>
-              )}
-              {t === 'network' && (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2" /><rect x="2" y="14" width="20" height="8" rx="2" ry="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" />
-                  </svg>
-                  Red / Ethernet
-                </>
-              )}
-              {t === 'serial' && (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                  </svg>
-                  Serial
-                </>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* ── USB ── */}
-        {connectionType === 'usb' && (
-          <div className={styles.connSection}>
-            {printers && printers.usb.length > 0 && (
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Impresoras detectadas</label>
-                <div className={styles.radioList}>
-                  {printers.usb.map((p) => (
-                    <label key={`${p.vendorId}:${p.productId}`} className={styles.radioItem}>
-                      <input
-                        type="radio"
-                        name="usb-printer"
-                        value={`${p.vendorId}:${p.productId}`}
-                        checked={selectedUsb === `${p.vendorId}:${p.productId}`}
-                        onChange={(e) => {
-                          setSelectedUsb(e.target.value)
-                          if (!printerName) setPrinterName(p.name)
-                        }}
-                      />
-                      <span className={styles.radioLabel}>
-                        {p.name}
-                        <span className={styles.detectedBadge}>Detectada</span>
-                        <span className={styles.radioSub}>
-                          0x{p.vendorId.toString(16).toUpperCase().padStart(4, '0')}:{p.productId.toString(16).toUpperCase().padStart(4, '0')}
-                        </span>
-                      </span>
-                    </label>
-                  ))}
-                  <label className={styles.radioItem}>
-                    <input
-                      type="radio"
-                      name="usb-printer"
-                      value="custom"
-                      checked={selectedUsb === 'custom'}
-                      onChange={(e) => setSelectedUsb(e.target.value)}
-                    />
-                    <span className={styles.radioLabel}>Otra (ingresar manualmente)</span>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {(selectedUsb === 'custom' || !printers || printers.usb.length === 0) && (
-              <div className={styles.fieldRow}>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Vendor ID (hex)</label>
-                  <input
-                    className={styles.inputMono}
-                    type="text"
-                    placeholder="04B8"
-                    value={customVendorId}
-                    onChange={(e) => setCustomVendorId(e.target.value)}
-                  />
-                </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Product ID (hex)</label>
-                  <input
-                    className={styles.inputMono}
-                    type="text"
-                    placeholder="0202"
-                    value={customProductId}
-                    onChange={(e) => setCustomProductId(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Network ── */}
-        {connectionType === 'network' && (
-          <div className={styles.connSection}>
-            <div className={styles.fieldRow}>
-              <div className={styles.fieldGroup} style={{ flex: 2 }}>
-                <label className={styles.fieldLabel}>Dirección IP</label>
-                <input
-                  className={styles.input}
-                  type="text"
-                  placeholder="192.168.1.50"
-                  value={networkAddress}
-                  onChange={(e) => setNetworkAddress(e.target.value)}
-                />
-              </div>
-              <div className={styles.fieldGroup} style={{ flex: 1 }}>
-                <label className={styles.fieldLabel}>Puerto TCP</label>
-                <input
-                  className={styles.input}
-                  type="number"
-                  placeholder="9100"
-                  value={networkPort}
-                  onChange={(e) => setNetworkPort(e.target.value)}
-                />
-              </div>
-            </div>
-            <p className={styles.connHint}>
-              La impresora debe estar conectada a la red local. El puerto por defecto es 9100.
-            </p>
-          </div>
-        )}
-
-        {/* ── Serial ── */}
-        {connectionType === 'serial' && (
-          <div className={styles.connSection}>
-            {printers && printers.serial.length > 0 && (
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Puertos detectados</label>
-                <div className={styles.radioList}>
-                  {printers.serial.map((p) => (
-                    <label key={p.path} className={styles.radioItem}>
-                      <input
-                        type="radio"
-                        name="serial-port"
-                        value={p.path}
-                        checked={serialPort === p.path}
-                        onChange={(e) => setSerialPort(e.target.value)}
-                      />
-                      <span className={styles.radioLabel}>
-                        {p.path}
-                        {p.manufacturer && <span className={styles.radioSub}>{p.manufacturer}</span>}
-                      </span>
-                    </label>
-                  ))}
-                  <label className={styles.radioItem}>
-                    <input
-                      type="radio"
-                      name="serial-port"
-                      value="custom"
-                      checked={serialPort !== '' && !printers.serial.find((p) => p.path === serialPort)}
-                      onChange={() => setSerialPort('')}
-                    />
-                    <span className={styles.radioLabel}>Otro (ingresar manualmente)</span>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {(!printers || printers.serial.length === 0 || serialPort === '' || !printers.serial.find((p) => p.path === serialPort)) && (
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Puerto COM / ruta</label>
-                <input
-                  className={styles.input}
-                  type="text"
-                  placeholder="COM3 o /dev/ttyUSB0"
-                  value={serialPort}
-                  onChange={(e) => setSerialPort(e.target.value)}
-                />
-              </div>
-            )}
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Baud rate</label>
-              <select
-                className={styles.select}
-                value={serialBaudRate}
-                onChange={(e) => setSerialBaudRate(parseInt(e.target.value, 10))}
-              >
-                {BAUD_RATES.map((br) => (
-                  <option key={br} value={br}>{br}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
-
-        {/* ── Común ── */}
-        <div className={styles.commonSection}>
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldGroup} style={{ flex: 2 }}>
-              <label className={styles.fieldLabel}>Nombre / Modelo</label>
-              <input
-                className={styles.input}
-                type="text"
-                placeholder="EPSON TM-T20"
-                value={printerName}
-                onChange={(e) => setPrinterName(e.target.value)}
-              />
-            </div>
-            <div className={styles.fieldGroup} style={{ flex: 1 }}>
-              <label className={styles.fieldLabel}>Encoding</label>
-              <select
-                className={styles.select}
-                value={encoding}
-                onChange={(e) => setEncoding(e.target.value)}
-              >
-                {ENCODINGS.map((enc) => (
-                  <option key={enc} value={enc}>{enc}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Acciones */}
-        <div className={styles.configActions}>
+        <div className={styles.detectedHeader}>
+          <h4 className={styles.configTitle} style={{ margin: 0 }}>Impresoras Detectadas</h4>
           <button
-            className={styles.btnSave}
-            onClick={handleSave}
-            disabled={saveMutation.isPending}
+            className={styles.refreshBtn}
+            onClick={() => {
+              refetchDiagnostics()
+              refetchDetected().then(() => showInfo('Lista de impresoras actualizada'))
+            }}
           >
-            {saveMutation.isPending ? 'Guardando...' : 'Guardar'}
+            Actualizar
           </button>
         </div>
+
+        {printers.length === 0 ? (
+          <div className={styles.connHint}>
+            <p>No se detectaron impresoras. Verifique que este encendida y conectada.</p>
+            {diagnostics?.recommendation && (
+              <p className={styles.recommendReason}>
+                Recomendacion: {diagnostics.recommendation.reason}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className={styles.radioList}>
+            {printers.map((p) => (
+              <label key={p.id} className={styles.radioItem}>
+                <input
+                  type="radio"
+                  name="detected-printer"
+                  value={p.id}
+                  checked={selectedPrinterId === p.id}
+                  onChange={() => handleSelectPrinter(p)}
+                />
+                <span className={styles.radioLabel}>
+                  {p.name}
+                  <span className={`${styles.detectedBadge} ${
+                    p.recommendedMethod === 'windows-spooler' ? styles.badgeSpooler :
+                    p.compatibleMethods.includes('usb-escpos') ? styles.badgeUsb :
+                    styles.badgeDefault
+                  }`}>
+                    {CONNECTION_LABELS[p.connectionType] || p.connectionType}
+                  </span>
+                  {p.driverType && p.driverType !== 'unknown' && (
+                    <span className={styles.radioSub}>
+                      {DRIVER_LABELS[p.driverType] || p.driverType}
+                    </span>
+                  )}
+                  {p.vendorId && p.productId && (
+                    <span className={styles.radioSub}>
+                      0x{p.vendorId.toString(16).toUpperCase().padStart(4, '0')}:{p.productId.toString(16).toUpperCase().padStart(4, '0')}
+                    </span>
+                  )}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {selectedPrinter && (
+          <div className={styles.recommendedBox}>
+            <p className={styles.recommendedText}>
+              <strong>Metodo recomendado:</strong> {CONNECTION_LABELS[selectedPrinter.recommendedMethod]} — {selectedPrinter.name}
+            </p>
+            {selectedPrinter.driverType === 'usbprint' && (
+              <p className={styles.recommendedHint}>
+                Windows Print Spooler puede imprimir sin necesidad de Zadig.
+              </p>
+            )}
+            {selectedPrinter.compatibleMethods.includes('usb-escpos') && (
+              <p className={styles.compatibleHint}>
+                Compatible con acceso directo USB (si tiene WinUSB/libusbK).
+              </p>
+            )}
+          </div>
+        )}
+
+        {printers.length > 0 && (
+          <div className={styles.configActions}>
+            <button
+              className={styles.btnSave}
+              onClick={handleSaveFromDetection}
+              disabled={!selectedPrinterId || saveMutation.isPending}
+            >
+              {saveMutation.isPending ? 'Guardando...' : 'Usar esta impresora'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Probar ── */}
       <div className={styles.testSection}>
         <h4 className={styles.testTitle}>Probar Impresora</h4>
         <p className={styles.testDesc}>
-          Verifica la conexión con la impresora. En modo simulación genera un PDF de prueba.
+          Verifica la conexion con la impresora. En modo simulacion genera un PDF de prueba.
         </p>
         <div className={styles.testActions}>
-          <button
-            className={styles.testBtn}
-            onClick={() => testMutation.mutate()}
-            disabled={testMutation.isPending}
-          >
-            {testMutation.isPending ? 'Probando...' : 'Probar Conexión'}
+          <button className={styles.testBtn} onClick={() => testMutation.mutate()} disabled={testMutation.isPending}>
+            {testMutation.isPending ? 'Probando...' : 'Probar Conexion'}
           </button>
-          <button
-            className={styles.testBtn}
-            onClick={() => printTestMutation.mutate()}
-            disabled={printTestMutation.isPending}
-          >
+          <button className={styles.testBtn} onClick={() => printTestMutation.mutate()} disabled={printTestMutation.isPending}>
             {printTestMutation.isPending ? 'Imprimiendo...' : 'Imprimir Prueba'}
           </button>
         </div>
         {testMutation.isSuccess && testMutation.data && (
           <p className={`${styles.testResult} ${testMutation.data.success ? styles.testSuccess : styles.testError}`}>
-            {testMutation.data.success ? testMutation.data.message : (testMutation.data.error || testMutation.data.message)}
+            {testMutation.data.success ? testMutation.data.message : (testMutation.data.message || 'Error al probar')}
             {testMutation.data.code && !testMutation.data.success && (
               <span className={styles.errorCode}> ({testMutation.data.code})</span>
+            )}
+            {testMutation.data.sugerencia && !testMutation.data.success && (
+              <span className={styles.sugerencia}>
+                {testMutation.data.sugerencia}
+              </span>
             )}
           </p>
         )}
         {printTestMutation.isSuccess && printTestMutation.data && (
           <p className={`${styles.testResult} ${printTestMutation.data.success ? styles.testSuccess : styles.testError}`}>
-            {printTestMutation.data.success ? printTestMutation.data.message : (printTestMutation.data.error || printTestMutation.data.message)}
+            {printTestMutation.data.success ? printTestMutation.data.message : (printTestMutation.data.message || 'Error al imprimir')}
           </p>
         )}
       </div>
 
-      {/* ── Info (colapsable) ── */}
-      <details className={styles.advancedDetails}>
-        <summary className={styles.advancedSummary}>
+      {/* ── Configuracion Avanzada (colapsable) ── */}
+      <details className={styles.advancedDetails} open={showAdvanced}>
+        <summary
+          className={styles.advancedSummary}
+          onClick={(e) => { e.preventDefault(); setShowAdvanced(!showAdvanced) }}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
-          Información avanzada
+          Configuracion Avanzada
         </summary>
-        <div className={styles.advancedContent}>
-          <div className={styles.infoGrid}>
-            <div className={styles.infoItem}>
-              <span className={styles.infoMode}>Simulación</span>
-              <span className={styles.infoDesc}>Genera un archivo PDF con el diseño del recibo. No necesita impresora conectada.</span>
+
+        {showAdvanced && (
+          <div className={styles.advancedContent}>
+            <p className={styles.connHint}>
+              Configure manualmente la conexion si la deteccion automatica no encuentra su impresora.
+            </p>
+
+            {/* Tabs de tipo de conexion */}
+            <div className={styles.connTabs}>
+              {(['usb', 'network', 'serial'] as ConnectionType[]).map((t) => (
+                <button
+                  key={t}
+                  className={`${styles.connTab} ${connectionType === t ? styles.connTabActive : ''}`}
+                  onClick={() => setConnectionType(t)}
+                >
+                  {CONNECTION_LABELS[t]}
+                </button>
+              ))}
             </div>
-            <div className={styles.infoItem}>
-              <span className={styles.infoMode}>Impresora Real</span>
-              <span className={styles.infoDesc}>Envía el comando directo a una impresora térmica por USB, Red o Serial.</span>
+
+            {/* USB */}
+            {connectionType === 'usb' && (
+              <div className={styles.connSection}>
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Vendor ID (hex)</label>
+                    <input className={styles.inputMono} type="text" placeholder="04B8" value={customVendorId} onChange={(e) => setCustomVendorId(e.target.value)} />
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Product ID (hex)</label>
+                    <input className={styles.inputMono} type="text" placeholder="0202" value={customProductId} onChange={(e) => setCustomProductId(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Network */}
+            {connectionType === 'network' && (
+              <div className={styles.connSection}>
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup} style={{ flex: 2 }}>
+                    <label className={styles.fieldLabel}>Direccion IP</label>
+                    <input className={styles.input} type="text" placeholder="192.168.1.50" value={networkAddress} onChange={(e) => setNetworkAddress(e.target.value)} />
+                  </div>
+                  <div className={styles.fieldGroup} style={{ flex: 1 }}>
+                    <label className={styles.fieldLabel}>Puerto TCP</label>
+                    <input className={styles.input} type="number" placeholder="9100" value={networkPort} onChange={(e) => setNetworkPort(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Serial */}
+            {connectionType === 'serial' && (
+              <div className={styles.connSection}>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Puerto COM / ruta</label>
+                  <input className={styles.input} type="text" placeholder="COM3 o /dev/ttyUSB0" value={serialPort} onChange={(e) => setSerialPort(e.target.value)} />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Baud rate</label>
+                  <select className={styles.select} value={serialBaudRate} onChange={(e) => setSerialBaudRate(parseInt(e.target.value, 10))}>
+                    {BAUD_RATES.map((br) => (<option key={br} value={br}>{br}</option>))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Comun */}
+            <div className={styles.commonSection}>
+              <div className={styles.fieldRow}>
+                <div className={styles.fieldGroup} style={{ flex: 2 }}>
+                  <label className={styles.fieldLabel}>Nombre / Modelo</label>
+                  <input className={styles.input} type="text" placeholder="EPSON TM-T20" value={printerName} onChange={(e) => setPrinterName(e.target.value)} />
+                </div>
+                <div className={styles.fieldGroup} style={{ flex: 1 }}>
+                  <label className={styles.fieldLabel}>Encoding</label>
+                  <select className={styles.select} value={encoding} onChange={(e) => setEncoding(e.target.value)}>
+                    {ENCODINGS.map((enc) => (<option key={enc} value={enc}>{enc}</option>))}
+                  </select>
+                </div>
+              </div>
             </div>
+
+            <div className={styles.configActions}>
+              <button className={styles.btnSave} onClick={handleSaveAdvanced} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? 'Guardando...' : 'Guardar configuracion manual'}
+              </button>
+            </div>
+
+            {/* ── Informacion del Sistema ── */}
+            {diagnostics && (
+              <>
+                <div className={styles.systemSeparator} />
+                <h4 className={styles.systemTitle}>Informacion del Sistema</h4>
+                <div className={styles.infoGrid}>
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoMode}>Sistema</span>
+                    <span className={styles.infoDesc}>{diagnostics.platform} — Node {diagnostics.nodeVersion}</span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoMode}>USB</span>
+                    <span className={styles.infoDesc}>
+                      {diagnostics.usbDevices.length > 0
+                        ? `${diagnostics.usbDevices.length} impresora(s) detectada(s) de ${diagnostics.totalUsbDevices} dispositivos`
+                        : `0 impresoras — ${diagnostics.totalUsbDevices} dispositivos USB escaneados`
+                      }
+                    </span>
+                  </div>
+                  {diagnostics.installedPrinters.length > 0 && (
+                    <div className={styles.infoItem}>
+                      <span className={styles.infoMode}>Impresoras Windows</span>
+                      <span className={styles.infoDesc}>{diagnostics.installedPrinters.map((p) => p.name).join(', ')}</span>
+                    </div>
+                  )}
+                  {diagnostics.serialPorts.length > 0 && (
+                    <div className={styles.infoItem}>
+                      <span className={styles.infoMode}>Puertos Seriales</span>
+                      <span className={styles.infoDesc}>{diagnostics.serialPorts.map((p) => p.path).join(', ')}</span>
+                    </div>
+                  )}
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoMode}>Recomendacion</span>
+                    <span className={styles.infoDesc}>{diagnostics.recommendation.reason}</span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        </div>
+        )}
       </details>
     </div>
   )

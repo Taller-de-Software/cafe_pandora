@@ -1,7 +1,6 @@
 import prisma from "../../config/db.config.js";
-import { printCocina, printPago, getLastPrinterError, closePrinterSafely } from "../../utils/printer.js";
+import { printCocina, printPago, getLastError } from "../../services/printer/index.js";
 import { generarPDFComanda, generarPDFRecibo } from "../../utils/pdfGenerator.js";
-import { leerModoImpresion } from "../../config/print-config.js";
 
 function crearError(statusCode, message, extra = {}) {
   const error = new Error(message);
@@ -13,7 +12,7 @@ function crearError(statusCode, message, extra = {}) {
 }
 
 function crearErrorImpresionFallida() {
-  const ultimoError = getLastPrinterError();
+  const ultimoError = getLastError();
   return crearError(
     503,
     ultimoError?.mensaje || "No se pudo imprimir: la impresora no respondió.",
@@ -58,14 +57,25 @@ export const imprimirFacturaCocina = async (pedidoId) => {
     })),
   };
 
-  const modo = await leerModoImpresion();
+  const config = await prisma.configuracion.findFirst();
+  const modo = config?.modoImpresion ?? "simulacion";
+
   if (modo === "simulacion") {
     console.log("🖨️  [IMPRESIÓN SIMULADA - COCINA]");
     const pdfUrl = await generarPDFComanda(data);
     return { pdfUrl };
   }
 
-  const impreso = await printCocina(data);
+  const impreso = await printCocina({
+    pedidoId: data.pedidoId,
+    mesa: data.mesa,
+    mozo: data.mesero,
+    items: data.items.map((d) => ({
+      quantity: d.cantidad,
+      name: d.nombre,
+      note: d.nota,
+    })),
+  });
 
   if (!impreso) {
     throw crearErrorImpresionFallida();
@@ -113,14 +123,27 @@ export const imprimirReciboPago = async (facturaId) => {
     total: factura.total,
   };
 
-  const modo = await leerModoImpresion();
+  const config = await prisma.configuracion.findFirst();
+  const modo = config?.modoImpresion ?? "simulacion";
+
   if (modo === "simulacion") {
     console.log("🖨️  [IMPRESIÓN SIMULADA - PAGO]");
     const pdfUrl = await generarPDFRecibo(data);
     return { pdfUrl };
   }
 
-  const impreso = await printPago(data);
+  const impreso = await printPago({
+    mesa,
+    items: items.map((d) => ({
+      quantity: d.cantidad,
+      name: d.nombre,
+      unitPrice: d.precio,
+    })),
+    subtotal,
+    impuestoConsumo: data.impuestoConsumo,
+    propina: data.propina,
+    total: data.total,
+  });
 
   if (!impreso) {
     throw crearErrorImpresionFallida();
@@ -134,28 +157,29 @@ export const imprimirReciboPago = async (facturaId) => {
 };
 
 export const probarImpresora = async () => {
-  const modo = await leerModoImpresion();
+  const config = await prisma.configuracion.findFirst();
+  const modo = config?.modoImpresion ?? "simulacion";
+
   if (modo === "simulacion") {
     console.log("🖨️  [IMPRESIÓN SIMULADA]");
     return { message: "Modo simulación activo" };
   }
 
-  const { connectPrinter } = await import("../../utils/printer.js");
-  let printer;
+  const { testConnection } = await import("../../services/printer/index.js");
   try {
-    printer = await connectPrinter();
-    if (!printer) {
-      throw crearError(503, "La configuración de impresión no permite conectar en este modo.");
+    const result = await testConnection();
+    if (!result.success) {
+      throw crearError(503, result.message, {
+        codigo: result.error?.codigo,
+        sugerencia: result.error?.sugerencia,
+      });
     }
-    return { message: "Impresora conectada exitosamente" };
+    return { message: result.message };
   } catch (err) {
     if (err.statusCode) throw err;
     throw crearError(503, err.message, {
       codigo: err.codigo,
       sugerencia: err.sugerencia,
-      detalleTecnico: err.detalleTecnico,
     });
-  } finally {
-    await closePrinterSafely(printer);
   }
 };

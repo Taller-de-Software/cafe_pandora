@@ -27,6 +27,9 @@ function ErrorModal({ error, onClose }: ErrorModalProps) {
         </div>
         <h3 className={styles.title}>{info.title}</h3>
         <p className={styles.message}>{info.message}</p>
+        {error && typeof error === 'object' && 'sugerencia' in error && (error as any).sugerencia && (
+          <p className={styles.suggestion}>{(error as any).sugerencia}</p>
+        )}
         <button className={styles.btn} onClick={onClose}>
           Aceptar
         </button>

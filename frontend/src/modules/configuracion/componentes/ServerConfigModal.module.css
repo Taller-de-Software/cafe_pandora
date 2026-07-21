@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,7 +131,7 @@
 
 .input:focus {
   border-color: var(--color-acento-secundario);
-  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+  box-shadow: var(--shadow-indicator-amber);
 }
 
 .input::placeholder {
@@ -212,7 +212,7 @@
   border: none;
   border-radius: var(--radius-md);
   background: var(--color-acento-secundario);
-  color: white;
+  color: var(--color-texto-blanco);
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;

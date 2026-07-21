@@ -21,7 +21,9 @@
     }
   },
   "dependencies": {
+    "@plantae-tech/inkpresser": "^1.2.4",
     "@prisma/client": "^6.19.3",
+    "@ssxv/node-printer": "^1.1.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

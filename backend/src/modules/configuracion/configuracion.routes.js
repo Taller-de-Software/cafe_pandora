@@ -23,10 +23,15 @@ router.put("/impresion", authorize(ROLES.ADMIN), validate(actualizarModoImpresio
 // Config impresión completa
 router.get("/impresion/config", configuracionController.obtenerConfigImpresion);
 
-// Printer config
+// Printer config (legacy — mantiene compatibilidad)
 router.get("/impresion/printers", configuracionController.listarPrinters);
 router.put("/impresion/printer", authorize(ROLES.ADMIN), validate(guardarPrinterConfigSchema), configuracionController.guardarPrinterConfig);
 router.post("/impresion/test", configuracionController.probarConexion);
+
+// Printer diagnostics & detection (new system)
+router.get("/impresion/diagnostics", configuracionController.obtenerDiagnostico);
+router.get("/impresion/detect", configuracionController.detectarPrinters);
+router.get("/impresion/windows-printers", configuracionController.listarWindowsPrinters);
 
 // Frontend port
 router.get("/frontend", configuracionController.obtenerFrontendPort);
