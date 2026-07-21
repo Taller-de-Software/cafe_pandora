@@ -1,6 +1,6 @@
 import prisma from "../../config/db.config.js";
 import { getNetworkDiagnostics } from "../../config/network.js";
-import { smartConnect, getLastError } from "../../services/printer/index.js";
+import { smartConnect, getConfig, getLastError } from "../../services/printer/index.js";
 
 export const obtenerDiagnosticoCompleto = async () => {
   const network = await getNetworkDiagnostics();
@@ -9,7 +9,7 @@ export const obtenerDiagnosticoCompleto = async () => {
   await prisma.$queryRaw`SELECT 1`;
   const dbLatency = Date.now() - dbStart;
 
-  const config = await prisma.configuracion.findFirst();
+  const config = await getConfig();
   const modoImpresion = config?.modoImpresion ?? "simulacion";
 
   let printer = { connected: false, error: null };
@@ -76,7 +76,7 @@ export const obtenerDiagnosticoCompleto = async () => {
 };
 
 export const probarImpresora = async () => {
-  const config = await prisma.configuracion.findFirst();
+  const config = await getConfig();
   const modoImpresion = config?.modoImpresion ?? "simulacion";
 
   if (modoImpresion === "simulacion") {
@@ -93,7 +93,7 @@ export const probarImpresora = async () => {
 };
 
 export const imprimirPrueba = async () => {
-  const config = await prisma.configuracion.findFirst();
+  const config = await getConfig();
   const modoImpresion = config?.modoImpresion ?? "simulacion";
 
   const testData = {

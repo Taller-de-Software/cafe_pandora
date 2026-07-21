@@ -17,7 +17,7 @@ let _dbValidated = false;
 
 // ─── Config from DB ──────────────────────────────────────────────────────────
 
-async function getConfig() {
+export async function getConfig() {
   try {
     const config = await prisma.configuracion.findFirst();
     if (!config) return { modoImpresion: 'simulacion' };
@@ -41,7 +41,9 @@ async function getConfig() {
     // One-time validation per server start: if DB has a USB VID/PID that is no
     // longer a real printer (e.g. old false-positive from buggy detector), clear
     // it so smartConnect does not connect to a mouse or keyboard.
-    if (!_dbValidated && base.modoImpresion === 'real'
+    // Runs regardless of modoImpresion — a corrupt VID/PID should be cleaned
+    // even in simulation mode so it does not resurface on future mode changes.
+    if (!_dbValidated
         && ['usb-escpos', 'usb'].includes(base.printerConnectionType)
         && base.printerVendorId && base.printerProductId) {
       const { isValidPrinterDevice } = await import('./detection/usb.detector.js');

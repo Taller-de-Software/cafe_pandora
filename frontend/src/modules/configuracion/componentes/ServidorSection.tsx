@@ -126,8 +126,31 @@ function ServidorSection() {
   })
 
   function copyUrl() {
-    if (info?.frontendUrl) {
-      navigator.clipboard.writeText(info.frontendUrl).catch(() => {})
+    if (!info?.frontendUrl) return
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(info.frontendUrl)
+        .then(() => showSuccess('URL copiada al portapapeles'))
+        .catch(fallbackCopy)
+    } else {
+      fallbackCopy()
+    }
+
+    function fallbackCopy() {
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.value = info.frontendUrl
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        textarea.style.pointerEvents = 'none'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        showSuccess('URL copiada al portapapeles')
+      } catch {
+        showError('No se pudo copiar. Selecciona la URL manualmente.')
+      }
     }
   }
 

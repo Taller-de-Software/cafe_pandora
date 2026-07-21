@@ -1,5 +1,6 @@
 // ─── Service (Main API) ─────────────────────────────────────────────────────
 export {
+  getConfig,
   detectPrinters,
   getDiagnostics,
   testConnection,
