@@ -4,7 +4,8 @@ import prisma from '../config/db.config.js';
 import usb from 'usb';
 
 const DEFAULT_PRINTER_ENCODING = 'CP858';
-const SAT_VENDOR_IDS = [0x0416, 0x04b8, 0x067b, 0x0fe6, 0x1fc9];
+const SAT_VENDOR_ID = 0x0483;
+const SAT_PRODUCT_ID = 0x5743;
 const PRINTER_CLASS = 0x07;
 
 let lastError = null;
@@ -211,7 +212,7 @@ export async function listUsbPrinters() {
             connectionType: 'usb'
           });
         }
-      } else if (SAT_VENDOR_IDS.includes(desc.idVendor)) {
+      } else if (desc.idVendor === SAT_VENDOR_ID && desc.idProduct === SAT_PRODUCT_ID) {
         const key = `${desc.idVendor}:${desc.idProduct}`;
         if (!seen.has(key)) {
           seen.add(key);
@@ -480,13 +481,16 @@ export async function connectPrinter(modo) {
 
     try {
       const devices = escpos.USB.findPrinter();
-      let satPrinter = devices.find(d => SAT_VENDOR_IDS.includes(d.deviceDescriptor.idVendor));
+      let satPrinter = devices.find(d =>
+        d.deviceDescriptor.idVendor === SAT_VENDOR_ID &&
+        d.deviceDescriptor.idProduct === SAT_PRODUCT_ID
+      );
 
       if (!satPrinter) {
         const allDevices = usb.getDeviceList();
         for (const d of allDevices) {
           const desc = d.deviceDescriptor;
-          if (desc && SAT_VENDOR_IDS.includes(desc.idVendor)) {
+          if (desc && desc.idVendor === SAT_VENDOR_ID && desc.idProduct === SAT_PRODUCT_ID) {
             satPrinter = { deviceDescriptor: desc };
             break;
           }
@@ -494,6 +498,7 @@ export async function connectPrinter(modo) {
       }
 
       if (!satPrinter) {
+        console.log(`⚠️ [IMPRESORA] Impresora SAT 22TUS no encontrada. Se buscaba VendorID=0x${SAT_VENDOR_ID.toString(16).toUpperCase()}, ProductID=0x${SAT_PRODUCT_ID.toString(16).toUpperCase()}`);
         console.log('🔍 [IMPRESORA] Dispositivos USB detectados en el sistema:');
         devices.forEach(d => {
           const desc = d.deviceDescriptor;

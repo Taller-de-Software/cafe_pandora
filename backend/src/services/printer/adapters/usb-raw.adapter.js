@@ -1,8 +1,7 @@
 import usb from 'usb';
 import { BasePrinterAdapter } from './adapter.interface.js';
 
-const CHUNK_SIZE = 48;
-const CHUNK_TIMEOUT = 8000;
+const CHUNK_SIZE = 512;
 
 /**
  * Adaptador USB raw con chunked transfer.
@@ -68,34 +67,33 @@ export class UsbRawAdapter extends BasePrinterAdapter {
 
   async print(data) {
     if (!this._connected || !this.outEndpoint) throw new Error('No hay conexión USB raw activa.');
+    if (data.length === 0) return true;
     return new Promise((resolve, reject) => {
       let offset = 0;
-      let anySuccess = false;
+      let sending = false;
 
       const sendNext = () => {
+        if (sending) return;
         if (offset >= data.length) {
-          return callback(anySuccess ? null : new Error('No se pudo enviar ningún chunk.'));
+          resolve(true);
+          return;
         }
+        sending = true;
         const chunk = data.slice(offset, offset + CHUNK_SIZE);
         offset += CHUNK_SIZE;
-        let timedOut = false;
-        const timer = setTimeout(() => { timedOut = true; sendNext(); }, CHUNK_TIMEOUT);
         try {
           this.outEndpoint.transfer(chunk, (err) => {
-            clearTimeout(timer);
-            if (timedOut) return;
-            if (!err) anySuccess = true;
-            sendNext();
+            sending = false;
+            if (err) {
+              reject(err);
+            } else {
+              sendNext();
+            }
           });
-        } catch {
-          clearTimeout(timer);
-          sendNext();
+        } catch (e) {
+          sending = false;
+          reject(e);
         }
-      };
-
-      const callback = (err) => {
-        if (err) reject(err);
-        else resolve(true);
       };
 
       sendNext();

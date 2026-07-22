@@ -11,7 +11,7 @@ import { buildCocinaTicket, buildPagoTicket, buildCierreTicket } from './templat
 import { buildPrinterError, clearLastError } from './utils/printer-errors.js';
 import { printerLogger } from './utils/printer-logger.js';
 
-const DEFAULT_ENCODING = 'CP858';
+const DEFAULT_ENCODING = 'CP437';
 
 let _dbValidated = false;
 
@@ -316,13 +316,14 @@ export async function printTest() {
 export async function printCocina(data) {
   const config = await getConfig();
   if (config.modoImpresion !== 'real') return true;
+  const encoding = config.printerEncoding || DEFAULT_ENCODING;
   let adapter = null;
   let method = null;
   try {
     ({ adapter, method } = await smartConnect());
-    const ticket = buildCocinaTicket(data);
+    const ticket = buildCocinaTicket(data, encoding);
     printerLogger.print('sending', adapter.getName(), method);
-    const result = await adapter.print(Buffer.from(ticket, 'utf8'));
+    const result = await adapter.print(ticket);
     printerLogger.print('sent', adapter.getName(), method);
     clearLastError();
     return result;
@@ -338,13 +339,14 @@ export async function printCocina(data) {
 export async function printPago(data) {
   const config = await getConfig();
   if (config.modoImpresion !== 'real') return true;
+  const encoding = config.printerEncoding || DEFAULT_ENCODING;
   let adapter = null;
   let method = null;
   try {
     ({ adapter, method } = await smartConnect());
-    const ticket = buildPagoTicket(data);
+    const ticket = buildPagoTicket(data, encoding);
     printerLogger.print('sending', adapter.getName(), method);
-    const result = await adapter.print(Buffer.from(ticket, 'utf8'));
+    const result = await adapter.print(ticket);
     printerLogger.print('sent', adapter.getName(), method);
     clearLastError();
     return result;
@@ -360,13 +362,14 @@ export async function printPago(data) {
 export async function printCierre(data) {
   const config = await getConfig();
   if (config.modoImpresion !== 'real') return true;
+  const encoding = config.printerEncoding || DEFAULT_ENCODING;
   let adapter = null;
   let method = null;
   try {
     ({ adapter, method } = await smartConnect());
-    const ticket = buildCierreTicket(data);
+    const ticket = buildCierreTicket(data, encoding);
     printerLogger.print('sending', adapter.getName(), method);
-    const result = await adapter.print(Buffer.from(ticket, 'utf8'));
+    const result = await adapter.print(ticket);
     printerLogger.print('sent', adapter.getName(), method);
     clearLastError();
     return result;
