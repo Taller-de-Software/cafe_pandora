@@ -6,7 +6,7 @@ export const actualizarModoImpresionSchema = z.object({
 
 export const guardarPrinterConfigSchema = z.object({
   printerName: z.string().max(100).nullable().optional(),
-  printerConnectionType: z.enum(["usb", "network", "serial"]).optional(),
+  printerConnectionType: z.enum(["usb", "usb-escpos", "windows-spooler", "network", "serial", "cups"]).optional(),
   printerVendorId: z.number().int().nullable().optional(),
   printerProductId: z.number().int().nullable().optional(),
   printerAddress: z.string().max(45).nullable().optional(),

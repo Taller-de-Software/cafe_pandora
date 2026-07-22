@@ -4,9 +4,9 @@ import {
   setServerConfig,
   buildServerConfig,
   testConnection,
+  autoDetectApiUrl,
 } from '@/services/server-config'
 import { reconnectSocket } from '@/services/socket'
-import { api } from '@/services/api'
 import { useError } from '@/context/ErrorContext'
 import styles from './ServerConfigModal.module.css'
 
@@ -33,8 +33,6 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null)
   const [saved, setSaved] = useState(false)
-  const [detecting, setDetecting] = useState(false)
-  const [detectedUrls, setDetectedUrls] = useState<{ interfaceName: string; interfaceAddress: string; fullUrl: string; apiUrl: string; socketUrl: string }[] | null>(null)
   const [detectError, setDetectError] = useState<string | null>(null)
 
   async function handleTest() {
@@ -52,27 +50,16 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
     }
   }
 
-  async function handleAutoDetect() {
-    setDetecting(true)
-    setDetectError(null)
-    setDetectedUrls(null)
-    try {
-      const result = await api.get<{ interfaceName: string; interfaceAddress: string; fullUrl: string; apiUrl: string; socketUrl: string }[]>('/red/connect-urls')
-      setDetectedUrls(result)
-    } catch (err) {
-      setDetectError('No se pudo auto-detectar la IP. Verifica que el servidor esté accesible.')
-    } finally {
-      setDetecting(false)
+  function handleAutoDetect() {
+    const apiUrl = autoDetectApiUrl()
+    const { ip: detectedIp, port: detectedPort } = parseUrl(apiUrl)
+    if (!detectedIp || detectedIp === 'localhost' || detectedIp === '127.0.0.1') {
+      setDetectError('Estás en el mismo dispositivo del servidor (localhost). Ingresa la IP manualmente.')
+      return
     }
-  }
-
-  function useDetectedUrl(detected: { apiUrl: string; interfaceName: string }) {
-    const p = parseUrl(detected.apiUrl)
-    setIp(p.ip)
-    setPort(p.port)
-    setDetectedUrls(null)
     setDetectError(null)
-    api.put('/configuracion/red/preferred-interface', { preferredInterfaceName: detected.interfaceName }).catch(() => {})
+    setIp(detectedIp)
+    setPort(detectedPort)
   }
 
   function handleSave() {
@@ -133,25 +120,11 @@ function ServerConfigModal({ onClose, onSaved }: ServerConfigModalProps) {
             <button
               className={styles.detectBtn}
               onClick={handleAutoDetect}
-              disabled={detecting}
             >
-              {detecting ? 'Detectando...' : 'Auto-detectar IP del servidor'}
+              Auto-detectar IP del servidor
             </button>
             {detectError && (
               <span className={styles.detectError}>{detectError}</span>
-            )}
-            {detectedUrls && detectedUrls.length > 0 && (
-              <div className={styles.detectedUrls}>
-                <strong>IPs detectadas:</strong>
-                {detectedUrls.map((d) => (
-                  <div key={d.interfaceName} className={styles.detectedItem}>
-                    <span className={styles.detectedLabel}>{d.interfaceName} ({d.interfaceAddress})</span>
-                    <button className={styles.useBtn} onClick={() => useDetectedUrl(d)}>
-                      Usar
-                    </button>
-                  </div>
-                ))}
-              </div>
             )}
           </div>
 

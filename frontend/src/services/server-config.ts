@@ -11,12 +11,47 @@ export interface ServerConfig {
   socketUrl: string
 }
 
+function getDetectedHostname(): string | null {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return hostname
+    }
+  }
+  return null
+}
+
+function getDefaultProtocol(): string {
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    return 'https'
+  }
+  return 'http'
+}
+
+export function autoDetectApiUrl(): string {
+  const hostname = getDetectedHostname()
+  if (hostname) {
+    const protocol = getDefaultProtocol()
+    return `${protocol}://${hostname}:3001/api`
+  }
+  return DEFAULT_API_URL
+}
+
+export function autoDetectSocketUrl(): string {
+  const hostname = getDetectedHostname()
+  if (hostname) {
+    const protocol = getDefaultProtocol()
+    return `${protocol}://${hostname}:3001`
+  }
+  return DEFAULT_SOCKET_URL
+}
+
 export function getApiUrl(): string {
-  return localStorage.getItem(STORAGE_KEYS.API_URL) || DEFAULT_API_URL
+  return localStorage.getItem(STORAGE_KEYS.API_URL) || autoDetectApiUrl()
 }
 
 export function getSocketUrl(): string {
-  return localStorage.getItem(STORAGE_KEYS.SOCKET_URL) || DEFAULT_SOCKET_URL
+  return localStorage.getItem(STORAGE_KEYS.SOCKET_URL) || autoDetectSocketUrl()
 }
 
 export function getServerConfig(): ServerConfig {
@@ -43,9 +78,10 @@ export function isCustomConfig(): boolean {
 export function buildServerConfig(ip: string, port: string): ServerConfig {
   const host = ip.trim()
   const prt = port.trim() || '3001'
+  const protocol = getDefaultProtocol()
   return {
-    apiUrl: `http://${host}:${prt}/api`,
-    socketUrl: `http://${host}:${prt}`,
+    apiUrl: `${protocol}://${host}:${prt}/api`,
+    socketUrl: `${protocol}://${host}:${prt}`,
   }
 }
 

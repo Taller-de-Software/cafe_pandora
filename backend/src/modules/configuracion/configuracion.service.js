@@ -54,6 +54,8 @@ export const obtenerConfigImpresion = async () => {
       printerBaudRate: config.printerBaudRate,
       printerEncoding: config.printerEncoding,
       frontendPort: config.frontendPort,
+      lastWorkingMethod: config.lastWorkingMethod,
+      lastWorkingDevice: config.lastWorkingDevice,
     };
   } catch (err) {
     console.error("Error reading print config, returning defaults:", err.message);
@@ -69,6 +71,8 @@ export const obtenerConfigImpresion = async () => {
       printerBaudRate: 9600,
       printerEncoding: "CP858",
       frontendPort: 5173,
+      lastWorkingMethod: null,
+      lastWorkingDevice: null,
     };
   }
 };
@@ -85,6 +89,46 @@ export const guardarPrinterConfig = async (data) => {
     printerBaudRate,
     printerEncoding,
   } = data;
+
+  // --- USB: VID/PID must be a real printer (interface 0x07) ---
+  if (['usb-escpos', 'usb'].includes(printerConnectionType)
+      && printerVendorId != null && printerProductId != null) {
+    const { isValidPrinterDevice } = await import('../../services/printer/detection/usb.detector.js');
+    const isValid = await isValidPrinterDevice(printerVendorId, printerProductId);
+    if (!isValid) {
+      const error = new Error(
+        'El dispositivo seleccionado no es una impresora. '
+        + 'VID:PID ' + printerVendorId.toString(16).toUpperCase()
+        + ':' + printerProductId.toString(16).toUpperCase()
+        + ' no expone una interfaz de clase impresora (0x07). Verifique que sea un dispositivo ESC/POS.',
+      );
+      error.statusCode = 400;
+      error.codigo = 'USB_NO_PRINTER';
+      error.sugerencia = 'Conecte una impresora ESC/POS y seleccionala de la lista de dispositivos detectados.';
+      throw error;
+    }
+  }
+
+  // --- Spooler: printer name must be installed in Windows ---
+  if (printerConnectionType === 'windows-spooler' && printerName) {
+    try {
+      const { listWindowsPrinters } = await import('../../services/printer/adapters/windows-spooler.adapter.js');
+      const installed = await listWindowsPrinters();
+      const exists = installed.some((p) => p.name === printerName);
+      if (!exists) {
+        const error = new Error(
+          'La impresora "' + printerName + '" no esta instalada en Windows Print Spooler.',
+        );
+        error.statusCode = 400;
+        error.codigo = 'PRINTER_NOT_INSTALLED';
+        error.sugerencia = 'Instale la impresora en Windows y seleccionala de la lista de impresoras del sistema.';
+        throw error;
+      }
+    } catch (err) {
+      if (err.statusCode) throw err;
+      // If verification fails (not on Windows), allow the save
+    }
+  }
 
   const config = await prisma.configuracion.upsert({
     where: { id: 1 },

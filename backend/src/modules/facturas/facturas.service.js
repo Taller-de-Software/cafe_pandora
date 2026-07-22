@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import prisma from "../../config/db.config.js";
-import { connectPrinter, printPago, closePrinterSafely } from "../../utils/printer.js";
+import { printPago, getLastError } from "../../services/printer/index.js";
 import { ESTADOS_PEDIDO, ESTADOS_MESA } from "../../config/constants.js";
 import { leerModoImpresion } from "../../config/print-config.js";
 
@@ -66,10 +66,20 @@ export const obtenerComprobante = async (id) => {
       propina: factura.propina,
       total: factura.total,
     };
-    const impreso = await printPago(data);
+    const impreso = await printPago({
+      mesa: data.mesa,
+      items: data.items.map((d) => ({
+        quantity: d.cantidad,
+        name: d.nombre,
+        unitPrice: d.precio,
+      })),
+      subtotal: data.subtotal,
+      impuestoConsumo: data.impuestoConsumo,
+      propina: data.propina,
+      total: data.total,
+    });
     if (!impreso) {
-      const { getLastPrinterError } = await import("../../utils/printer.js");
-      const ultimoError = getLastPrinterError();
+      const ultimoError = getLastError();
       const error = new Error(ultimoError?.mensaje || "No se pudo reimprimir el comprobante");
       error.statusCode = 503;
       if (ultimoError?.codigo) error.codigo = ultimoError.codigo;

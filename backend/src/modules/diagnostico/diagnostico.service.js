@@ -1,6 +1,6 @@
 import prisma from "../../config/db.config.js";
 import { getNetworkDiagnostics } from "../../config/network.js";
-import { connectPrinter, getLastPrinterError, closePrinterSafely } from "../../utils/printer.js";
+import { smartConnect, getConfig, getLastError } from "../../services/printer/index.js";
 
 export const obtenerDiagnosticoCompleto = async () => {
   const network = await getNetworkDiagnostics();
@@ -9,32 +9,28 @@ export const obtenerDiagnosticoCompleto = async () => {
   await prisma.$queryRaw`SELECT 1`;
   const dbLatency = Date.now() - dbStart;
 
-  const config = await prisma.configuracion.findFirst();
+  const config = await getConfig();
   const modoImpresion = config?.modoImpresion ?? "simulacion";
 
   let printer = { connected: false, error: null };
 
   if (modoImpresion === "real") {
-    let device;
+    let connection;
     try {
-      device = await connectPrinter();
-      printer = { connected: true };
+      connection = await smartConnect();
+      await connection.adapter.disconnect();
+      printer = { connected: true, method: connection.method };
     } catch (err) {
       printer = {
         connected: false,
         error: err.message,
-        codigo: err.codigo,
-        sugerencia: err.sugerencia,
-        detalleTecnico: err.detalleTecnico,
       };
-    } finally {
-      await closePrinterSafely(device);
     }
   } else {
     printer = { connected: true, simulated: true };
   }
 
-  const ultimoErrorImpresora = getLastPrinterError();
+  const ultimoErrorImpresora = getLastError();
 
   let connectedClients = 0;
   let rooms = {};
@@ -80,7 +76,7 @@ export const obtenerDiagnosticoCompleto = async () => {
 };
 
 export const probarImpresora = async () => {
-  const config = await prisma.configuracion.findFirst();
+  const config = await getConfig();
   const modoImpresion = config?.modoImpresion ?? "simulacion";
 
   if (modoImpresion === "simulacion") {
@@ -91,25 +87,13 @@ export const probarImpresora = async () => {
     };
   }
 
-  let printer;
-  try {
-    printer = await connectPrinter();
-    return { success: true, message: "Impresora conectada exitosamente" };
-  } catch (err) {
-    return {
-      success: false,
-      error: err.message,
-      codigo: err.codigo,
-      sugerencia: err.sugerencia,
-      detalleTecnico: err.detalleTecnico,
-    };
-  } finally {
-    await closePrinterSafely(printer);
-  }
+  const { testConnection } = await import("../../services/printer/index.js");
+  const result = await testConnection();
+  return result;
 };
 
 export const imprimirPrueba = async () => {
-  const config = await prisma.configuracion.findFirst();
+  const config = await getConfig();
   const modoImpresion = config?.modoImpresion ?? "simulacion";
 
   const testData = {
@@ -129,17 +113,25 @@ export const imprimirPrueba = async () => {
   }
 
   try {
-    const { printCocina } = await import("../../utils/printer.js");
-    const impreso = await printCocina(testData);
+    const { printCocina: newPrintCocina } = await import("../../services/printer/index.js");
+    const impreso = await newPrintCocina({
+      pedidoId: 'TEST',
+      mesa: 'PRUEBA',
+      mozo: 'Sistema',
+      items: [
+        { quantity: 1, name: 'PRUEBA DE IMPRESIÓN', note: 'Ticket de prueba del sistema' },
+        { quantity: 1, name: 'Línea 2', note: 'Verificar corte de papel' },
+        { quantity: 1, name: 'Línea 3', note: 'Verificar calidad de impresión' },
+      ],
+    });
 
     if (!impreso) {
-      const ultimoError = getLastPrinterError();
+      const ultimoError = getLastError();
       return {
         success: false,
-        error: ultimoError?.mensaje || "No se pudo imprimir el ticket de prueba.",
-        codigo: ultimoError?.codigo,
-        sugerencia: ultimoError?.sugerencia,
-        detalleTecnico: ultimoError?.detalleTecnico,
+        error: ultimoError?.message || "No se pudo imprimir el ticket de prueba.",
+        codigo: ultimoError?.code,
+        sugerencia: ultimoError?.suggestion,
       };
     }
 

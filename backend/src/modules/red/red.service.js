@@ -122,7 +122,7 @@ export const obtenerDiagnosticoDetallado = async () => {
     dbCheck = { ok: false, latency: 0 };
   }
 
-  let printerCheck = { connected: false, mode: "unknown", error: null, codigo: null, sugerencia: null, detalleTecnico: null };
+  let printerCheck = { connected: false, mode: "unknown", error: null };
   try {
     const prisma = (await import("../../config/db.config.js")).default;
     const config = await prisma.configuracion.findFirst();
@@ -130,25 +130,20 @@ export const obtenerDiagnosticoDetallado = async () => {
     printerCheck.mode = mode;
 
     if (mode === "real") {
-      let device;
       try {
-        const { connectPrinter, closePrinterSafely } = await import("../../utils/printer.js");
-        device = await connectPrinter();
+        const { smartConnect } = await import("../../services/printer/index.js");
+        const { adapter } = await smartConnect();
+        await adapter.disconnect();
         printerCheck.connected = true;
       } catch (err) {
         printerCheck.connected = false;
         printerCheck.error = err.message;
-        printerCheck.codigo = err.codigo || null;
-        printerCheck.sugerencia = err.sugerencia || null;
-        printerCheck.detalleTecnico = err.detalleTecnico || null;
-      } finally {
-        if (device) await closePrinterSafely(device);
       }
     } else {
       printerCheck.connected = true;
     }
   } catch {
-    printerCheck = { connected: false, mode: "error", error: "No se pudo leer configuración", codigo: null, sugerencia: null, detalleTecnico: null };
+    printerCheck = { connected: false, mode: "error", error: "No se pudo leer configuración" };
   }
 
   return {

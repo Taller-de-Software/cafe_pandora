@@ -67,6 +67,19 @@
   --color-info-borde: #93C5FD;
   --color-info-texto: #1E40AF;
 
+  /* Texto sobre fondos oscuros/coloreados */
+  --color-texto-blanco: #FFFFFF;
+  --color-texto-blanco-80: rgba(255, 255, 255, 0.8);
+  --color-texto-blanco-30: rgba(255, 255, 255, 0.3);
+
+  /* Overlay de modales */
+  --color-overlay: rgba(0, 0, 0, 0.4);
+
+  /* Sombras específicas */
+  --shadow-toggle-knob: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-indicator-info: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  --shadow-indicator-amber: 0 0 0 3px rgba(180, 83, 9, 0.15);
+
   /* ===== MAPIEO DE TAILWIND GRIS -> PREMIUM (para migración) ===== */
   /* Estos mapeos se usan para reemplazar colores hardcoded en .module.css */
   --color-gray-900: var(--color-titulo);         /* #1F2937 -> #2D2A26 */

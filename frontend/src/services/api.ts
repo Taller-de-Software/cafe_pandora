@@ -87,7 +87,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       throw new Error(`${res.status} Respuesta inválida del servidor`)
     }
     if (!res.ok) {
-      throw new Error(`${res.status} ${json.message || 'Error de servidor'}`)
+      const err = new Error(`${res.status} ${json.message || 'Error de servidor'}`)
+      ;(err as any).codigo = (json as any).codigo
+      ;(err as any).sugerencia = (json as any).sugerencia
+      throw err
     }
     return json.data
   } catch (err) {

@@ -69,6 +69,17 @@
   line-height: 1.4;
 }
 
+.suggestion {
+  font-size: 0.85rem;
+  color: var(--color-info);
+  margin-top: -0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-info-superficie, rgba(37, 99, 235, 0.08));
+  border-radius: var(--radius-md);
+  line-height: 1.4;
+}
+
 .btn {
   padding: 0.5rem 1.5rem;
   background: var(--color-acento-secundario);

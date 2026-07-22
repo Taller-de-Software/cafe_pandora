@@ -56,19 +56,17 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem;
-  background: var(--color-acento);
   border-radius: var(--radius-md);
-  margin-top: 0.25rem;
 }
 
 .infoHighlight .infoLabel {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-atenuado);
 }
 
 .infoValueUrl {
   font-size: 0.9rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-cuerpo);
   font-family: var(--font-mono);
 }
 
@@ -89,7 +87,7 @@
 .infoValueMono {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--color-acento-secundario);
+  color: var(--color-cuerpo);
   font-family: var(--font-mono);
 }
 
@@ -113,13 +111,15 @@
 }
 
 .btnPrimary {
-  background: var(--color-acento-secundario);
-  color: white;
-  border: none;
+  background: var(--color-tarjeta-fondo);
+  color: var(--color-cuerpo);
+  border: 1.5px solid var(--color-borde);
 }
 
 .btnPrimary:hover {
-  background: var(--color-acento-secundario-hover);
+  background: var(--color-hover-fondo);
+  border-color: var(--color-acento-secundario);
+  color: var(--color-acento-secundario);
 }
 
 .btnSecondary {
@@ -163,7 +163,7 @@
 .qrUrl {
   font-size: 0.75rem;
   font-family: var(--font-mono);
-  color: var(--color-acento-secundario);
+  color: var(--color-cuerpo);
   margin: 0;
   word-break: break-all;
   text-align: center;
@@ -172,8 +172,8 @@
 /* ── Port section ── */
 
 .portSection {
-  background: var(--color-hover-fondo);
-  border: 1px solid var(--color-borde);
+  background: var(--color-tarjeta-fondo);
+  border: 1.5px solid var(--color-borde);
   border-radius: var(--radius-lg);
   padding: 1rem;
 }
@@ -235,7 +235,7 @@
   cursor: pointer;
   border: none;
   background: var(--color-acento);
-  color: white;
+  color: var(--color-texto-blanco);
   transition: all var(--transition-fast);
   white-space: nowrap;
 }
@@ -252,38 +252,68 @@
 /* ── Backend details ── */
 
 .backendDetails {
-  background: var(--color-hover-fondo);
-  border: 1px solid var(--color-borde);
+  border: 1.5px solid var(--color-borde);
   border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.backendDetails[open] {
+  border-color: var(--color-acento-secundario);
 }
 
 .backendSummary {
-  padding: 0.75rem 1rem;
-  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: var(--color-atenuado);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--color-titulo);
   cursor: pointer;
+  list-style: none;
   user-select: none;
+  background: var(--color-tarjeta-fondo);
+  transition: background var(--transition-fast);
+}
+
+.backendSummary::-webkit-details-marker {
+  display: none;
+}
+
+.backendSummary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 5px solid var(--color-atenuado);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.backendDetails[open] > .backendSummary::before {
+  transform: rotate(90deg);
 }
 
 .backendSummary:hover {
-  color: var(--color-cuerpo);
+  background: var(--color-hover-fondo);
 }
 
 .backendInfo {
-  padding: 0 1rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  padding: 1rem 1.25rem 1.25rem;
+  background: var(--color-tarjeta-fondo);
+  border-top: 1px solid var(--color-borde);
 }
 
 /* ── Interfaces ── */
 
 .interfacesSection {
-  background: var(--color-hover-fondo);
-  border: 1px solid var(--color-borde);
+  background: var(--color-tarjeta-fondo);
+  border: 1.5px solid var(--color-borde);
   border-radius: var(--radius-lg);
   padding: 1rem;
 }
@@ -333,8 +363,8 @@
 .preferredBadge {
   font-size: 0.6rem;
   font-weight: 700;
-  color: var(--color-exito-texto);
-  background: var(--color-exito-superficie);
+  color: var(--color-atenuado);
+  background: var(--color-hover-fondo);
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
@@ -346,9 +376,9 @@
   font-weight: 700;
   padding: 0.2rem 0.5rem;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--color-acento-secundario);
+  border: 1.5px solid var(--color-borde);
   background: transparent;
-  color: var(--color-acento-secundario);
+  color: var(--color-cuerpo);
   cursor: pointer;
   transition: all var(--transition-fast);
   margin-left: auto;
@@ -356,8 +386,8 @@
 }
 
 .setPreferredBtn:hover {
-  background: var(--color-acento-secundario);
-  color: white;
+  background: var(--color-hover-fondo);
+  color: var(--color-cuerpo);
 }
 
 .setPreferredBtn:disabled {
