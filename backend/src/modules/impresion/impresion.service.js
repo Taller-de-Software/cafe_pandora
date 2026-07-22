@@ -110,7 +110,7 @@ export const imprimirReciboPago = async (facturaId) => {
     precio: d.precioUnitario,
   }));
   const subtotal = items.reduce((s, it) => s + it.cantidad * it.precio, 0);
-  const impuestoConsumo = Math.round(subtotal * 0.08);
+  const impuestoConsumo = factura.impuestoConsumo;
   const data = {
     facturaId: factura.id,
     facturaNumero: `#${factura.id}`,
