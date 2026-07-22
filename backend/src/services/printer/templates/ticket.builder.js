@@ -93,13 +93,8 @@ export function buildPagoTicket(data) {
   lines.push(separator());
   lines.push(padLine(`Subtotal:        $${fmt(data.subtotal)}`));
 
-  if (data.impuestoConsumo && data.impuestoConsumo > 0) {
-    lines.push(padLine(`Imp. Consumo 8%: $${fmt(data.impuestoConsumo)}`));
-  }
-
-  if (data.propina && data.propina > 0) {
-    lines.push(padLine(`Propina:         $${fmt(data.propina)}`));
-  }
+  lines.push(padLine(`Imp. Consumo 8%: $${fmt(data.impuestoConsumo)}`));
+  lines.push(padLine(`Propina:         $${fmt(data.propina)}`));
 
   lines.push(centerLine(`TOTAL:           $${fmt(data.total)}`));
   lines.push(separator());
