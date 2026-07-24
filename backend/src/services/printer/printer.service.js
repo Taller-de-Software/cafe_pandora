@@ -2,8 +2,7 @@ import prisma from '../../config/db.config.js';
 import { detectAllPrinters } from './detection/index.js';
 import { getDiagnosticsReport } from './diagnostics/diagnostics.service.js';
 import { WindowsSpoolerAdapter, listWindowsPrinters } from './adapters/windows-spooler.adapter.js';
-import { UsbEscposAdapter } from './adapters/usb-escpos.adapter.js';
-import { UsbRawAdapter } from './adapters/usb-raw.adapter.js';
+import { UsbEscposAdapter, findUsbEscposDevice } from './adapters/usb-escpos.adapter.js';
 import { NetworkAdapter } from './adapters/network.adapter.js';
 import { SerialAdapter } from './adapters/serial.adapter.js';
 import { CupsAdapter } from './adapters/cups.adapter.js';
@@ -11,9 +10,7 @@ import { buildCocinaTicket, buildPagoTicket, buildCierreTicket } from './templat
 import { buildPrinterError, clearLastError } from './utils/printer-errors.js';
 import { printerLogger } from './utils/printer-logger.js';
 
-const DEFAULT_ENCODING = 'CP858';
-
-let _dbValidated = false;
+const DEFAULT_ENCODING = 'CP437';
 
 // ─── Config from DB ──────────────────────────────────────────────────────────
 
@@ -22,7 +19,7 @@ export async function getConfig() {
     const config = await prisma.configuracion.findFirst();
     if (!config) return { modoImpresion: 'simulacion' };
 
-    const base = {
+    return {
       _id: config.id,
       modoImpresion: config.modoImpresion || 'simulacion',
       printerName: config.printerName,
@@ -37,46 +34,6 @@ export async function getConfig() {
       lastWorkingMethod: config.lastWorkingMethod,
       lastWorkingDevice: config.lastWorkingDevice,
     };
-
-    // One-time validation per server start: if DB has a USB VID/PID that is no
-    // longer a real printer (e.g. old false-positive from buggy detector), clear
-    // it so smartConnect does not connect to a mouse or keyboard.
-    // Runs regardless of modoImpresion — a corrupt VID/PID should be cleaned
-    // even in simulation mode so it does not resurface on future mode changes.
-    if (!_dbValidated
-        && ['usb-escpos', 'usb'].includes(base.printerConnectionType)
-        && base.printerVendorId && base.printerProductId) {
-      const { isValidPrinterDevice } = await import('./detection/usb.detector.js');
-      const isValid = await isValidPrinterDevice(base.printerVendorId, base.printerProductId);
-      if (!isValid) {
-        console.warn(
-          '[PRINTER] Config corrupta detectada: VID:PID '
-          + base.printerVendorId.toString(16).toUpperCase() + ':'
-          + base.printerProductId.toString(16).toUpperCase()
-          + ' no es una impresora. Limpiando campos USB de la DB.',
-        );
-        await prisma.configuracion.update({
-          where: { id: config.id },
-          data: {
-            printerVendorId: null,
-            printerProductId: null,
-            printerName: null,
-            printerConnectionType: null,
-            lastWorkingMethod: null,
-            lastWorkingDevice: null,
-          },
-        });
-        base.printerVendorId = null;
-        base.printerProductId = null;
-        base.printerName = null;
-        base.printerConnectionType = null;
-        base.lastWorkingMethod = null;
-        base.lastWorkingDevice = null;
-      }
-    }
-    _dbValidated = true;
-
-    return base;
   } catch {
     return { modoImpresion: 'simulacion' };
   }
@@ -86,20 +43,15 @@ export async function getConfig() {
 
 function createAdapter(connectionType, config) {
   switch (connectionType) {
+    case 'usb-escpos':
+      return new UsbEscposAdapter(
+        config.printerVendorId || 0x0483,
+        config.printerProductId || 0x5743,
+        config.printerEncoding || DEFAULT_ENCODING,
+      );
+
     case 'windows-spooler':
       return new WindowsSpoolerAdapter(config.printerName || 'Printer');
-
-    case 'usb-escpos':
-      if (!config.printerVendorId || !config.printerProductId) {
-        throw new Error('Se requiere vendorId y productId para USB.');
-      }
-      return new UsbEscposAdapter(config.printerVendorId, config.printerProductId, config.printerEncoding || DEFAULT_ENCODING);
-
-    case 'usb':
-      if (!config.printerVendorId || !config.printerProductId) {
-        throw new Error('Se requiere vendorId y productId para USB.');
-      }
-      return new UsbRawAdapter(config.printerVendorId, config.printerProductId);
 
     case 'network':
       if (!config.printerAddress) throw new Error('Se requiere dirección IP para red.');
@@ -119,9 +71,8 @@ function createAdapter(connectionType, config) {
 
 function canUseMethod(method, config) {
   switch (method) {
+    case 'usb-escpos': return !!(config.printerVendorId || config.printerProductId);
     case 'windows-spooler': return process.platform === 'win32';
-    case 'usb-escpos':
-    case 'usb': return !!(config.printerVendorId && config.printerProductId);
     case 'network': return !!config.printerAddress;
     case 'serial': return !!config.printerSerialPort;
     case 'cups': return process.platform !== 'win32';
@@ -142,26 +93,14 @@ function checkNetworkHost(host, port) {
   });
 }
 
-/**
- * Intenta conectar con fallback automatico entre metodos.
- * Ejecuta UNA sola deteccion por operacion y la reutiliza para validar
- * todos los metodos USB/Serial/Network antes de intentar la conexion.
- * @returns {Promise<{ adapter: import('./adapters/adapter.interface.js').BasePrinterAdapter, method: string }>}
- */
 export async function smartConnect(overrideConfig = {}) {
+  const { noFallback, ...rest } = overrideConfig;
   const baseConfig = await getConfig();
-  // _id is captured from baseConfig before the spread; the update below uses
-  // baseConfig._id explicitly so an accidental _id in overrideConfig cannot
-  // write to the wrong DB row.
-  const config = { ...baseConfig, ...overrideConfig };
+  const config = { ...baseConfig, ...rest };
 
   if (config.modoImpresion !== 'real') {
     throw new Error('Modo simulacion activo. No se requiere impresora fisica.');
   }
-
-  // Single detection per print operation — shared by all methods below
-  let detectedPrinters = [];
-  try { detectedPrinters = await detectAllPrinters(); } catch {}
 
   let availableSerialPorts = [];
   try {
@@ -173,12 +112,14 @@ export async function smartConnect(overrideConfig = {}) {
   const lastWorking = config.lastWorkingMethod;
   const methodsToTry = [];
 
-  if (lastWorking && !methodsToTry.includes(lastWorking)) methodsToTry.push(lastWorking);
   if (configuredType && !methodsToTry.includes(configuredType)) methodsToTry.push(configuredType);
 
-  const fallbacks = ['windows-spooler', 'usb-escpos', 'network', 'serial', 'cups'];
-  for (const fb of fallbacks) {
-    if (!methodsToTry.includes(fb)) methodsToTry.push(fb);
+  if (!noFallback) {
+    if (lastWorking && !methodsToTry.includes(lastWorking)) methodsToTry.push(lastWorking);
+    const fallbacks = ['usb-escpos', 'network', 'serial', 'windows-spooler'];
+    for (const fb of fallbacks) {
+      if (!methodsToTry.includes(fb)) methodsToTry.push(fb);
+    }
   }
 
   const errors = [];
@@ -187,19 +128,26 @@ export async function smartConnect(overrideConfig = {}) {
     try {
       if (!canUseMethod(method, config)) continue;
 
-      // --- USB: VID/PID must appear in detected printers (interface 0x07) ---
-      if (method === 'usb-escpos' || method === 'usb') {
-        const stillValid = detectedPrinters.some(
-          (p) => p.vendorId === config.printerVendorId && p.productId === config.printerProductId,
-        );
-        if (!stillValid) {
-          const vid = config.printerVendorId?.toString(16).toUpperCase() ?? '?';
-          const pid = config.printerProductId?.toString(16).toUpperCase() ?? '?';
-          printerLogger.warn(
-            `Se omite ${method}: VID:PID ${vid}:${pid} no tiene interfaz de impresora (0x07). Dispositivo no es una impresora.`,
-            method,
-          );
-          errors.push(`[${method}] Dispositivo no es impresora`);
+      // --- USB ESC/POS: must have VID/PID and device must be physically connected ---
+      if (method === 'usb-escpos') {
+        const hasVidPid = !!(config.printerVendorId || config.printerProductId);
+        if (!hasVidPid) {
+          printerLogger.warn('Se omite usb-escpos: no hay VID/PID configurados.', 'usb-escpos');
+          errors.push('[usb-escpos] No hay VID/PID en configuración');
+          continue;
+        }
+        try {
+          const device = await findUsbEscposDevice(config.printerVendorId, config.printerProductId);
+          if (!device) {
+            printerLogger.warn(
+              `Se omite usb-escpos: dispositivo 0x${config.printerVendorId?.toString(16).padStart(4, '0')}:0x${config.printerProductId?.toString(16).padStart(4, '0')} no encontrado.`,
+              'usb-escpos',
+            );
+            errors.push(`[usb-escpos] Dispositivo USB no conectado`);
+            continue;
+          }
+        } catch {
+          errors.push('[usb-escpos] Error al detectar dispositivo USB');
           continue;
         }
       }
@@ -289,7 +237,7 @@ export async function getDiagnostics() {
 
 export async function testConnection() {
   try {
-    const { adapter, method } = await smartConnect();
+    const { adapter, method } = await smartConnect({ noFallback: true });
     await adapter.disconnect();
     clearLastError();
     return { success: true, message: `Conexión exitosa via ${method} — ${adapter.getName()}`, method };
@@ -316,13 +264,14 @@ export async function printTest() {
 export async function printCocina(data) {
   const config = await getConfig();
   if (config.modoImpresion !== 'real') return true;
+  const encoding = config.printerEncoding || DEFAULT_ENCODING;
   let adapter = null;
   let method = null;
   try {
     ({ adapter, method } = await smartConnect());
-    const ticket = buildCocinaTicket(data);
+    const ticket = buildCocinaTicket(data, encoding);
     printerLogger.print('sending', adapter.getName(), method);
-    const result = await adapter.print(Buffer.from(ticket, 'utf8'));
+    const result = await adapter.print(ticket);
     printerLogger.print('sent', adapter.getName(), method);
     clearLastError();
     return result;
@@ -338,13 +287,14 @@ export async function printCocina(data) {
 export async function printPago(data) {
   const config = await getConfig();
   if (config.modoImpresion !== 'real') return true;
+  const encoding = config.printerEncoding || DEFAULT_ENCODING;
   let adapter = null;
   let method = null;
   try {
     ({ adapter, method } = await smartConnect());
-    const ticket = buildPagoTicket(data);
+    const ticket = buildPagoTicket(data, encoding);
     printerLogger.print('sending', adapter.getName(), method);
-    const result = await adapter.print(Buffer.from(ticket, 'utf8'));
+    const result = await adapter.print(ticket);
     printerLogger.print('sent', adapter.getName(), method);
     clearLastError();
     return result;
@@ -360,13 +310,14 @@ export async function printPago(data) {
 export async function printCierre(data) {
   const config = await getConfig();
   if (config.modoImpresion !== 'real') return true;
+  const encoding = config.printerEncoding || DEFAULT_ENCODING;
   let adapter = null;
   let method = null;
   try {
     ({ adapter, method } = await smartConnect());
-    const ticket = buildCierreTicket(data);
+    const ticket = buildCierreTicket(data, encoding);
     printerLogger.print('sending', adapter.getName(), method);
-    const result = await adapter.print(Buffer.from(ticket, 'utf8'));
+    const result = await adapter.print(ticket);
     printerLogger.print('sent', adapter.getName(), method);
     clearLastError();
     return result;
@@ -381,9 +332,4 @@ export async function printCierre(data) {
 
 export async function listWindowsPrintersList() {
   return listWindowsPrinters();
-}
-
-export async function resetDetectionCache() {
-  const { clearDriverCache } = await import('./detection/windows-driver.detector.js');
-  clearDriverCache();
 }

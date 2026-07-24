@@ -31,7 +31,7 @@ export const obtenerConfigImpresion = async () => {
       return {
         modoImpresion: "simulacion",
         printerName: null,
-        printerConnectionType: "usb",
+        printerConnectionType: "windows-spooler",
         printerVendorId: null,
         printerProductId: null,
         printerAddress: null,
@@ -62,7 +62,7 @@ export const obtenerConfigImpresion = async () => {
     return {
       modoImpresion: "simulacion",
       printerName: null,
-      printerConnectionType: "usb",
+      printerConnectionType: "windows-spooler",
       printerVendorId: null,
       printerProductId: null,
       printerAddress: null,
@@ -90,21 +90,15 @@ export const guardarPrinterConfig = async (data) => {
     printerEncoding,
   } = data;
 
-  // --- USB: VID/PID must be a real printer (interface 0x07) ---
-  if (['usb-escpos', 'usb'].includes(printerConnectionType)
-      && printerVendorId != null && printerProductId != null) {
-    const { isValidPrinterDevice } = await import('../../services/printer/detection/usb.detector.js');
-    const isValid = await isValidPrinterDevice(printerVendorId, printerProductId);
-    if (!isValid) {
+  // --- USB ESC/POS: VID/PID requeridos ---
+  if (printerConnectionType === 'usb-escpos') {
+    if (!printerVendorId || !printerProductId) {
       const error = new Error(
-        'El dispositivo seleccionado no es una impresora. '
-        + 'VID:PID ' + printerVendorId.toString(16).toUpperCase()
-        + ':' + printerProductId.toString(16).toUpperCase()
-        + ' no expone una interfaz de clase impresora (0x07). Verifique que sea un dispositivo ESC/POS.',
+        'Para conexión USB ESC/POS debe especificar Vendor ID y Product ID.',
       );
       error.statusCode = 400;
-      error.codigo = 'USB_NO_PRINTER';
-      error.sugerencia = 'Conecte una impresora ESC/POS y seleccionala de la lista de dispositivos detectados.';
+      error.codigo = 'USB_VIDPID_REQUIRED';
+      error.sugerencia = 'Conecte la impresora y verifique que el sistema la detecte.';
       throw error;
     }
   }
@@ -134,7 +128,7 @@ export const guardarPrinterConfig = async (data) => {
     where: { id: 1 },
     create: {
       printerName: printerName ?? null,
-      printerConnectionType: printerConnectionType ?? "usb",
+      printerConnectionType: printerConnectionType ?? "usb-escpos",
       printerVendorId: printerVendorId ?? null,
       printerProductId: printerProductId ?? null,
       printerAddress: printerAddress ?? null,

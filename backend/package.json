@@ -27,16 +27,16 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "escpos": "^2.5.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "helmet": "^8.3.0",
+    "iconv-lite": "^0.6.3",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
     "pdfkit": "^0.19.1",
     "pngjs": "^7.0.0",
     "socket.io": "^4.8.1",
-    "usb": "^2.14.0",
+    "usb": "^3.0.1",
     "zod": "^4.4.3"
   },
   "prisma": {
