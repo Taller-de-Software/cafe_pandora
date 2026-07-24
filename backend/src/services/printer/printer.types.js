@@ -2,8 +2,7 @@
 // Tipos documentados via JSDoc. El backend es JavaScript puro (ES modules).
 
 /**
- * @typedef {'usb' | 'network' | 'serial' | 'cups' | 'windows-spooler'} ConnectionType
- * @typedef {'usbprint' | 'winusb' | 'libusbk' | 'libusb0' | 'unknown'} DriverType
+ * @typedef {'network' | 'serial' | 'cups' | 'windows-spooler'} ConnectionType
  * @typedef {'available' | 'configured' | 'connected' | 'error' | 'offline'} PrinterStatus
  */
 
@@ -34,41 +33,17 @@
  * @property {ConnectionType} connectionType
  * @property {number} [vendorId]
  * @property {number} [productId]
+ * @property {string} [vendorIdHex]
+ * @property {string} [productIdHex]
  * @property {string} [address]
  * @property {number} [port]
  * @property {string} [serialPort]
  * @property {number} [baudRate]
- * @property {DriverType} [driverType]
- * @property {string} [driverName]
  * @property {ConnectionType[]} compatibleMethods
  * @property {ConnectionType} recommendedMethod
  * @property {PrinterStatus} status
  * @property {string} [manufacturer]
- */
-
-/**
- * @typedef {Object} WindowsDriverInfo
- * @property {string|null} service
- * @property {DriverType} driver
- * @property {boolean} isCompatibleWithRawUsb
- * @property {boolean} isCompatibleWithSpooler
- * @property {string} description
- */
-
-/**
- * @typedef {Object} UsbDiagnostic
- * @property {string} vendorId
- * @property {string} productId
- * @property {number} vendorIdNum
- * @property {number} productIdNum
- * @property {number} usbClass
- * @property {string} usbClassName
- * @property {string|null} driver
- * @property {DriverType} driverType
- * @property {boolean} compatibleWithRawUsb
- * @property {boolean} compatibleWithSpooler
- * @property {string} recommendedMethod
- * @property {string} reason
+ * @property {string} [pnpDeviceID]
  */
 
 /**
@@ -113,7 +88,6 @@
  * @property {string} platform
  * @property {string} nodeVersion
  * @property {string} timestamp
- * @property {UsbDiagnostic[]} usbDevices
  * @property {InstalledPrinter[]} installedPrinters
  * @property {SerialDiagnostic[]} serialPorts
  * @property {NetworkDiagnostic[]} networkPrinters

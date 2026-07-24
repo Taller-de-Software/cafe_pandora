@@ -1,14 +1,8 @@
-import escpos from 'escpos';
 import { BasePrinterAdapter } from './adapter.interface.js';
-
-function openDevice(device) {
-  return new Promise((resolve, reject) => {
-    device.open((error) => { if (error) reject(error); else resolve(); });
-  });
-}
 
 /**
  * Adaptador serial para impresoras ESC/POS.
+ * Envia datos raw a la impresora via puerto serial.
  */
 export class SerialAdapter extends BasePrinterAdapter {
   constructor(portPath, baudRate = 9600, encoding = 'CP858') {
@@ -16,17 +10,25 @@ export class SerialAdapter extends BasePrinterAdapter {
     this.portPath = portPath;
     this.baudRate = baudRate;
     this.encoding = encoding;
-    this.printer = null;
-    this.device = null;
+    this.port = null;
   }
 
   async connect() {
     try {
-      const Serial = (await import('escpos/serial')).default;
-      const device = new Serial(this.portPath, { baudRate: this.baudRate, autoOpen: false });
-      await openDevice(device);
-      this.device = device;
-      this.printer = new escpos.Printer(device, { encoding: this.encoding });
+      const { SerialPort } = await import('serialport');
+      this.port = new SerialPort({
+        path: this.portPath,
+        baudRate: this.baudRate,
+        autoOpen: false,
+      });
+
+      await new Promise((resolve, reject) => {
+        this.port.open((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
       this._connected = true;
       console.log(`[SERIAL] Conectado — ${this.portPath} @ ${this.baudRate}`);
     } catch (err) {
@@ -36,16 +38,24 @@ export class SerialAdapter extends BasePrinterAdapter {
   }
 
   async disconnect() {
-    if (this.printer) { try { await new Promise((r) => this.printer.close(() => r())); } catch {} }
-    this.printer = null;
-    this.device = null;
+    if (this.port) {
+      try {
+        if (this.port.isOpen) {
+          await new Promise((resolve) => this.port.close(resolve));
+        }
+      } catch {}
+      this.port = null;
+    }
     this._connected = false;
   }
 
   async print(data) {
-    if (!this._connected || !this.printer) throw new Error('No hay conexión serial activa.');
+    if (!this._connected || !this.port) throw new Error('No hay conexión serial activa.');
     return new Promise((resolve, reject) => {
-      this.printer.raw(data, (err) => { if (err) reject(err); else resolve(true); });
+      this.port.write(data, (err) => {
+        if (err) reject(err);
+        else resolve(true);
+      });
     });
   }
 }

@@ -31,7 +31,7 @@ export const obtenerConfigImpresion = async () => {
       return {
         modoImpresion: "simulacion",
         printerName: null,
-        printerConnectionType: "usb",
+        printerConnectionType: "windows-spooler",
         printerVendorId: null,
         printerProductId: null,
         printerAddress: null,
@@ -62,7 +62,7 @@ export const obtenerConfigImpresion = async () => {
     return {
       modoImpresion: "simulacion",
       printerName: null,
-      printerConnectionType: "usb",
+      printerConnectionType: "windows-spooler",
       printerVendorId: null,
       printerProductId: null,
       printerAddress: null,
@@ -89,25 +89,6 @@ export const guardarPrinterConfig = async (data) => {
     printerBaudRate,
     printerEncoding,
   } = data;
-
-  // --- USB: VID/PID must be a real printer (interface 0x07) ---
-  if (['usb-escpos', 'usb'].includes(printerConnectionType)
-      && printerVendorId != null && printerProductId != null) {
-    const { isValidPrinterDevice } = await import('../../services/printer/detection/usb.detector.js');
-    const isValid = await isValidPrinterDevice(printerVendorId, printerProductId);
-    if (!isValid) {
-      const error = new Error(
-        'El dispositivo seleccionado no es una impresora. '
-        + 'VID:PID ' + printerVendorId.toString(16).toUpperCase()
-        + ':' + printerProductId.toString(16).toUpperCase()
-        + ' no expone una interfaz de clase impresora (0x07). Verifique que sea un dispositivo ESC/POS.',
-      );
-      error.statusCode = 400;
-      error.codigo = 'USB_NO_PRINTER';
-      error.sugerencia = 'Conecte una impresora ESC/POS y seleccionala de la lista de dispositivos detectados.';
-      throw error;
-    }
-  }
 
   // --- Spooler: printer name must be installed in Windows ---
   if (printerConnectionType === 'windows-spooler' && printerName) {

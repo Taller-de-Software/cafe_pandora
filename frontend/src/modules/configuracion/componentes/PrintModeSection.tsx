@@ -4,7 +4,7 @@ import { api } from '@/services/api'
 import { useError } from '@/context/ErrorContext'
 import styles from './PrintModeSection.module.css'
 
-type ConnectionType = 'usb' | 'network' | 'serial' | 'cups' | 'windows-spooler'
+type ConnectionType = 'windows-spooler' | 'network' | 'serial'
 type Encoding = 'CP437' | 'CP850' | 'CP852' | 'CP858' | 'CP860' | 'CP863' | 'CP866' | 'CP1252' | 'CP932' | 'UTF8'
 
 interface PrinterConfig {
@@ -26,11 +26,11 @@ interface DetectedPrinter {
   connectionType: ConnectionType
   vendorId?: number
   productId?: number
+  vendorIdHex?: string | null
+  productIdHex?: string | null
   address?: string
   port?: number
   serialPort?: string
-  driverType?: string
-  driverName?: string
   compatibleMethods: ConnectionType[]
   recommendedMethod: ConnectionType
   status: string
@@ -41,16 +41,6 @@ interface DiagnosticsReport {
   platform: string
   nodeVersion: string
   timestamp: string
-  totalUsbDevices: number
-  usbDevices: Array<{
-    vendorId: string
-    productId: string
-    driverType: string
-    compatibleWithSpooler: boolean
-    compatibleWithRawUsb: boolean
-    recommendedMethod: string
-    reason: string
-  }>
   installedPrinters: Array<{
     name: string
     portName: string
@@ -82,19 +72,9 @@ const ENCODINGS: Encoding[] = ['CP437', 'CP850', 'CP852', 'CP858', 'CP860', 'CP8
 const BAUD_RATES = [9600, 19200, 38400, 57600, 115200]
 
 const CONNECTION_LABELS: Record<ConnectionType, string> = {
-  'usb': 'USB',
+  'windows-spooler': 'Windows Print Spooler',
   'network': 'Red / Ethernet',
   'serial': 'Serial',
-  'cups': 'CUPS (Linux)',
-  'windows-spooler': 'Windows Print Spooler',
-}
-
-const DRIVER_LABELS: Record<string, string> = {
-  'usbprint': 'Driver nativo Windows (usbprint.sys)',
-  'winusb': 'WinUSB (Zadig)',
-  'libusbk': 'libusbK (Zadig)',
-  'libusb0': 'libusb-win32 (Zadig)',
-  'unknown': 'Driver desconocido',
 }
 
 // ─── API Calls ───────────────────────────────────────────────────────────────
@@ -113,6 +93,10 @@ function getDiagnostics(): Promise<DiagnosticsReport> {
 
 function getDetectedPrinters(): Promise<{ printers: DetectedPrinter[] }> {
   return api.get<{ printers: DetectedPrinter[] }>('/configuracion/impresion/detect')
+}
+
+function getWindowsPrinters(): Promise<{ printers: Array<{ name: string; portName: string; driverName: string }> }> {
+  return api.get<{ printers: Array<{ name: string; portName: string; driverName: string }> }>('/configuracion/impresion/windows-printers')
 }
 
 function savePrinterConfig(data: Record<string, unknown>): Promise<PrinterConfig> {
@@ -150,14 +134,19 @@ function PrintModeSection() {
     refetchOnWindowFocus: true,
   })
 
+  const { data: windowsPrinters } = useQuery({
+    queryKey: ['windows-printers'],
+    queryFn: getWindowsPrinters,
+  })
+
   const mode = config?.modoImpresion ?? 'simulacion'
 
   // ── State ──
-  const [selectedPrinterId, setSelectedPrinterId] = useState<string>('')
+  const [selectedPrinterName, setSelectedPrinterName] = useState<string>('')
   const [showAdvanced, setShowAdvanced] = useState(false)
 
   // Advanced form state
-  const [connectionType, setConnectionType] = useState<ConnectionType>('usb')
+  const [connectionType, setConnectionType] = useState<ConnectionType>('windows-spooler')
   const [customVendorId, setCustomVendorId] = useState('')
   const [customProductId, setCustomProductId] = useState('')
   const [networkAddress, setNetworkAddress] = useState('')
@@ -170,8 +159,9 @@ function PrintModeSection() {
   // ── Populate form from saved config ──
   useEffect(() => {
     if (!config) return
-    setConnectionType((config.printerConnectionType as ConnectionType) || 'usb')
+    setConnectionType((config.printerConnectionType as ConnectionType) || 'windows-spooler')
     setPrinterName(config.printerName || '')
+    setSelectedPrinterName(config.printerName || '')
     setEncoding(config.printerEncoding || 'CP858')
     setNetworkPort(String(config.printerNetPort || 9100))
     setSerialBaudRate(config.printerBaudRate || 9600)
@@ -182,18 +172,7 @@ function PrintModeSection() {
     }
     if (config.printerAddress) setNetworkAddress(config.printerAddress)
     if (config.printerSerialPort) setSerialPort(config.printerSerialPort)
-
-    // Try to match saved config to a detected printer
-    if (detectedPrinters?.printers) {
-      const match = detectedPrinters.printers.find((p) => {
-        if (config.printerVendorId && config.printerProductId && p.vendorId === config.printerVendorId && p.productId === config.printerProductId) return true
-        if (config.printerAddress && p.address === config.printerAddress) return true
-        if (config.printerSerialPort && p.serialPort === config.printerSerialPort) return true
-        return false
-      })
-      if (match) setSelectedPrinterId(match.id)
-    }
-  }, [config, detectedPrinters])
+  }, [config])
 
   // ── Mutations ──
   const modeMutation = useMutation({
@@ -245,43 +224,23 @@ function PrintModeSection() {
     modeMutation.mutate(next)
   }
 
-  function handleSelectPrinter(printer: DetectedPrinter) {
-    setSelectedPrinterId(printer.id)
-    setConnectionType(printer.connectionType)
-    setPrinterName(printer.name)
-
-    if (printer.vendorId) setCustomVendorId(printer.vendorId.toString(16).toUpperCase())
-    if (printer.productId) setCustomProductId(printer.productId.toString(16).toUpperCase())
-    if (printer.address) setNetworkAddress(printer.address)
-    if (printer.port) setNetworkPort(String(printer.port))
-    if (printer.serialPort) setSerialPort(printer.serialPort)
+  function handleSelectWindowsPrinter(name: string) {
+    setSelectedPrinterName(name)
+    setPrinterName(name)
+    setConnectionType('windows-spooler')
   }
 
-  function handleSaveFromDetection() {
-    const printer = detectedPrinters?.printers.find((p) => p.id === selectedPrinterId)
-    if (!printer) {
+  function handleSaveFromWindows() {
+    if (!selectedPrinterName) {
       showError('Seleccione una impresora de la lista')
       return
     }
 
-    const payload: Record<string, unknown> = {
-      printerConnectionType: printer.connectionType,
-      printerName: printer.name,
+    saveMutation.mutate({
+      printerConnectionType: 'windows-spooler',
+      printerName: selectedPrinterName,
       printerEncoding: encoding,
-    }
-
-    if (printer.vendorId) payload.printerVendorId = printer.vendorId
-    if (printer.productId) payload.printerProductId = printer.productId
-    if (printer.address) {
-      payload.printerAddress = printer.address
-      payload.printerNetPort = printer.port || 9100
-    }
-    if (printer.serialPort) {
-      payload.printerSerialPort = printer.serialPort
-      payload.printerBaudRate = serialBaudRate
-    }
-
-    saveMutation.mutate(payload)
+    })
   }
 
   function handleSaveAdvanced() {
@@ -289,11 +248,6 @@ function PrintModeSection() {
       printerConnectionType: connectionType,
       printerName: printerName || null,
       printerEncoding: encoding,
-    }
-
-    if (connectionType === 'usb' || connectionType === 'windows-spooler') {
-      payload.printerVendorId = customVendorId ? parseInt(customVendorId, 16) : null
-      payload.printerProductId = customProductId ? parseInt(customProductId, 16) : null
     }
 
     if (connectionType === 'network') {
@@ -311,8 +265,8 @@ function PrintModeSection() {
 
   if (isLoading) return <p className={styles.loading}>Cargando configuración...</p>
 
-  const printers = detectedPrinters?.printers || []
-  const selectedPrinter = printers.find((p) => p.id === selectedPrinterId)
+  const detected = detectedPrinters?.printers || []
+  const winPrinters = windowsPrinters?.printers || []
 
   return (
     <div className={styles.section}>
@@ -320,7 +274,7 @@ function PrintModeSection() {
         Define si las impresiones generan <strong>PDF de simulacion</strong> o envian datos a una <strong>impresora termica real</strong>.
       </p>
 
-      {/* ── Info de impresora + Modo (siempre visible si hay config) ── */}
+      {/* ── Info de impresora + Modo ── */}
       <div className={styles.statusCard}>
         <div className={styles.statusRow}>
           <div className={styles.statusInfo}>
@@ -341,7 +295,7 @@ function PrintModeSection() {
             <div className={styles.printerInfoRow}>
               <span className={styles.printerInfoLabel}>Conexion</span>
               <span className={styles.printerInfoValue}>
-                {CONNECTION_LABELS[(config.printerConnectionType as ConnectionType) || 'usb'] || config.printerConnectionType}
+                {CONNECTION_LABELS[(config.printerConnectionType as ConnectionType) || 'windows-spooler'] || config.printerConnectionType}
               </span>
             </div>
             {config.printerVendorId && (
@@ -382,10 +336,10 @@ function PrintModeSection() {
         </button>
       </div>
 
-      {/* ── Deteccion Automatica ── */}
+      {/* ── Impresoras Instaladas en Windows ── */}
       <div className={styles.configCard}>
         <div className={styles.detectedHeader}>
-          <h4 className={styles.configTitle} style={{ margin: 0 }}>Impresoras Detectadas</h4>
+          <h4 className={styles.configTitle} style={{ margin: 0 }}>Impresoras de Windows</h4>
           <button
             className={styles.refreshBtn}
             onClick={() => {
@@ -397,9 +351,9 @@ function PrintModeSection() {
           </button>
         </div>
 
-        {printers.length === 0 ? (
+        {winPrinters.length === 0 ? (
           <div className={styles.connHint}>
-            <p>No se detectaron impresoras. Verifique que este encendida y conectada.</p>
+            <p>No se detectaron impresoras instaladas en Windows. Verifique que la impresora esté conectada y con driver instalado.</p>
             {diagnostics?.recommendation && (
               <p className={styles.recommendReason}>
                 Recomendacion: {diagnostics.recommendation.reason}
@@ -407,69 +361,51 @@ function PrintModeSection() {
             )}
           </div>
         ) : (
-          <div className={styles.radioList}>
-            {printers.map((p) => (
-              <label key={p.id} className={styles.radioItem}>
-                <input
-                  type="radio"
-                  name="detected-printer"
-                  value={p.id}
-                  checked={selectedPrinterId === p.id}
-                  onChange={() => handleSelectPrinter(p)}
-                />
-                <span className={styles.radioLabel}>
-                  {p.name}
-                  <span className={`${styles.detectedBadge} ${
-                    p.recommendedMethod === 'windows-spooler' ? styles.badgeSpooler :
-                    p.compatibleMethods.includes('usb-escpos') ? styles.badgeUsb :
-                    styles.badgeDefault
-                  }`}>
-                    {CONNECTION_LABELS[p.connectionType] || p.connectionType}
-                  </span>
-                  {p.driverType && p.driverType !== 'unknown' && (
-                    <span className={styles.radioSub}>
-                      {DRIVER_LABELS[p.driverType] || p.driverType}
+          <>
+            <div className={styles.radioList}>
+              {winPrinters.map((p) => {
+                const detectedInfo = detected.find((d) => d.name.includes(p.name) || p.name.includes(d.name || ''))
+                return (
+                  <label key={p.name} className={styles.radioItem}>
+                    <input
+                      type="radio"
+                      name="windows-printer"
+                      value={p.name}
+                      checked={selectedPrinterName === p.name}
+                      onChange={() => handleSelectWindowsPrinter(p.name)}
+                    />
+                    <span className={styles.radioLabel}>
+                      <span className={styles.printerNameMain}>{p.name}</span>
+                      <span className={styles.radioSub}>
+                        {p.portName ? `Puerto: ${p.portName}` : 'Impresora local'}
+                      </span>
+                      {detectedInfo?.vendorIdHex && detectedInfo?.productIdHex && (
+                        <span className={styles.radioSub}>
+                          {detectedInfo.vendorIdHex}:{detectedInfo.productIdHex}
+                        </span>
+                      )}
                     </span>
-                  )}
-                  {p.vendorId && p.productId && (
-                    <span className={styles.radioSub}>
-                      0x{p.vendorId.toString(16).toUpperCase().padStart(4, '0')}:{p.productId.toString(16).toUpperCase().padStart(4, '0')}
-                    </span>
-                  )}
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
+                  </label>
+                )
+              })}
+            </div>
 
-        {selectedPrinter && (
-          <div className={styles.recommendedBox}>
-            <p className={styles.recommendedText}>
-              <strong>Metodo recomendado:</strong> {CONNECTION_LABELS[selectedPrinter.recommendedMethod]} — {selectedPrinter.name}
-            </p>
-            {selectedPrinter.driverType === 'usbprint' && (
-              <p className={styles.recommendedHint}>
-                Windows Print Spooler puede imprimir sin necesidad de Zadig.
+            <div className={styles.recommendedBox}>
+              <p className={styles.recommendedText}>
+                <strong>Metodo:</strong> Windows Print Spooler — imprime directamente sin programas externos.
               </p>
-            )}
-            {selectedPrinter.compatibleMethods.includes('usb-escpos') && (
-              <p className={styles.compatibleHint}>
-                Compatible con acceso directo USB (si tiene WinUSB/libusbK).
-              </p>
-            )}
-          </div>
-        )}
+            </div>
 
-        {printers.length > 0 && (
-          <div className={styles.configActions}>
-            <button
-              className={styles.btnSave}
-              onClick={handleSaveFromDetection}
-              disabled={!selectedPrinterId || saveMutation.isPending}
-            >
-              {saveMutation.isPending ? 'Guardando...' : 'Usar esta impresora'}
-            </button>
-          </div>
+            <div className={styles.configActions}>
+              <button
+                className={styles.btnSave}
+                onClick={handleSaveFromWindows}
+                disabled={!selectedPrinterName || saveMutation.isPending}
+              >
+                {saveMutation.isPending ? 'Guardando...' : 'Usar esta impresora'}
+              </button>
+            </div>
+          </>
         )}
       </div>
 
@@ -517,18 +453,18 @@ function PrintModeSection() {
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
-          Configuracion Avanzada
+          Configuracion Avanzada (Red / Serial)
         </summary>
 
         {showAdvanced && (
           <div className={styles.advancedContent}>
             <p className={styles.connHint}>
-              Configure manualmente la conexion si la deteccion automatica no encuentra su impresora.
+              Configure manualmente solo si su impresora no aparece en la lista de Windows.
             </p>
 
             {/* Tabs de tipo de conexion */}
             <div className={styles.connTabs}>
-              {(['usb', 'network', 'serial'] as ConnectionType[]).map((t) => (
+              {(['network', 'serial'] as ConnectionType[]).map((t) => (
                 <button
                   key={t}
                   className={`${styles.connTab} ${connectionType === t ? styles.connTabActive : ''}`}
@@ -538,22 +474,6 @@ function PrintModeSection() {
                 </button>
               ))}
             </div>
-
-            {/* USB */}
-            {connectionType === 'usb' && (
-              <div className={styles.connSection}>
-                <div className={styles.fieldRow}>
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Vendor ID (hex)</label>
-                    <input className={styles.inputMono} type="text" placeholder="04B8" value={customVendorId} onChange={(e) => setCustomVendorId(e.target.value)} />
-                  </div>
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Product ID (hex)</label>
-                    <input className={styles.inputMono} type="text" placeholder="0202" value={customProductId} onChange={(e) => setCustomProductId(e.target.value)} />
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Network */}
             {connectionType === 'network' && (
@@ -592,7 +512,7 @@ function PrintModeSection() {
               <div className={styles.fieldRow}>
                 <div className={styles.fieldGroup} style={{ flex: 2 }}>
                   <label className={styles.fieldLabel}>Nombre / Modelo</label>
-                  <input className={styles.input} type="text" placeholder="EPSON TM-T20" value={printerName} onChange={(e) => setPrinterName(e.target.value)} />
+                  <input className={styles.input} type="text" placeholder="SAT 22TUS" value={printerName} onChange={(e) => setPrinterName(e.target.value)} />
                 </div>
                 <div className={styles.fieldGroup} style={{ flex: 1 }}>
                   <label className={styles.fieldLabel}>Encoding</label>
@@ -601,6 +521,18 @@ function PrintModeSection() {
                   </select>
                 </div>
               </div>
+              {connectionType === 'windows-spooler' && (
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup} style={{ flex: 1 }}>
+                    <label className={styles.fieldLabel}>Vendor ID (hex) — opcional</label>
+                    <input className={styles.inputMono} type="text" placeholder="0483" value={customVendorId} onChange={(e) => setCustomVendorId(e.target.value)} />
+                  </div>
+                  <div className={styles.fieldGroup} style={{ flex: 1 }}>
+                    <label className={styles.fieldLabel}>Product ID (hex) — opcional</label>
+                    <input className={styles.inputMono} type="text" placeholder="5743" value={customProductId} onChange={(e) => setCustomProductId(e.target.value)} />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className={styles.configActions}>
@@ -618,15 +550,6 @@ function PrintModeSection() {
                   <div className={styles.infoItem}>
                     <span className={styles.infoMode}>Sistema</span>
                     <span className={styles.infoDesc}>{diagnostics.platform} — Node {diagnostics.nodeVersion}</span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.infoMode}>USB</span>
-                    <span className={styles.infoDesc}>
-                      {diagnostics.usbDevices.length > 0
-                        ? `${diagnostics.usbDevices.length} impresora(s) detectada(s) de ${diagnostics.totalUsbDevices} dispositivos`
-                        : `0 impresoras — ${diagnostics.totalUsbDevices} dispositivos USB escaneados`
-                      }
-                    </span>
                   </div>
                   {diagnostics.installedPrinters.length > 0 && (
                     <div className={styles.infoItem}>

@@ -4,14 +4,6 @@
       "name": "SAT",
       "aliases": ["SAT 22TUS", "SAT MS300", "SAT Smart Tax", "Smart Tax", "22TUS"],
       "vendorIds": ["0416", "04B8", "067B", "0FE6", "1FC9"],
-      "defaultDriverType": "usbprint",
-      "recommendedMethod": {
-        "usbprint": "windows-spooler",
-        "winusb": "usb-escpos",
-        "libusbk": "usb-escpos",
-        "libusb0": "usb-escpos",
-        "unknown": "windows-spooler"
-      },
       "encoding": "CP437",
       "paperWidth": 80,
       "capabilities": {
@@ -23,14 +15,6 @@
       "name": "Epson TM-T20",
       "aliases": ["Epson", "TM-T20", "TM-T20II", "TM-T20III", "TM-T81", "TM-T82", "TM-T88"],
       "vendorIds": ["04B8"],
-      "defaultDriverType": "usbprint",
-      "recommendedMethod": {
-        "usbprint": "windows-spooler",
-        "winusb": "usb-escpos",
-        "libusbk": "usb-escpos",
-        "libusb0": "usb-escpos",
-        "unknown": "windows-spooler"
-      },
       "encoding": "CP858",
       "paperWidth": 80,
       "capabilities": {
@@ -42,14 +26,6 @@
       "name": "XPrinter",
       "aliases": ["XPrinter", "XP-N160II", "XP-80C", "XP-T2000"],
       "vendorIds": ["0416", "1FC9"],
-      "defaultDriverType": "usbprint",
-      "recommendedMethod": {
-        "usbprint": "windows-spooler",
-        "winusb": "usb-escpos",
-        "libusbk": "usb-escpos",
-        "libusb0": "usb-escpos",
-        "unknown": "windows-spooler"
-      },
       "encoding": "CP437",
       "paperWidth": 80,
       "capabilities": {
@@ -61,14 +37,6 @@
       "name": "GOOJPRT",
       "aliases": ["GOOJPRT", "GOOJPRT POS", "GOOJPRT 58mm"],
       "vendorIds": ["0FE6"],
-      "defaultDriverType": "usbprint",
-      "recommendedMethod": {
-        "usbprint": "windows-spooler",
-        "winusb": "usb-escpos",
-        "libusbk": "usb-escpos",
-        "libusb0": "usb-escpos",
-        "unknown": "windows-spooler"
-      },
       "encoding": "CP437",
       "paperWidth": 58,
       "capabilities": {
@@ -80,14 +48,6 @@
       "name": "Rongta",
       "aliases": ["Rongta", "RP80", "RPP02N"],
       "vendorIds": ["0416", "1FC9"],
-      "defaultDriverType": "usbprint",
-      "recommendedMethod": {
-        "usbprint": "windows-spooler",
-        "winusb": "usb-escpos",
-        "libusbk": "usb-escpos",
-        "libusb0": "usb-escpos",
-        "unknown": "windows-spooler"
-      },
       "encoding": "CP437",
       "paperWidth": 80,
       "capabilities": {
@@ -99,14 +59,6 @@
       "name": "Bematech",
       "aliases": ["Bematech", "RB2000", "RB3000"],
       "vendorIds": ["0416"],
-      "defaultDriverType": "usbprint",
-      "recommendedMethod": {
-        "usbprint": "windows-spooler",
-        "winusb": "usb-escpos",
-        "libusbk": "usb-escpos",
-        "libusb0": "usb-escpos",
-        "unknown": "windows-spooler"
-      },
       "encoding": "CP850",
       "paperWidth": 80,
       "capabilities": {
@@ -118,14 +70,6 @@
       "name": "Generic ESC/POS",
       "aliases": ["Generic", "Default"],
       "vendorIds": [],
-      "defaultDriverType": "usbprint",
-      "recommendedMethod": {
-        "usbprint": "windows-spooler",
-        "winusb": "usb-escpos",
-        "libusbk": "usb-escpos",
-        "libusb0": "usb-escpos",
-        "unknown": "windows-spooler"
-      },
       "encoding": "CP437",
       "paperWidth": 80,
       "capabilities": {

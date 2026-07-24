@@ -60,8 +60,8 @@ export function buildPrinterError(error, extra = {}) {
     base.suggestion = 'Confirme la IP y el puerto, y que la impresora esté en red.';
   } else if (raw.includes('usbprint')) {
     base.code = 'DRIVER_NATIVO';
-    base.message = 'Windows usa usbprint.sys que bloquea libusb.';
-    base.suggestion = 'Use Windows Print Spooler en modo RAW, o instale WinUSB con Zadig.';
+    base.message = 'Windows usa usbprint.sys (driver nativo).';
+    base.suggestion = 'La impresora está usando el driver nativo de Windows. Funciona con Print Spooler.';
   }
 
   setLastError(base);

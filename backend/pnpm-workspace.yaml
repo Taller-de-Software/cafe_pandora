@@ -2,10 +2,7 @@ allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
   prisma: true
-  usb: true
   '@serialport/bindings-cpp': true
   node-bluetooth: true
   '@plantae-tech/inkpresser': true
   '@ssxv/node-printer': true
-patchedDependencies:
-  escpos@2.5.2: patches/escpos@2.5.2.patch

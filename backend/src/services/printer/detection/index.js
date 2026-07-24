@@ -1,20 +1,42 @@
 import { detect as detectUsb } from './usb.detector.js';
-import { detect as detectSerial } from './serial.detector.js';
-import { detect as detectNetwork } from './network.detector.js';
-import { detect as detectCups } from './cups.detector.js';
 
 /**
- * Ejecuta todos los detectores y retorna una lista unificada.
+ * Ejecuta los detectores disponibles según la plataforma.
+ * En Windows: solo lista impresoras instaladas vía WMI.
+ * En otras plataformas: ejecuta todos los detectores disponibles.
  * @returns {Promise<import('../printer.types.js').DetectedPrinter[]>}
  */
 export async function detectAllPrinters() {
   const results = [];
-  const detectors = [
-    { name: 'usb', fn: detectUsb },
-    { name: 'serial', fn: detectSerial },
-    { name: 'network', fn: detectNetwork },
-    { name: 'cups', fn: detectCups },
-  ];
+
+  // En Windows, solo interesa detectar impresoras del Spooler
+  if (process.platform === 'win32') {
+    try {
+      const printers = await detectUsb();
+      results.push(...printers);
+    } catch (err) {
+      console.error('[DETECTOR] Error in usb:', err);
+    }
+    return results;
+  }
+
+  // En otras plataformas, ejecutar detectores adicionales
+  const detectors = [];
+
+  try {
+    const { detect: detectSerial } = await import('./serial.detector.js');
+    detectors.push({ name: 'serial', fn: detectSerial });
+  } catch {}
+
+  try {
+    const { detect: detectNetwork } = await import('./network.detector.js');
+    detectors.push({ name: 'network', fn: detectNetwork });
+  } catch {}
+
+  try {
+    const { detect: detectCups } = await import('./cups.detector.js');
+    detectors.push({ name: 'cups', fn: detectCups });
+  } catch {}
 
   const detections = await Promise.allSettled(
     detectors.map(async (d) => {
