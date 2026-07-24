@@ -94,7 +94,7 @@ export function buildPagoTicket(data) {
   lines.push(padLine(`Subtotal:        $${fmt(data.subtotal)}`));
 
   lines.push(padLine(`Imp. Consumo 8%: $${fmt(data.impuestoConsumo)}`));
-  lines.push(padLine(`Propina:         $${fmt(data.propina)}`));
+  lines.push(padLine(`Propina (10%):    $${fmt(data.propina)}`));
 
   lines.push(centerLine(`TOTAL:           $${fmt(data.total)}`));
   lines.push(separator());
