@@ -783,7 +783,7 @@ export async function printPago(data) {
       }
 
       if (propina && propina > 0) {
-        printer.size(2, 1).text(`Propina:         $${fmt(propina)}`);
+        printer.size(2, 1).text(`Propina (10%):    $${fmt(propina)}`);
       }
 
       printer

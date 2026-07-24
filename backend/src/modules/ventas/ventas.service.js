@@ -104,6 +104,9 @@ async function obtenerVentas(desde, hasta) {
   const pedidos = facturas.map((f) => ({
     id: f.pedido.id,
     total: f.total,
+    subtotal: f.subtotal,
+    impuestoConsumo: f.impuestoConsumo,
+    propina: f.propina,
     mesa: f.pedido.mesa?.nombre ?? "Sin mesa",
     metodoPago: f.metodoPago?.nombre ?? "Desconocido",
     estado: f.pedido.estado,

@@ -341,7 +341,7 @@ function dibujarResumen(doc, data) {
     textoParLinea(doc, "Subtotal", formatearMonto(data.subtotal));
   }
   textoParLinea(doc, "Imp. Consumo 8%", formatearMonto(data.impuestoConsumo));
-  textoParLinea(doc, "Propina", formatearMonto(data.propina));
+  textoParLinea(doc, "Propina (10%)", formatearMonto(data.propina));
   if (data.subtotal == null && data.total != null) {
     textoParLinea(doc, "Total", formatearMonto(data.total));
   }
