@@ -73,13 +73,12 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
   const maxCatTotal = Math.max(...porCategoria.map((c) => c.total), 1)
 
   function facturaDesdeVenta(p: VentaDetalle): ResumenFactura {
-    const subtotal = p.detalles.reduce((s, d) => s + d.precio * d.cantidad, 0)
     return {
       id: p.id,
       total: p.total,
-      subtotal,
-      impuestoConsumo: p.total - subtotal,
-      propina: 0,
+      subtotal: p.subtotal,
+      impuestoConsumo: p.impuestoConsumo,
+      propina: p.propina,
       creadoEn: p.fechaPago ?? '',
       metodoPago: p.metodoPago,
       pedido: {

@@ -22,6 +22,9 @@ export interface ProductoVendido {
 export interface VentaDetalle {
   id: number
   total: number
+  subtotal: number
+  impuestoConsumo: number
+  propina: number
   mesa: string
   metodoPago: string
   estado: string

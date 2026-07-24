@@ -96,7 +96,7 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
                 <th>Factura</th>
                 <th>Mesa</th>
                 <th>Total</th>
-                <th>Propina</th>
+                <th>Propina (10%)</th>
                 <th>Método Pago</th>
                 <th>Hora</th>
                 <th>Acción</th>
@@ -108,7 +108,7 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
                   <td className={styles.monoCell}>#{f.id}</td>
                   <td>{f.pedido.mesa}</td>
                   <td className={styles.monoCell}>${formatearNumero(f.total)}</td>
-                  <td className={styles.monoCell}>{f.propina > 0 ? `$${formatearNumero(f.propina)}` : '—'}</td>
+                  <td className={styles.monoCell}>${formatearNumero(f.propina)}</td>
                   <td>{f.metodoPago}</td>
                   <td className={styles.dateCell}>{new Date(f.creadoEn).toLocaleTimeString()}</td>
                   <td>
