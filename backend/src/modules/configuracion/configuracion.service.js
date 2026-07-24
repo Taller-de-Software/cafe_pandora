@@ -90,6 +90,19 @@ export const guardarPrinterConfig = async (data) => {
     printerEncoding,
   } = data;
 
+  // --- USB ESC/POS: VID/PID requeridos ---
+  if (printerConnectionType === 'usb-escpos') {
+    if (!printerVendorId || !printerProductId) {
+      const error = new Error(
+        'Para conexión USB ESC/POS debe especificar Vendor ID y Product ID.',
+      );
+      error.statusCode = 400;
+      error.codigo = 'USB_VIDPID_REQUIRED';
+      error.sugerencia = 'Conecte la impresora y verifique que el sistema la detecte.';
+      throw error;
+    }
+  }
+
   // --- Spooler: printer name must be installed in Windows ---
   if (printerConnectionType === 'windows-spooler' && printerName) {
     try {
@@ -115,7 +128,7 @@ export const guardarPrinterConfig = async (data) => {
     where: { id: 1 },
     create: {
       printerName: printerName ?? null,
-      printerConnectionType: printerConnectionType ?? "usb",
+      printerConnectionType: printerConnectionType ?? "usb-escpos",
       printerVendorId: printerVendorId ?? null,
       printerProductId: printerProductId ?? null,
       printerAddress: printerAddress ?? null,

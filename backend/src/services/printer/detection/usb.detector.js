@@ -69,8 +69,8 @@ export async function detect() {
         vendorIdHex: vidHex ? `0x${vidHex}` : null,
         productIdHex: pidHex ? `0x${pidHex}` : null,
         pnpDeviceID: printer.pnpDeviceID,
-        compatibleMethods: ['windows-spooler'],
-        recommendedMethod: 'windows-spooler',
+        compatibleMethods: ['windows-spooler', 'usb-escpos'],
+        recommendedMethod: 'usb-escpos',
         status: 'available',
         ...(catalog && {
           suggestedEncoding: catalog.suggestedEncoding,

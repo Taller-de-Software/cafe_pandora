@@ -3,7 +3,7 @@
     {
       "name": "SAT",
       "aliases": ["SAT 22TUS", "SAT MS300", "SAT Smart Tax", "Smart Tax", "22TUS"],
-      "vendorIds": ["0416", "04B8", "067B", "0FE6", "1FC9"],
+      "vendorIds": ["0416", "0483", "04B8", "067B", "0FE6", "1FC9"],
       "encoding": "CP437",
       "paperWidth": 80,
       "capabilities": {

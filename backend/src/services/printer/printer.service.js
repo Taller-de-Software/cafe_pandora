@@ -2,6 +2,7 @@ import prisma from '../../config/db.config.js';
 import { detectAllPrinters } from './detection/index.js';
 import { getDiagnosticsReport } from './diagnostics/diagnostics.service.js';
 import { WindowsSpoolerAdapter, listWindowsPrinters } from './adapters/windows-spooler.adapter.js';
+import { UsbEscposAdapter, findUsbEscposDevice } from './adapters/usb-escpos.adapter.js';
 import { NetworkAdapter } from './adapters/network.adapter.js';
 import { SerialAdapter } from './adapters/serial.adapter.js';
 import { CupsAdapter } from './adapters/cups.adapter.js';
@@ -42,6 +43,13 @@ export async function getConfig() {
 
 function createAdapter(connectionType, config) {
   switch (connectionType) {
+    case 'usb-escpos':
+      return new UsbEscposAdapter(
+        config.printerVendorId || 0x0483,
+        config.printerProductId || 0x5743,
+        config.printerEncoding || DEFAULT_ENCODING,
+      );
+
     case 'windows-spooler':
       return new WindowsSpoolerAdapter(config.printerName || 'Printer');
 
@@ -63,6 +71,7 @@ function createAdapter(connectionType, config) {
 
 function canUseMethod(method, config) {
   switch (method) {
+    case 'usb-escpos': return !!(config.printerVendorId || config.printerProductId);
     case 'windows-spooler': return process.platform === 'win32';
     case 'network': return !!config.printerAddress;
     case 'serial': return !!config.printerSerialPort;
@@ -85,8 +94,9 @@ function checkNetworkHost(host, port) {
 }
 
 export async function smartConnect(overrideConfig = {}) {
+  const { noFallback, ...rest } = overrideConfig;
   const baseConfig = await getConfig();
-  const config = { ...baseConfig, ...overrideConfig };
+  const config = { ...baseConfig, ...rest };
 
   if (config.modoImpresion !== 'real') {
     throw new Error('Modo simulacion activo. No se requiere impresora fisica.');
@@ -102,12 +112,14 @@ export async function smartConnect(overrideConfig = {}) {
   const lastWorking = config.lastWorkingMethod;
   const methodsToTry = [];
 
-  if (lastWorking && !methodsToTry.includes(lastWorking)) methodsToTry.push(lastWorking);
   if (configuredType && !methodsToTry.includes(configuredType)) methodsToTry.push(configuredType);
 
-  const fallbacks = ['windows-spooler', 'network', 'serial'];
-  for (const fb of fallbacks) {
-    if (!methodsToTry.includes(fb)) methodsToTry.push(fb);
+  if (!noFallback) {
+    if (lastWorking && !methodsToTry.includes(lastWorking)) methodsToTry.push(lastWorking);
+    const fallbacks = ['usb-escpos', 'network', 'serial', 'windows-spooler'];
+    for (const fb of fallbacks) {
+      if (!methodsToTry.includes(fb)) methodsToTry.push(fb);
+    }
   }
 
   const errors = [];
@@ -115,6 +127,30 @@ export async function smartConnect(overrideConfig = {}) {
   for (const method of methodsToTry) {
     try {
       if (!canUseMethod(method, config)) continue;
+
+      // --- USB ESC/POS: must have VID/PID and device must be physically connected ---
+      if (method === 'usb-escpos') {
+        const hasVidPid = !!(config.printerVendorId || config.printerProductId);
+        if (!hasVidPid) {
+          printerLogger.warn('Se omite usb-escpos: no hay VID/PID configurados.', 'usb-escpos');
+          errors.push('[usb-escpos] No hay VID/PID en configuración');
+          continue;
+        }
+        try {
+          const device = await findUsbEscposDevice(config.printerVendorId, config.printerProductId);
+          if (!device) {
+            printerLogger.warn(
+              `Se omite usb-escpos: dispositivo 0x${config.printerVendorId?.toString(16).padStart(4, '0')}:0x${config.printerProductId?.toString(16).padStart(4, '0')} no encontrado.`,
+              'usb-escpos',
+            );
+            errors.push(`[usb-escpos] Dispositivo USB no conectado`);
+            continue;
+          }
+        } catch {
+          errors.push('[usb-escpos] Error al detectar dispositivo USB');
+          continue;
+        }
+      }
 
       // --- Spooler: printer name must exist in Windows installed printers ---
       if (method === 'windows-spooler') {
@@ -201,7 +237,7 @@ export async function getDiagnostics() {
 
 export async function testConnection() {
   try {
-    const { adapter, method } = await smartConnect();
+    const { adapter, method } = await smartConnect({ noFallback: true });
     await adapter.disconnect();
     clearLastError();
     return { success: true, message: `Conexión exitosa via ${method} — ${adapter.getName()}`, method };

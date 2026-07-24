@@ -25,6 +25,7 @@ export { getDiagnosticsReport } from './diagnostics/diagnostics.service.js';
 // ─── Adapters ────────────────────────────────────────────────────────────────
 export { BasePrinterAdapter } from './adapters/adapter.interface.js';
 export { WindowsSpoolerAdapter, listWindowsPrinters } from './adapters/windows-spooler.adapter.js';
+export { UsbEscposAdapter, findUsbEscposDevice } from './adapters/usb-escpos.adapter.js';
 export { NetworkAdapter } from './adapters/network.adapter.js';
 export { SerialAdapter } from './adapters/serial.adapter.js';
 export { CupsAdapter } from './adapters/cups.adapter.js';

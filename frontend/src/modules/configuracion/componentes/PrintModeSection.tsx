@@ -4,7 +4,7 @@ import { api } from '@/services/api'
 import { useError } from '@/context/ErrorContext'
 import styles from './PrintModeSection.module.css'
 
-type ConnectionType = 'windows-spooler' | 'network' | 'serial'
+type ConnectionType = 'windows-spooler' | 'usb-escpos' | 'network' | 'serial'
 type Encoding = 'CP437' | 'CP850' | 'CP852' | 'CP858' | 'CP860' | 'CP863' | 'CP866' | 'CP1252' | 'CP932' | 'UTF8'
 
 interface PrinterConfig {
@@ -73,6 +73,7 @@ const BAUD_RATES = [9600, 19200, 38400, 57600, 115200]
 
 const CONNECTION_LABELS: Record<ConnectionType, string> = {
   'windows-spooler': 'Windows Print Spooler',
+  'usb-escpos': 'USB ESC/POS Directo',
   'network': 'Red / Ethernet',
   'serial': 'Serial',
 }
@@ -248,6 +249,13 @@ function PrintModeSection() {
       printerConnectionType: connectionType,
       printerName: printerName || null,
       printerEncoding: encoding,
+    }
+
+    if (connectionType === 'usb-escpos') {
+      const vid = parseInt(customVendorId, 16)
+      const pid = parseInt(customProductId, 16)
+      if (!isNaN(vid)) payload.printerVendorId = vid
+      if (!isNaN(pid)) payload.printerProductId = pid
     }
 
     if (connectionType === 'network') {
@@ -464,7 +472,7 @@ function PrintModeSection() {
 
             {/* Tabs de tipo de conexion */}
             <div className={styles.connTabs}>
-              {(['network', 'serial'] as ConnectionType[]).map((t) => (
+              {(['usb-escpos', 'network', 'serial'] as ConnectionType[]).map((t) => (
                 <button
                   key={t}
                   className={`${styles.connTab} ${connectionType === t ? styles.connTabActive : ''}`}
@@ -474,6 +482,22 @@ function PrintModeSection() {
                 </button>
               ))}
             </div>
+
+            {/* USB ESC/POS */}
+            {connectionType === 'usb-escpos' && (
+              <div className={styles.connSection}>
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup} style={{ flex: 1 }}>
+                    <label className={styles.fieldLabel}>Vendor ID (hex)</label>
+                    <input className={styles.inputMono} type="text" placeholder="0483" value={customVendorId} onChange={(e) => setCustomVendorId(e.target.value)} />
+                  </div>
+                  <div className={styles.fieldGroup} style={{ flex: 1 }}>
+                    <label className={styles.fieldLabel}>Product ID (hex)</label>
+                    <input className={styles.inputMono} type="text" placeholder="5743" value={customProductId} onChange={(e) => setCustomProductId(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Network */}
             {connectionType === 'network' && (

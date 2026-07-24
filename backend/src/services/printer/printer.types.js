@@ -2,7 +2,7 @@
 // Tipos documentados via JSDoc. El backend es JavaScript puro (ES modules).
 
 /**
- * @typedef {'network' | 'serial' | 'cups' | 'windows-spooler'} ConnectionType
+ * @typedef {'network' | 'serial' | 'cups' | 'windows-spooler' | 'usb-escpos'} ConnectionType
  * @typedef {'available' | 'configured' | 'connected' | 'error' | 'offline'} PrinterStatus
  */
 

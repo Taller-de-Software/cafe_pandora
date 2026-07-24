@@ -323,7 +323,7 @@ model Configuracion {
 
   // Impresora - conexión
   printerName          String?
-  printerConnectionType String        @default("windows-spooler")
+  printerConnectionType String        @default("usb-escpos")
 
   // Impresora - USB
   printerVendorId      Int?

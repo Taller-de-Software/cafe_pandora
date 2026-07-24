@@ -1,10 +1,19 @@
 import { detectInstalledPrinters, isUsbprintDevice } from '../detection/windows-driver.detector.js';
+import { findUsbEscposDevice } from '../adapters/usb-escpos.adapter.js';
+import prisma from '../../../config/db.config.js';
 
 /**
  * Genera recomendación de método de impresión.
  */
-function generateRecommendation(installedPrinters, serialPorts, networkPrinters, cupsPrinters) {
-  // 1. Siempre recomendar Windows Spooler si hay impresoras instaladas en Windows
+function generateRecommendation(installedPrinters, serialPorts, networkPrinters, cupsPrinters, usbDevice) {
+  if (usbDevice) {
+    return {
+      method: 'usb-escpos',
+      device: `${usbDevice.vendorIdHex}:${usbDevice.productIdHex}`,
+      reason: `Impresora ESC/POS detectada por USB (${usbDevice.vendorIdHex}:${usbDevice.productIdHex}). Use USB directo para evitar EMF del spooler.`,
+    };
+  }
+
   if (installedPrinters.length > 0) {
     const usbprint = installedPrinters.filter((p) => isUsbprintDevice(p.pnpDeviceID));
     if (usbprint.length > 0) {
@@ -89,7 +98,16 @@ export async function getDiagnosticsReport() {
     } catch (err) { console.error('[DIAG] CUPS error:', err); }
   }
 
-  const recommendation = generateRecommendation(installedPrinters, serialPorts, networkPrinters, cupsPrinters);
+  let configVid = null;
+  let configPid = null;
+  try {
+    const cfg = await prisma.configuracion.findFirst();
+    configVid = cfg?.printerVendorId ?? null;
+    configPid = cfg?.printerProductId ?? null;
+  } catch {}
+
+  const usbDevice = await findUsbEscposDevice(configVid, configPid);
+  const recommendation = generateRecommendation(installedPrinters, serialPorts, networkPrinters, cupsPrinters, usbDevice);
 
   return {
     os,
