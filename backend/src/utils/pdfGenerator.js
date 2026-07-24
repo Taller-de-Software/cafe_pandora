@@ -81,7 +81,8 @@ function formatTimestamp() {
 }
 
 function formatearMonto(monto) {
-  return `$${Math.round(monto).toLocaleString("es-CO")}`;
+  const valor = Number(monto) || 0;
+  return `$${Math.round(valor).toLocaleString("es-CO")}`;
 }
 
 function crearDoc(height = 800) {

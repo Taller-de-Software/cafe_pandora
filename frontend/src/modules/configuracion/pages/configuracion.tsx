@@ -13,7 +13,7 @@ function Configuracion() {
 
   return (
     <div className={styles.page}>
-      <h2 className={styles.pageTitle}>Configuración</h2>
+      <h2 className={styles.pageTitle}>CONFIGURACIÓN</h2>
 
       <div className={styles.tabs}>
         <button
