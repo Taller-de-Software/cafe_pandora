@@ -119,8 +119,8 @@ export const imprimirReciboPago = async (facturaId) => {
     items,
     subtotal,
     impuestoConsumo,
-    propina: factura.propina ?? 0,
-    total: factura.total ?? 0,
+    propina: factura.propina,
+    total: factura.total,
   };
 
   const config = await prisma.configuracion.findFirst();

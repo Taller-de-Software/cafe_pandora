@@ -3,8 +3,7 @@ import { EscposBuffer } from './escpos-buffer.js';
 const LINE_WIDTH = 32;
 
 function formatCurrency(n) {
-  const valor = Number(n) || 0;
-  return Math.round(valor).toLocaleString('es-CO');
+  return Math.round(n).toLocaleString('es-CO');
 }
 
 export function buildCocinaTicket(data, encoding = 'CP437') {
@@ -74,9 +73,7 @@ export function buildPagoTicket(data, encoding = 'CP437') {
 
   p.separator('-');
 
-  if (data.subtotal != null) {
-    p.text(`Subtotal:        $${fmt(data.subtotal)}`);
-  }
+  p.text(`Subtotal:        $${fmt(data.subtotal)}`);
 
   if (data.impuestoConsumo && data.impuestoConsumo > 0) {
     p.text(`Imp. Consumo 8%: $${fmt(data.impuestoConsumo)}`);
