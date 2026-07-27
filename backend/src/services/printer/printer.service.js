@@ -45,8 +45,8 @@ function createAdapter(connectionType, config) {
   switch (connectionType) {
     case 'usb-escpos':
       return new UsbEscposAdapter(
-        config.printerVendorId || 0x0483,
-        config.printerProductId || 0x5743,
+        0x0483,
+        0x5743,
         config.printerEncoding || DEFAULT_ENCODING,
       );
 
@@ -71,7 +71,7 @@ function createAdapter(connectionType, config) {
 
 function canUseMethod(method, config) {
   switch (method) {
-    case 'usb-escpos': return !!(config.printerVendorId || config.printerProductId);
+    case 'usb-escpos': return process.platform === 'win32';
     case 'windows-spooler': return process.platform === 'win32';
     case 'network': return !!config.printerAddress;
     case 'serial': return !!config.printerSerialPort;
@@ -112,11 +112,16 @@ export async function smartConnect(overrideConfig = {}) {
   const lastWorking = config.lastWorkingMethod;
   const methodsToTry = [];
 
+  // USB-ESC/POS goes first on Windows (bypasses broken printer drivers)
+  if (!noFallback && !methodsToTry.includes('usb-escpos')) {
+    methodsToTry.push('usb-escpos');
+  }
+
   if (configuredType && !methodsToTry.includes(configuredType)) methodsToTry.push(configuredType);
 
   if (!noFallback) {
     if (lastWorking && !methodsToTry.includes(lastWorking)) methodsToTry.push(lastWorking);
-    const fallbacks = ['usb-escpos', 'network', 'serial', 'windows-spooler'];
+    const fallbacks = ['network', 'serial', 'windows-spooler'];
     for (const fb of fallbacks) {
       if (!methodsToTry.includes(fb)) methodsToTry.push(fb);
     }
@@ -128,22 +133,16 @@ export async function smartConnect(overrideConfig = {}) {
     try {
       if (!canUseMethod(method, config)) continue;
 
-      // --- USB ESC/POS: must have VID/PID and device must be physically connected ---
+      // --- USB ESC/POS: device must be physically connected ---
       if (method === 'usb-escpos') {
-        const hasVidPid = !!(config.printerVendorId || config.printerProductId);
-        if (!hasVidPid) {
-          printerLogger.warn('Se omite usb-escpos: no hay VID/PID configurados.', 'usb-escpos');
-          errors.push('[usb-escpos] No hay VID/PID en configuración');
-          continue;
-        }
         try {
-          const device = await findUsbEscposDevice(config.printerVendorId, config.printerProductId);
+          const device = await findUsbEscposDevice();
           if (!device) {
             printerLogger.warn(
-              `Se omite usb-escpos: dispositivo 0x${config.printerVendorId?.toString(16).padStart(4, '0')}:0x${config.printerProductId?.toString(16).padStart(4, '0')} no encontrado.`,
+              'Se omite usb-escpos: dispositivo SAT 22TUS (0x0483:0x5743) no encontrado.',
               'usb-escpos',
             );
-            errors.push(`[usb-escpos] Dispositivo USB no conectado`);
+            errors.push('[usb-escpos] Dispositivo USB no conectado');
             continue;
           }
         } catch {
@@ -278,6 +277,7 @@ export async function printCocina(data) {
   } catch (err) {
     printerLogger.error('Error en printCocina', err, method);
     buildPrinterError(err, { connectionType: method, device: adapter?.getName() });
+    console.log(`[COCINA] Falló impresión — motivo: ${err.message}`);
     return false;
   } finally {
     if (adapter) await adapter.disconnect();
@@ -301,6 +301,7 @@ export async function printPago(data) {
   } catch (err) {
     printerLogger.error('Error en printPago', err, method);
     buildPrinterError(err, { connectionType: method, device: adapter?.getName() });
+    console.log(`[PAGO] Falló impresión — motivo: ${err.message}`);
     return false;
   } finally {
     if (adapter) await adapter.disconnect();

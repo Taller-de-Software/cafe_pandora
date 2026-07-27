@@ -13,9 +13,10 @@ function crearError(statusCode, message, extra = {}) {
 
 function crearErrorImpresionFallida() {
   const ultimoError = getLastError();
+  const mensajeReal = ultimoError?.mensaje || ultimoError?.message || "No se pudo imprimir: la impresora no respondió.";
   return crearError(
     503,
-    ultimoError?.mensaje || "No se pudo imprimir: la impresora no respondió.",
+    mensajeReal,
     {
       codigo: ultimoError?.codigo,
       sugerencia: ultimoError?.sugerencia,
