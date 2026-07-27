@@ -71,11 +71,15 @@ export class UsbEscposAdapter extends BasePrinterAdapter {
   }
 }
 
+function isValidVidPid(val) {
+  return typeof val === 'number' && Number.isFinite(val) && val > 0 && val <= 0xFFFF;
+}
+
 export async function findUsbEscposDevice(vendorId, productId) {
   try {
     const { usb } = await import('usb');
-    const vid = vendorId ?? SAT_VENDOR_ID;
-    const pid = productId ?? SAT_PRODUCT_ID;
+    const vid = isValidVidPid(vendorId) ? vendorId : SAT_VENDOR_ID;
+    const pid = isValidVidPid(productId) ? productId : SAT_PRODUCT_ID;
     const device = await usb.findDeviceByIds(vid, pid);
     if (device) {
       return {
