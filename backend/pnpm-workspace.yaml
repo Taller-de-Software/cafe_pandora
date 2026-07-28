@@ -6,3 +6,4 @@ allowBuilds:
   node-bluetooth: true
   '@plantae-tech/inkpresser': true
   '@ssxv/node-printer': true
+  usb: set this to true or false
