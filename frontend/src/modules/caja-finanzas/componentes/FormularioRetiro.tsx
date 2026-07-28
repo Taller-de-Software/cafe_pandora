@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useError } from '@/context/ErrorContext'
 import { useFormattedInput } from '@/hooks/useFormattedInput'
+import { formatearNumero } from '@/utils/formatear'
 import ConfirmModal from '@/componentes/ConfirmModal'
 import styles from './FormularioRetiro.module.css'
 
@@ -28,7 +29,7 @@ function FormularioRetiro({ tipo, totalEnCaja, onSave, onCancel }: FormularioRet
       return false
     }
     if (!esEntrada && monto.numericValue > totalEnCaja) {
-      showWarning(`Saldo insuficiente. Disponible: $${totalEnCaja.toFixed(2)}`)
+      showWarning(`Saldo insuficiente. Disponible: $${formatearNumero(totalEnCaja)}`)
       return false
     }
     return true
@@ -53,8 +54,8 @@ function FormularioRetiro({ tipo, totalEnCaja, onSave, onCancel }: FormularioRet
   }
 
   const confirmMessage = esEntrada
-    ? `¿Registrar entrada de $${monto.numericValue.toFixed(2)}?`
-    : `¿Registrar retiro de $${monto.numericValue.toFixed(2)}? Saldo actual: $${totalEnCaja.toFixed(2)}`
+    ? `¿Registrar entrada de $${formatearNumero(monto.numericValue)}?`
+    : `¿Registrar retiro de $${formatearNumero(monto.numericValue)}? Saldo actual: $${formatearNumero(totalEnCaja)}`
 
   return (
     <AnimatePresence>
@@ -79,7 +80,7 @@ function FormularioRetiro({ tipo, totalEnCaja, onSave, onCancel }: FormularioRet
           <form onSubmit={handleSubmit}>
             <div className={styles.modalBody}>
               {!esEntrada && (
-                <p className={styles.saldoInfo}>Disponible: <strong>${totalEnCaja.toFixed(2)}</strong></p>
+                <p className={styles.saldoInfo}>Disponible: <strong>${formatearNumero(totalEnCaja)}</strong></p>
               )}
               <div className={styles.field}>
                 <label>Monto</label>

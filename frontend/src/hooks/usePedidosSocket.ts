@@ -44,10 +44,12 @@ export function usePedidosSocket() {
 
     function onCajaApertura() {
       queryClient.invalidateQueries({ queryKey: ['caja'] })
+      queryClient.invalidateQueries({ queryKey: ['ventas'] })
     }
 
     function onCajaCierre() {
       queryClient.invalidateQueries({ queryKey: ['caja'] })
+      queryClient.invalidateQueries({ queryKey: ['ventas'] })
     }
 
     function onCajaRetiro() {
