@@ -28,11 +28,18 @@ function finDelDia(fecha = new Date()) {
   return d;
 }
 
-async function obtenerVentas(desde, hasta) {
+async function obtenerVentas(opciones = {}) {
+  const { desde, hasta, cajaSesionId } = opciones;
+  const where = {};
+
+  if (cajaSesionId) {
+    where.cajaSesionId = cajaSesionId;
+  } else if (desde && hasta) {
+    where.pedido = { fechaPago: { gte: desde, lte: hasta } };
+  }
+
   const facturas = await prisma.factura.findMany({
-    where: {
-      pedido: { fechaPago: { gte: desde, lte: hasta } },
-    },
+    where,
     include: {
       metodoPago: true,
       pedido: {
@@ -104,6 +111,9 @@ async function obtenerVentas(desde, hasta) {
   const pedidos = facturas.map((f) => ({
     id: f.pedido.id,
     total: f.total,
+    subtotal: f.subtotal,
+    impuestoConsumo: f.impuestoConsumo,
+    propina: f.propina,
     mesa: f.pedido.mesa?.nombre ?? "Sin mesa",
     metodoPago: f.metodoPago?.nombre ?? "Desconocido",
     estado: f.pedido.estado,
@@ -128,17 +138,28 @@ async function obtenerVentas(desde, hasta) {
   };
 }
 
-export const dia = () => {
-  const ahora = new Date();
-  return obtenerVentas(inicioDelDia(ahora), finDelDia(ahora));
+export const dia = async () => {
+  const activa = await prisma.cajaSesion.findFirst({ where: { cierre: null } });
+  if (!activa) {
+    return {
+      resumen: { total: 0, cantidadPedidos: 0, ticketPromedio: 0, itemsVendidos: 0 },
+      porCategoria: [],
+      productosMasVendidos: [],
+      pedidos: [],
+    };
+  }
+  return obtenerVentas({ cajaSesionId: activa.id });
 };
 
 export const semana = () => {
   const ahora = new Date();
-  return obtenerVentas(inicioDeSemana(ahora), finDelDia(ahora));
+  const inicio = new Date(ahora);
+  inicio.setDate(inicio.getDate() - 6);
+  inicio.setHours(0, 0, 0, 0);
+  return obtenerVentas({ desde: inicio, hasta: finDelDia(ahora) });
 };
 
 export const mes = () => {
   const ahora = new Date();
-  return obtenerVentas(inicioDeMes(ahora), finDelDia(ahora));
+  return obtenerVentas({ desde: inicioDeMes(ahora), hasta: finDelDia(ahora) });
 };

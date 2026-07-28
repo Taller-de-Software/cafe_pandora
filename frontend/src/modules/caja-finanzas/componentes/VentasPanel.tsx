@@ -30,9 +30,19 @@ const QUERIES: Record<Periodo, { key: string[]; fn: () => Promise<VentasResponse
 }
 
 function getSubtitulo(periodo: Periodo): string {
-  if (periodo === 'dia') return new Date().toLocaleDateString()
-  if (periodo === 'semana') return 'Semana actual'
-  return new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+  const hoy = new Date()
+  if (periodo === 'dia') {
+    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+    return `${inicio.toLocaleDateString('es-CO')} — ${hoy.toLocaleDateString('es-CO')}`
+  }
+  if (periodo === 'semana') {
+    const inicio = new Date(hoy)
+    inicio.setDate(inicio.getDate() - 6)
+    inicio.setHours(0, 0, 0, 0)
+    return `${inicio.toLocaleDateString('es-CO')} — ${hoy.toLocaleDateString('es-CO')}`
+  }
+  const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+  return `${inicio.toLocaleDateString('es-CO')} — ${hoy.toLocaleDateString('es-CO')}`
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -73,13 +83,12 @@ function VentasPanel({ periodo }: { periodo: Periodo }) {
   const maxCatTotal = Math.max(...porCategoria.map((c) => c.total), 1)
 
   function facturaDesdeVenta(p: VentaDetalle): ResumenFactura {
-    const subtotal = p.detalles.reduce((s, d) => s + d.precio * d.cantidad, 0)
     return {
       id: p.id,
       total: p.total,
-      subtotal,
-      impuestoConsumo: p.total - subtotal,
-      propina: 0,
+      subtotal: p.subtotal,
+      impuestoConsumo: p.impuestoConsumo,
+      propina: p.propina,
       creadoEn: p.fechaPago ?? '',
       metodoPago: p.metodoPago,
       pedido: {

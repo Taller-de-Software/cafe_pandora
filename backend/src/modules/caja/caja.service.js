@@ -1,4 +1,12 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import prisma from "../../config/db.config.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const COCINA_DIR = path.join(__dirname, "../../../../uploads/cocina");
+const FACTURAS_DIR = path.join(__dirname, "../../../../uploads/facturas");
 
 function crearError(statusCode, message) {
   const error = new Error(message);
@@ -74,6 +82,17 @@ export const cierre = async (id) => {
       netoCajon,
     },
     include: { retiros: true },
+  });
+
+  [COCINA_DIR, FACTURAS_DIR].forEach((dir) => {
+    if (fs.existsSync(dir)) {
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        if (file.endsWith(".pdf")) {
+          fs.unlinkSync(path.join(dir, file));
+        }
+      }
+    }
   });
 
   const desglosePorMetodoPago = {};
