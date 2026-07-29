@@ -39,7 +39,7 @@ export const obtenerConfigImpresion = async () => {
         printerSerialPort: null,
         printerBaudRate: 9600,
         printerEncoding: "CP858",
-        frontendPort: 5173,
+        frontendPort: 3001,
       };
     }
     return {
@@ -70,7 +70,7 @@ export const obtenerConfigImpresion = async () => {
       printerSerialPort: null,
       printerBaudRate: 9600,
       printerEncoding: "CP858",
-      frontendPort: 5173,
+      frontendPort: 3001,
       lastWorkingMethod: null,
       lastWorkingDevice: null,
     };
@@ -168,10 +168,10 @@ export const guardarPrinterConfig = async (data) => {
 export const obtenerFrontendPort = async () => {
   try {
     const config = await prisma.configuracion.findFirst();
-    return { frontendPort: config?.frontendPort ?? 5173 };
+    return { frontendPort: config?.frontendPort ?? 3001 };
   } catch (err) {
     console.error("Error reading frontend port, returning default:", err.message);
-    return { frontendPort: 5173 };
+    return { frontendPort: 3001 };
   }
 };
 
@@ -222,8 +222,8 @@ export const guardarPreferredInterface = async (name) => {
 const DEFAULT_CONFIG = {
   serverHost: "0.0.0.0",
   serverPort: 3001,
-  frontendPort: 5173,
-  corsOrigins: "http://localhost:5173,http://localhost:3000",
+  frontendPort: 3001,
+  corsOrigins: "http://localhost:3001,http://localhost:3000",
   sessionTtlMin: 600,
   pinMaxAttempts: 5,
   pinLockoutMin: 15,

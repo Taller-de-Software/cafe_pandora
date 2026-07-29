@@ -3,3 +3,7 @@ uploads/facturas/*
 
 uploads/cocina/*
 !uploads/cocina/.gitkeep
+
+node_modules/
+
+dist/
