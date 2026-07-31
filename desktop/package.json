@@ -49,6 +49,7 @@
       "output": "release"
     },
     "asar": true,
+    "npmRebuild": false,
     "files": [
       "main.cjs",
       "preload.cjs",
