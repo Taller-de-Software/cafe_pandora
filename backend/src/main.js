@@ -145,11 +145,19 @@ app.use("/api/reservas", reservasRoutes);
 app.use("/api/diagnostico", diagnosticoRoutes);
 app.use("/api/red", redRoutes);
 
-app.use("/uploads", express.static(path.join(__dirname, "../../uploads"), {
+const uploadsPath = process.env.UPLOADS_DIR || path.join(__dirname, "../../uploads");
+app.use("/uploads", express.static(uploadsPath, {
   setHeaders(res) {
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   },
 }));
+
+const frontendDist = path.join(__dirname, "../../frontend/dist");
+app.use(express.static(frontendDist));
+
+app.get(/^\/(?!api|uploads).*/, (req, res) => {
+  res.sendFile(path.join(frontendDist, "index.html"));
+});
 
 app.use((req, res) => {
   res.status(404).json({

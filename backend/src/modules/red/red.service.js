@@ -62,10 +62,10 @@ export const obtenerNetworkInfo = async () => {
   const port = getServerPort();
   const ip = preferred?.address || interfaces.find((i) => !i.internal)?.address || hostname;
 
-  let frontendPort = 5173;
+  let frontendPort = 3001;
   try {
     const config = await prisma.configuracion.findFirst();
-    frontendPort = config?.frontendPort ?? 5173;
+    frontendPort = config?.frontendPort ?? 3001;
   } catch {}
 
   return {
