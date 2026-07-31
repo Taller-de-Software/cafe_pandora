@@ -1,14 +1,12 @@
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
 import prisma from "../../config/db.config.js";
 import { printPago, getLastError } from "../../services/printer/index.js";
 import { ESTADOS_PEDIDO, ESTADOS_MESA } from "../../config/constants.js";
 import { leerModoImpresion } from "../../config/print-config.js";
+import { resolveUpload } from "../../config/paths.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const FACTURAS_DIR = path.join(__dirname, "../../../../uploads/facturas");
+const FACTURAS_DIR = resolveUpload("facturas");
 
 function scanComprobanteRuta(id) {
   if (!fs.existsSync(FACTURAS_DIR)) return null;

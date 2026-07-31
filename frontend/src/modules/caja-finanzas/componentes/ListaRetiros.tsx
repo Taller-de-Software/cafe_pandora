@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
 import type { Retiro } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
 import styles from './ListaRetiros.module.css'

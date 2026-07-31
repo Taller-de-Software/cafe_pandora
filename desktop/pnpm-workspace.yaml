@@ -1,0 +1,10 @@
+nodeLinker: hoisted
+allowBuilds:
+  '@plantae-tech/inkpresser': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@ssxv/node-printer': true
+  electron: true
+  electron-winstaller: true
+  prisma: true
+  usb: true

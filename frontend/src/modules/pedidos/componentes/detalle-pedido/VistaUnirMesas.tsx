@@ -6,8 +6,6 @@ interface VistaUnirMesasProps {
   onSeleccionarMesa: (nombre: string) => void
   onVolver: () => void
   mesaNombre: string
-  isPending: boolean
-  onConfirmar: () => void
 }
 
 export default function VistaUnirMesas({
@@ -16,8 +14,6 @@ export default function VistaUnirMesas({
   onSeleccionarMesa,
   onVolver,
   mesaNombre,
-  isPending,
-  onConfirmar,
 }: VistaUnirMesasProps) {
   return (
     <>

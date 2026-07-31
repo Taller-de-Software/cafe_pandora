@@ -126,10 +126,11 @@ function ServidorSection() {
   })
 
   function copyUrl() {
-    if (!info?.frontendUrl) return
+    const url = info?.frontendUrl ?? ''
+    if (!url) return
 
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(info.frontendUrl)
+      navigator.clipboard.writeText(url)
         .then(() => showSuccess('URL copiada al portapapeles'))
         .catch(fallbackCopy)
     } else {
@@ -139,7 +140,7 @@ function ServidorSection() {
     function fallbackCopy() {
       try {
         const textarea = document.createElement('textarea')
-        textarea.value = info.frontendUrl
+        textarea.value = url
         textarea.style.position = 'fixed'
         textarea.style.opacity = '0'
         textarea.style.pointerEvents = 'none'

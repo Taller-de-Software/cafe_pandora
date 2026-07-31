@@ -4,11 +4,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import path from "path";
 import os from "os";
-import { fileURLToPath } from "url";
 import { getNetworkInterfaces, getServerPort } from "./config/network.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { UPLOADS_DIR } from "./config/paths.js";
 
 import authRoutes from "./modules/auth/auth.routes.js";
 import usuariosRoutes from "./modules/usuarios/usuarios.routes.js";
@@ -145,11 +142,19 @@ app.use("/api/reservas", reservasRoutes);
 app.use("/api/diagnostico", diagnosticoRoutes);
 app.use("/api/red", redRoutes);
 
-app.use("/uploads", express.static(path.join(__dirname, "../../uploads"), {
+app.use("/uploads", express.static(UPLOADS_DIR, {
   setHeaders(res) {
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   },
 }));
+
+const publicDir = process.env.PUBLIC_DIR;
+if (publicDir) {
+  app.use(express.static(publicDir));
+  app.get(/^\/(?!api\/|uploads\/|socket\.io).*/, (req, res) => {
+    res.sendFile(path.join(publicDir, "index.html"));
+  });
+}
 
 app.use((req, res) => {
   res.status(404).json({

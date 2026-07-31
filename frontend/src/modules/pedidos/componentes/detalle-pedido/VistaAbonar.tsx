@@ -12,10 +12,7 @@ interface VistaAbonarProps {
   totalAbonado: number
   saldoPendiente: number
   montoError: string
-  onConfirmar: () => void
   onVolver: () => void
-  isPending: boolean
-  disabled: boolean
 }
 
 export default function VistaAbonar({
@@ -28,18 +25,13 @@ export default function VistaAbonar({
   totalAbonado,
   saldoPendiente,
   montoError,
-  onConfirmar,
   onVolver,
-  isPending,
-  disabled,
 }: VistaAbonarProps) {
   const recibido = useFormattedInput({ type: 'money', initialValue: String(montoIngresado) })
 
   useEffect(() => {
     setMontoIngresado(recibido.numericValue)
   }, [recibido.numericValue, setMontoIngresado])
-
-  const montoValido = montoIngresado > 0 && montoIngresado <= saldoPendiente && metodoPagoAbono !== null
 
   return (
     <>

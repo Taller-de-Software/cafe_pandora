@@ -9,9 +9,6 @@ interface VistaSepararCuentaProps {
   onAsignarCuenta: (nombre: string, cuenta: number) => void
   onAgregarCuenta: () => void
   onVolver: () => void
-  hayMovimiento: boolean
-  isPending: boolean
-  onConfirmar: () => void
 }
 
 export default function VistaSepararCuenta({
@@ -22,9 +19,6 @@ export default function VistaSepararCuenta({
   onAsignarCuenta,
   onAgregarCuenta,
   onVolver,
-  hayMovimiento,
-  isPending,
-  onConfirmar,
 }: VistaSepararCuentaProps) {
   return (
     <>

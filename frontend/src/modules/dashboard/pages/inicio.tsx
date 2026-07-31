@@ -2,7 +2,7 @@ import { useAuth } from '@modules/auth/context/useAuth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { listarPedidos, cambiarEstado, cancelarPedido } from '@modules/pedidos/data/pedidos'
-import type { EstadoPedido } from '@modules/pedidos/data/pedidos'
+import type { Pedido, EstadoPedido } from '@modules/pedidos/data/pedidos'
 import { useError } from '@/context/ErrorContext'
 import { usePedidosSocket } from '@/hooks/usePedidosSocket'
 import ColaDeComandasPendientes from '@modules/pedidos/componentes/ColaDeComandasPendientes'
@@ -15,11 +15,13 @@ function Inicio() {
   const { showError, showSuccess } = useError()
   const queryClient = useQueryClient()
 
-  const { data: pedidos = [], isLoading, isError } = useQuery({
+  const { data: pedidos = [], isLoading, isError } = useQuery<Pedido[]>({
     queryKey: ['pedidos-activos'],
-    queryFn: () => listarPedidos(),
+    queryFn: () => listarPedidos().catch((e) => {
+      showError(e)
+      throw e
+    }),
     refetchInterval: 10_000,
-    onError: showError,
   })
 
   const cambiarEstadoMut = useMutation({

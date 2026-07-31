@@ -1,4 +1,4 @@
-import { Wallet, ArrowDownCircle, ArrowUpCircle, TrendingUp, CircleDollarSign } from 'lucide-react'
+import { Wallet } from 'lucide-react'
 import type { CajaSesion } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
 import styles from './EstadoCaja.module.css'

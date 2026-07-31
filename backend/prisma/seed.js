@@ -1,11 +1,10 @@
 import { PrismaClient } from '@prisma/client'
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import { pathToFileURL } from 'url'
+import { resolveUpload } from '../src/config/paths.js'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const PRODUCTOS_DIR = path.resolve(__dirname, '../../uploads/productos')
+const PRODUCTOS_DIR = resolveUpload('productos')
 
 const prisma = new PrismaClient()
 
@@ -291,7 +290,7 @@ const categorias = [
 // FUNCIÓN PRINCIPAL
 // ============================================================
 
-async function main() {
+export async function seed() {
   let catsCreadas = 0
   let subcatsCreadas = 0
   let prodsCreados = 0
@@ -368,10 +367,13 @@ async function main() {
   console.log('========================================')
 }
 
-main()
-  .catch((e) => {
-    console.error('Error en seed de catálogo:', e)
-    process.exit(1)
-  })
-  .finally(() => prisma.$disconnect())
-  
+const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
+
+if (isDirectRun) {
+  seed()
+    .catch((e) => {
+      console.error('Error en seed de catálogo:', e)
+      process.exit(1)
+    })
+    .finally(() => prisma.$disconnect())
+}

@@ -1,12 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import prisma from "../../config/db.config.js";
+import { resolveUpload } from "../../config/paths.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const COCINA_DIR = path.join(__dirname, "../../../../uploads/cocina");
-const FACTURAS_DIR = path.join(__dirname, "../../../../uploads/facturas");
+const COCINA_DIR = resolveUpload("cocina");
+const FACTURAS_DIR = resolveUpload("facturas");
 
 function crearError(statusCode, message) {
   const error = new Error(message);

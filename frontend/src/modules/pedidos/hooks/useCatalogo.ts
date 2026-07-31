@@ -2,9 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { listarCategorias } from '../../menu/api/categorias'
 import { listarSubcategorias } from '../../menu/api/subcategorias'
 import { listarProductos } from '../../menu/api/productos'
-import type { Categoria } from '../../menu/api/categorias'
-import type { Subcategoria } from '../../menu/api/subcategorias'
-import type { Producto } from '../../menu/api/productos'
 
 interface UseCatalogoOptions {
   categoriaActivaId: number | null

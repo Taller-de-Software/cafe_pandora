@@ -47,7 +47,7 @@ export function ErrorProvider({ children }: { children: ReactNode }) {
   return (
     <ErrorContext.Provider value={{ showError, showSuccess, showInfo, showWarning }}>
       {children}
-      {error && createPortal(
+      {!!error && createPortal(
         <ErrorModal error={error} onClose={() => setError(null)} />,
         document.body
       )}

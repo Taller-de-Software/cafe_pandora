@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarUsuarios, actualizarUsuario, eliminarUsuario } from '../data/usuarios'
-import type { Usuario } from '../data/usuarios'
+import type { Usuario, ActualizarUsuarioRequest } from '../data/usuarios'
 import { useError } from '@/context/ErrorContext'
 import ConfirmModal from '@/componentes/ConfirmModal'
 import styles from './usuarios.module.css'
@@ -21,7 +21,7 @@ function Usuarios() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { nombre?: string; rol?: string; pin?: string } }) =>
+    mutationFn: ({ id, data }: { id: number; data: ActualizarUsuarioRequest }) =>
       actualizarUsuario(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] })
@@ -55,7 +55,7 @@ function Usuarios() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!editUser) return
-    const data: { nombre?: string; rol?: string; pin?: string } = {}
+    const data: ActualizarUsuarioRequest = {}
     if (nombre.trim()) data.nombre = nombre.trim()
     data.rol = rol
     if (pin) data.pin = pin

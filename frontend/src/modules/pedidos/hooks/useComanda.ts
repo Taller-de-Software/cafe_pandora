@@ -3,10 +3,9 @@ import type { ItemComanda } from '../types/tipos-comanda'
 
 interface UseComandaOptions {
   initialItems?: ItemComanda[]
-  onChange?: (items: ItemComanda[]) => void
 }
 
-export function useComanda({ initialItems = [], onChange }: UseComandaOptions = {}) {
+export function useComanda({ initialItems = [] }: UseComandaOptions = {}) {
   const [items, setItems] = useState<ItemComanda[]>(initialItems)
 
   const addItem = useCallback((producto: { id: number; nombre: string; precio: number }) => {

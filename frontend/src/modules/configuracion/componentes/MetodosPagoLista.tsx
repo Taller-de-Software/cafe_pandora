@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarMetodosPago, crearMetodoPago, actualizarMetodoPago, eliminarMetodoPago } from '../data/metodos-pago'
-import type { MetodoPago } from '../data/metodos-pago'
+import type { MetodoPago } from '@/types/metodo-pago'
 import { useError } from '@/context/ErrorContext'
 import ConfirmModal from '@/componentes/ConfirmModal'
 import styles from './MetodosPagoLista.module.css'

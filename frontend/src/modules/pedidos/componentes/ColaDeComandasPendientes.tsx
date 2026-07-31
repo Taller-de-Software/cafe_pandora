@@ -71,10 +71,6 @@ function ColaDeComandasPendientes({ pedidos, onCancelar, onCambiarEstado, emptyM
     onCambiarEstado(id, 'hecho')
   }
 
-  const handleMarcarFinalizado = (id: string) => {
-    onCambiarEstado(id, 'finalizado')
-  }
-
   const renderActions = (pedido: Pedido) => {
     if (!isAdmin) return null
     switch (pedido.estado) {

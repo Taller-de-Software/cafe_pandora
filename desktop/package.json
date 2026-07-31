@@ -1,0 +1,97 @@
+{
+  "name": "cafe-pandora-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cafe Pandora POS - aplicacion de escritorio (Electron)",
+  "main": "main.cjs",
+  "scripts": {
+    "build:frontend": "pnpm --dir ../frontend build",
+    "prisma:generate": "node scripts/prepare-schema.cjs && prisma generate --schema prisma/schema.prisma",
+    "dev": "pnpm build:frontend && electron .",
+    "dist": "pnpm build:frontend && pnpm prisma:generate && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "@plantae-tech/inkpresser": "^1.2.4",
+    "@prisma/client": "^6.19.3",
+    "@ssxv/node-printer": "^1.1.1",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.3.0",
+    "iconv-lite": "^0.6.3",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "pdfkit": "^0.19.1",
+    "pngjs": "^7.0.0",
+    "prisma": "^6.19.3",
+    "socket.io": "^4.8.1",
+    "usb": "^3.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.cafepandora.pos",
+    "productName": "Cafe Pandora",
+    "directories": {
+      "output": "release"
+    },
+    "asar": true,
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "package.json",
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!**/node_modules/**",
+          "!**/.env*",
+          "!**/*.dockerignore",
+          "!**/Dockerfile*",
+          "!**/test*",
+          "!**/*.md",
+          "!**/scripts/**",
+          "!**/.gitignore",
+          "!**/.npmrc",
+          "!**/pnpm-lock.yaml",
+          "!**/pnpm-workspace.yaml"
+        ]
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "frontend"
+      },
+      {
+        "from": "../uploads/productos",
+        "to": "uploads/productos"
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/.prisma/**",
+      "node_modules/@prisma/**",
+      "node_modules/prisma/**",
+      "node_modules/usb/**",
+      "node_modules/@ssxv/node-printer/**",
+      "node_modules/@plantae-tech/inkpresser/**"
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Cafe Pandora",
+      "deleteAppDataOnUninstall": false,
+      "include": "installer/firewall.nsh"
+    }
+  }
+}

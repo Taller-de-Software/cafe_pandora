@@ -1,4 +1,4 @@
-import type { Pedido, DetallePedido } from '../data/pedidos'
+import type { Pedido } from '../data/pedidos'
 
 export function formatPrecio(valor: number | undefined): string {
   if (valor == null || isNaN(valor)) return '—'

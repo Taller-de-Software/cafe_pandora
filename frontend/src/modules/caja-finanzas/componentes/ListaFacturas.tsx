@@ -1,4 +1,3 @@
-import { Receipt } from 'lucide-react'
 import type { ResumenFactura } from '../data/caja'
 import { formatearNumero } from '@/utils/formatear'
 import styles from './ListaFacturas.module.css'

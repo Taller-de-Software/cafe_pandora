@@ -6,8 +6,6 @@ interface VistaCambiarMesaProps {
   onSeleccionarMesa: (nombre: string) => void
   onVolver: () => void
   mesaNombre: string
-  isPending: boolean
-  onConfirmar: () => void
 }
 
 export default function VistaCambiarMesa({
@@ -16,8 +14,6 @@ export default function VistaCambiarMesa({
   onSeleccionarMesa,
   onVolver,
   mesaNombre,
-  isPending,
-  onConfirmar,
 }: VistaCambiarMesaProps) {
   const mesasValidas = mesasDisponibles.filter((m) => m.nombre !== mesaNombre && m.estado !== 'fuera_de_servicio')
 

@@ -17,9 +17,6 @@ interface VistaAgregarQuitarProps {
   onAgregarProducto: (producto: Producto) => void
   onQuitarProducto: (nombre: string) => void
   onVolver: () => void
-  hasChanges: boolean
-  isPending: boolean
-  onConfirmar: () => void
 }
 
 export default function VistaAgregarQuitar({
@@ -36,9 +33,6 @@ export default function VistaAgregarQuitar({
   onAgregarProducto,
   onQuitarProducto,
   onVolver,
-  hasChanges,
-  isPending,
-  onConfirmar,
 }: VistaAgregarQuitarProps) {
   return (
     <>

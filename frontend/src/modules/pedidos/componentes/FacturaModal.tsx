@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import type { Pedido } from '../data/pedidos'
 import { listarMetodosPago, crearFactura, imprimirFactura, obtenerSesionCajaActiva } from '../data/facturas'
-import type { MetodoPago } from '../data/facturas'
+import type { MetodoPago } from '@/types/metodo-pago'
 import { useError } from '@/context/ErrorContext'
 import { useFormattedInput } from '@/hooks/useFormattedInput'
 import styles from './FacturaModal.module.css'
@@ -46,16 +46,20 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
   const [cobrarImpuesto, setCobrarImpuesto] = useState(false)
   const [cobrarPropina, setCobrarPropina] = useState(false)
 
-  const { data: metodosPago = [], isPending: metodosLoading } = useQuery({
+  const { data: metodosPago = [], isPending: metodosLoading } = useQuery<MetodoPago[]>({
     queryKey: ['metodos-pago'],
-    queryFn: listarMetodosPago,
-    onError: showError,
+    queryFn: () => listarMetodosPago().catch((e) => {
+      showError(e)
+      throw e
+    }),
   })
 
-  const { data: sesionCaja } = useQuery({
+  const { data: sesionCaja } = useQuery<{ id: number } | null>({
     queryKey: ['sesion-caja-activa'],
-    queryFn: obtenerSesionCajaActiva,
-    onError: showError,
+    queryFn: () => obtenerSesionCajaActiva().catch((e) => {
+      showError(e)
+      throw e
+    }),
   })
 
   useEffect(() => {
@@ -227,7 +231,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
             <p className={styles.emptyMsg}>No hay métodos de pago configurados</p>
           ) : (
             <div className={styles.metodosGrid}>
-              {metodosUnicos.map((m) => (
+              {metodosUnicos.map((m: MetodoPago) => (
                 <button
                   key={m.id}
                   className={`${styles.metodoCard} ${metodoSeleccionado?.nombre === m.nombre ? styles.metodoActivo : ''}`}
@@ -247,7 +251,7 @@ function FacturaModal({ pedido, onClose }: FacturaModalProps) {
           <div className={styles.section}>
             <span className={styles.sectionTitle}>ENTIDAD DE TRANSFERENCIA</span>
             <div className={styles.entidadGrid}>
-              {transferenciaEntidades.map((m) => (
+              {transferenciaEntidades.map((m: MetodoPago) => (
                 <button
                   key={m.id}
                   className={`${styles.entidadCard} ${metodoSeleccionId === m.id ? styles.entidadActiva : ''}`}

@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { Pedido, EstadoPedido } from '../../data/pedidos'
+import type { Pedido } from '../../data/pedidos'
 import type { Subcategoria } from '@modules/menu/api/subcategorias'
 import type { Producto } from '@modules/menu/api/productos'
 import {
   listarMesas,
-  cambiarEstado,
   actualizarItemsPedido,
   separarCuentaPedido,
   unirMesasPedido,
@@ -44,17 +43,6 @@ interface Accion {
 export function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   const { showError, showWarning, showSuccess } = useError()
   const queryClient = useQueryClient()
-
-  const cambiarEstadoMut = useMutation({
-    mutationFn: ({ id, estado }: { id: number; estado: EstadoPedido }) => cambiarEstado(id, estado),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
-      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
-      queryClient.invalidateQueries({ queryKey: ['mesas'] })
-      showSuccess('Estado del pedido actualizado')
-    },
-    onError: (err) => showError(err),
-  })
 
   const actualizarItemsMut = useMutation({
     mutationFn: ({ id, items, nuevoEstado }: { id: number; items: { productoId: number; cantidad: number }[]; nuevoEstado?: string }) =>
@@ -541,9 +529,6 @@ const confirmarUnion = useCallback(() => {
               onAgregarProducto={agregarProducto}
               onQuitarProducto={quitarProducto}
               onVolver={volverAcciones}
-              hasChanges={hasChanges}
-              isPending={isPending}
-              onConfirmar={confirmarCambios}
             />
           )}
 
@@ -556,9 +541,6 @@ const confirmarUnion = useCallback(() => {
               onAsignarCuenta={asignarCuenta}
               onAgregarCuenta={agregarCuenta}
               onVolver={volverAcciones}
-              hayMovimiento={hayMovimiento}
-              isPending={isPending}
-              onConfirmar={confirmarSeparar}
             />
           )}
 
@@ -569,8 +551,6 @@ const confirmarUnion = useCallback(() => {
               onSeleccionarMesa={seleccionarMesa}
               onVolver={volverAcciones}
               mesaNombre={mesaNombre}
-              isPending={isPending}
-              onConfirmar={confirmarUnion}
             />
           )}
 
@@ -581,8 +561,6 @@ const confirmarUnion = useCallback(() => {
               onSeleccionarMesa={seleccionarMesa}
               onVolver={volverAcciones}
               mesaNombre={mesaNombre}
-              isPending={isPending}
-              onConfirmar={confirmarCambioMesa}
             />
           )}
 
@@ -597,10 +575,7 @@ const confirmarUnion = useCallback(() => {
               totalAbonado={totalAbonado}
               saldoPendiente={saldoPendiente}
               montoError={montoError}
-              onConfirmar={confirmarAbono}
               onVolver={volverAcciones}
-              isPending={isPending}
-              disabled={!montoValido}
             />
           )}
         </div>

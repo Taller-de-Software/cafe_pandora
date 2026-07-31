@@ -27,10 +27,11 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
   })
 
   useEffect(() => {
-    if (!resumen?.facturas.length) return
+    const facturas = resumen?.facturas ?? []
+    if (facturas.length === 0) return
     async function checkAll() {
       try {
-        const modeRes = await comprobanteDisponible(resumen.facturas[0].id)
+        const modeRes = await comprobanteDisponible(facturas[0].id)
         const modo = modeRes.modo
         setModoImpresion(modo)
         if (modo === 'real') {
@@ -38,10 +39,10 @@ function FacturacionPanel({ sesion }: FacturacionPanelProps) {
           return
         }
         const results = await Promise.allSettled(
-          resumen.facturas.map(f => comprobanteDisponible(f.id))
+          facturas.map(f => comprobanteDisponible(f.id))
         )
         const map: Record<number, boolean> = {}
-        resumen.facturas.forEach((f, i) => {
+        facturas.forEach((f, i) => {
           map[f.id] = results[i].status === 'fulfilled' ? results[i].value.disponible : false
         })
         setDisponibilidad(map)

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { listarMetodosPago } from '../data/facturas'
-import type { MetodoPago } from '@/types/metodo-pago'
 
 export function useSelectorMetodoPago() {
   const [metodoSeleccionId, setMetodoSeleccionId] = useState<number | null>(null)

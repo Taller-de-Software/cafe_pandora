@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { Pedido, EstadoPedido } from '../data/pedidos'
+import type { Pedido } from '../data/pedidos'
 import {
   listarMesas,
-  cambiarEstado,
   actualizarItemsPedido,
   separarCuentaPedido,
   unirMesasPedido,
@@ -97,17 +96,6 @@ function obtenerColumnaDestinoEnUso(asignaciones: Record<string, number>): numbe
 function DetallePedidoModal({ pedido, onClose }: DetallePedidoModalProps) {
   const { showError, showWarning, showSuccess } = useError()
   const queryClient = useQueryClient()
-
-  const cambiarEstadoApi = useMutation({
-    mutationFn: ({ id, estado }: { id: number; estado: EstadoPedido }) => cambiarEstado(id, estado),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pedidos-activos'] })
-      queryClient.invalidateQueries({ queryKey: ['mesas-completas'] })
-      queryClient.invalidateQueries({ queryKey: ['mesas'] })
-      showSuccess('Estado del pedido actualizado')
-    },
-    onError: (err) => showError(err),
-  })
 
   const actualizarItemsMut = useMutation({
     mutationFn: ({ id, items, nuevoEstado }: { id: number; items: { productoId: number; cantidad: number }[]; nuevoEstado?: string }) =>

@@ -6,18 +6,6 @@ function formatMoney(raw: string): string {
   return Number(digits).toLocaleString('es-CO')
 }
 
-function formatPhone(raw: string): string {
-  return raw.replace(/\D/g, '')
-}
-
-function formatPin(raw: string): string {
-  return raw.replace(/\D/g, '')
-}
-
-function formatNumber(raw: string): string {
-  return raw.replace(/\D/g, '')
-}
-
 interface UseFormattedInputOptions {
   type: 'money' | 'phone' | 'pin' | 'number'
   initialValue?: string

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listarPedidos, cambiarEstado, cancelarPedido } from '../data/pedidos'
-import type { Pedido, EstadoPedido } from '../data/pedidos'
+import type { EstadoPedido } from '../data/pedidos'
 import { useError } from '@/context/ErrorContext'
 import { useAuth } from '@modules/auth/context/useAuth'
 import ColaDeComandasPendientes from './ColaDeComandasPendientes'

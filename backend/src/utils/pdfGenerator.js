@@ -2,16 +2,13 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 import { PassThrough } from "stream";
-import { fileURLToPath } from "url";
 import PNG from "pngjs";
+import { resolveUpload, IMAGES_DIR } from "../config/paths.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const FACTURAS_DIR = path.join(__dirname, "../../../uploads/facturas");
-const COMANDAS_DIR = path.join(__dirname, "../../../uploads/cocina");
-const LOGO_PATH = path.join(__dirname, "../../../images/logo cafepandora sin fondo.png");
-const LOGO_CHICO_COMANDA_PATH = path.join(__dirname, "../../../images/image-Photoroom (1).png");
+const FACTURAS_DIR = resolveUpload("facturas");
+const COMANDAS_DIR = resolveUpload("cocina");
+const LOGO_PATH = path.join(IMAGES_DIR, "logo cafepandora sin fondo.png");
+const LOGO_CHICO_COMANDA_PATH = path.join(IMAGES_DIR, "image-Photoroom (1).png");
 
 const PAPER_WIDTH_PT = 226.77;
 const MARGIN_SIDE_PT = 10;

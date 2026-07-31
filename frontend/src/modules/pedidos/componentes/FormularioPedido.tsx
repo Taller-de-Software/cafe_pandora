@@ -57,6 +57,7 @@ function FormularioPedido({ onSave, onCancel }: FormularioPedidoProps) {
       await crearPedido({
         mesaId: Number(mesaId),
         turno,
+        nombreCliente: '',
         items: items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad, notas: i.notas || undefined })),
       })
       onSave()
