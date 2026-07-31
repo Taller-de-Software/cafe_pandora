@@ -3,12 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "description": "Cafe Pandora POS - aplicacion de escritorio (Electron)",
+  "author": "Cafe Pandora",
   "main": "main.cjs",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.3.0",
+      "onFail": "download"
+    }
+  },
   "scripts": {
     "build:frontend": "pnpm --dir ../frontend build",
     "prisma:generate": "node scripts/prepare-schema.cjs && prisma generate --schema prisma/schema.prisma",
     "dev": "pnpm build:frontend && electron .",
-    "dist": "pnpm build:frontend && pnpm prisma:generate && electron-builder --win nsis"
+    "dist": "node scripts/make-icon.cjs && pnpm build:frontend && pnpm prisma:generate && electron-builder --win nsis"
   },
   "dependencies": {
     "@plantae-tech/inkpresser": "^1.2.4",
@@ -45,6 +53,7 @@
       "main.cjs",
       "preload.cjs",
       "package.json",
+      "icons/**",
       {
         "from": "../backend",
         "to": "backend",
@@ -82,10 +91,10 @@
     ],
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
-      "icon": "icons/icon.ico"
+      "icon": "icons/icon.png"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": true,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,

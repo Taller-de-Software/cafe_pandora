@@ -211,7 +211,7 @@ function createWindow(port) {
     width: 1280,
     height: 800,
     autoHideMenuBar: true,
-    icon: app.isPackaged ? path.join(__dirname, 'icons', 'icon.ico') : undefined,
+    icon: app.isPackaged ? path.join(__dirname, 'icons', 'icon.png') : undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
