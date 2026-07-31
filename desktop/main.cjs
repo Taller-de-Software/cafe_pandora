@@ -62,6 +62,23 @@ function resolveQueryEngine() {
   }
 }
 
+function resolveSchemaEngine() {
+  const candidates = [path.join(__dirname, 'node_modules', '@prisma', 'engines')];
+  if (process.resourcesPath) {
+    candidates.unshift(
+      path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@prisma', 'engines'),
+    );
+  }
+  for (const enginesDir of candidates) {
+    try {
+      const files = fs.readdirSync(enginesDir);
+      const engine = files.find((f) => f.startsWith('schema-engine'));
+      if (engine) return path.join(enginesDir, engine);
+    } catch {}
+  }
+  return null;
+}
+
 function isPortFree(port) {
   return new Promise((resolve) => {
     const srv = net.createServer();
@@ -163,10 +180,12 @@ function runNodeScript(args, extraEnv = {}) {
 async function runMigrate(dbPath) {
   const schema = stageMigrations();
   const engine = resolveQueryEngine();
+  const schemaEngine = resolveSchemaEngine();
   log('[migrate] aplicando migraciones...');
   await runNodeScript([prismaCliPath(), 'migrate', 'deploy', '--schema', schema], {
     DATABASE_URL: `file:${dbPath}`,
     ...(engine ? { PRISMA_QUERY_ENGINE_LIBRARY: engine } : {}),
+    ...(schemaEngine ? { PRISMA_SCHEMA_ENGINE_BINARY: schemaEngine } : {}),
   });
   log('[migrate] migraciones aplicadas');
 }

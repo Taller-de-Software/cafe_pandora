@@ -4,3 +4,6 @@ dist/
 prisma/
 icons/
 *.log
+# Lockfile es por máquina/plataforma: cada plataforma genera el suyo en su pnpm install.
+# No versionarlo evita reusar entre SO un lockfile generado en otro.
+pnpm-lock.yaml
