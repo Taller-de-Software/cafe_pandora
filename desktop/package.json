@@ -16,7 +16,7 @@
     "build:frontend": "pnpm --dir ../frontend build",
     "prisma:generate": "prisma generate --schema ../backend/prisma/schema.prisma",
     "dev": "pnpm build:frontend && electron .",
-    "dist": "node -e \"require('node:fs').rmSync('release',{recursive:true,force:true})\" && node scripts/make-icon.cjs && pnpm build:frontend && pnpm prisma:generate && node scripts/prepare-win-engines.cjs && electron-builder --win nsis",
+    "dist": "node -e \"require('node:fs').rmSync('release',{recursive:true,force:true})\" && node scripts/make-icon.cjs && pnpm build:frontend && pnpm prisma:generate && electron-builder --win nsis",
     "dist:linux": "node -e \"require('node:fs').rmSync('release',{recursive:true,force:true})\" && node scripts/make-icon.cjs && pnpm build:frontend && pnpm prisma:generate && electron-builder --linux"
   },
   "dependencies": {
