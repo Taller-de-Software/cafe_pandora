@@ -75,7 +75,7 @@ docker compose up --build
 
 ## Base de datos
 
-Backend usa **Prisma** con MySQL. Para aplicar migraciones:
+Backend usa **Prisma** con SQLite. Para aplicar migraciones:
 
 ```bash
 cd backend
@@ -83,3 +83,55 @@ pnpm prisma:migrate
 pnpm prisma:generate
 pnpm run dev        # ejecuta migrate + generate automáticamente
 ```
+
+## Build / Instalador (desktop)
+
+La app de escritorio (Electron) empaqueta backend + frontend en un instalador
+NSIS (Windows) o AppImage (Linux).
+
+### Requisitos
+
+- Node.js >= 20 (se recomienda 22, ver `.nvmrc`)
+- pnpm >= 11
+
+### Windows (en una máquina Windows real)
+
+```powershell
+cd desktop
+pnpm install
+pnpm prisma:generate   # genera los engines nativos de Windows (PE)
+pnpm dist              # electron-builder --win nsis
+# release\Cafe Pandora Setup 1.0.0.exe
+```
+
+Asistente automatizado del Gate F: `desktop/scripts/gate-f-windows.ps1`.
+
+- [docs/BUILD.md](docs/BUILD.md) — arquitectura y decisiones del empaquetado.
+- [docs/GATE-F.md](docs/GATE-F.md) — checklist de validación final en Windows.
+
+### Linux (AppImage)
+
+```bash
+cd desktop
+pnpm install
+pnpm dist:linux
+# release/Cafe Pandora-1.0.0.AppImage
+```
+
+### Notas de build
+
+- **Los engines de Prisma son por plataforma.** El instalador debe construirse
+  en la misma plataforma donde se va a ejecutar; un build de Linux no sirve
+  para Windows. Si los engines salen mal en un `pnpm install` limpio, es un
+  bug de la config de Prisma.
+- **`desktop/pnpm-lock.yaml` no se versiona**: cada plataforma genera el suyo
+  en su `pnpm install`. No copiar `node_modules` entre dispositivos ni entre
+  SO. Los lockfiles de `backend/` y `frontend/` sí se versionan (JS puro).
+- **El instalador no está firmado**: Windows SmartScreen mostrará un aviso
+  («Más información > Ejecutar de todas formas»). Es esperado.
+- **Módulo LAN**: el servidor escucha en `0.0.0.0` y el instalador crea una
+  regla de firewall «Cafe Pandora» para acceder al POS desde la red local.
+- **Addons nativos** (`usb`, `@ssxv/node-printer`, `@plantae-tech/inkpresser`):
+  se descargan como prebuilds N-API y solo se cargan al imprimir/leer USB; el
+  núcleo del POS no los necesita para arrancar.
+

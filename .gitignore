@@ -3,3 +3,13 @@ uploads/facturas/*
 
 uploads/cocina/*
 !uploads/cocina/.gitkeep
+
+# Environment (secretos): no versionar, siempre fueron placeholders
+.env
+.env.*
+!.env.example
+
+# Dependencias y lockfiles de la raíz (cada subproyecto tiene el suyo)
+node_modules/
+package-lock.json
+pnpm-lock.yaml
