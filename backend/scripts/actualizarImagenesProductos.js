@@ -1,4 +1,5 @@
-﻿import { PrismaClient } from "@prisma/client";
+﻿import pkg from "../generated/prisma/default.js";
+const { PrismaClient } = pkg;
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
